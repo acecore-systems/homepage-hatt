@@ -1,0 +1,53 @@
+{
+  "name": "Hattのホームページ",
+  "description": "絵、小説、VRChat向け3Dアバター・ギミック制作をまとめるHattの個人サイトです。",
+  "icon": "/uploads/hatt/favicon.png",
+  "cover": "/uploads/hatt/site-cover.png",
+  "adsenseClientId": "ca-pub-3935803464310919",
+  "headerLinks": [
+    { "label": "ブログ", "href": "/blog/" },
+    { "label": "モデリング", "href": "/modeling/" },
+    { "label": "プロフィール", "href": "/profile/" },
+    { "label": "Acecore", "href": "https://acecore.net" }
+  ],
+  "socialLinks": [
+    { "label": "YouTube", "href": "https://www.youtube.com/@hatt9241" },
+    { "label": "X", "href": "https://x.com/borubin" },
+    { "label": "BOOTH", "href": "https://vetumheberehama.booth.pm/" }
+  ],
+  "homePillars": [
+    {
+      "id": "picture",
+      "label": "絵",
+      "eyebrow": "hatt homepage",
+      "title": "いろいろ描いてます",
+      "description": "キャラクターや世界観のメモを、記事や作品として残していく場所です。",
+      "href": "/blog/tag/picture/",
+      "cta": "記事を読む",
+      "image": "/uploads/hatt/hero-paint.jpg",
+      "tone": "cyan"
+    },
+    {
+      "id": "novel",
+      "label": "小説",
+      "eyebrow": "砂漠の少年",
+      "title": "いろいろ書いてます",
+      "description": "小説投稿サイトで公開している物語への入口と、創作まわりの記録をまとめます。",
+      "href": "https://ncode.syosetu.com/n9893go/",
+      "cta": "ページへ行く",
+      "image": "/uploads/hatt/novel-desert-boy.png",
+      "tone": "ember"
+    },
+    {
+      "id": "modeling",
+      "label": "モデリング",
+      "eyebrow": "VRChat向けオリジナル3Dアバター",
+      "title": "BOOTHで販売中",
+      "description": "アバター、ギミック、アクセサリー制作をYouTubeやBOOTHとつなげて紹介します。",
+      "href": "/modeling/",
+      "cta": "作品を見る",
+      "image": "/uploads/hatt/modeling-preview.png",
+      "tone": "mint"
+    }
+  ]
+}

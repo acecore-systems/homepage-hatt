@@ -1,0 +1,80 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getAuthors, getSiteConfig } from '@/utils/blog'
+import { externalAttrs } from '@/utils/routes'
+
+const site = await getSiteConfig()
+const [author] = await getAuthors()
+---
+
+<BaseLayout
+  title="プロフィール"
+  description="Hattの活動プロフィール。絵、小説、VRChat向け3Dアバター・ギミック制作の導線をまとめています。"
+>
+  <section class="page-hero">
+    <div class="narrow-page page-title">
+      <div>
+        <h1>プロフィール</h1>
+        <p class="lead">{author.data.bio}</p>
+      </div>
+      <img
+        src={author.data.avatar}
+        alt=""
+        width="84"
+        height="84"
+        style="border-radius: 16px;"
+      />
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="narrow-page profile-grid">
+      <article class="profile-card">
+        <h2>絵</h2>
+        <p>
+          キャラクターや世界観の絵を、ブログ記事や作品紹介として残していきます。
+        </p>
+        <a class="text-arrow" href="/blog/tag/picture/">
+          絵の記事へ
+          <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+        </a>
+      </article>
+      <article class="profile-card">
+        <h2>小説</h2>
+        <p>
+          「砂漠の少年」など、小説投稿サイトにある物語への導線をまとめます。
+        </p>
+        <a
+          class="text-arrow"
+          href="https://ncode.syosetu.com/n9893go/"
+          {...externalAttrs('https://ncode.syosetu.com/n9893go/')}
+        >
+          砂漠の少年へ
+          <span class="i-lucide-arrow-up-right" aria-hidden="true"></span>
+        </a>
+      </article>
+      <article class="profile-card">
+        <h2>モデリング</h2>
+        <p>
+          VRChat向けオリジナル3Dアバターやギミック制作を、YouTube・BOOTH・Xとつないで紹介します。
+        </p>
+        <a class="text-arrow" href="/modeling/">
+          モデリングを見る
+          <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+        </a>
+      </article>
+      <article class="profile-card">
+        <h2>外部リンク</h2>
+        <div class="social-row">
+          {
+            author.data.links.map((link) => (
+              <a href={link.href} {...externalAttrs(link.href)}>
+                {link.label}
+              </a>
+            ))
+          }
+        </div>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

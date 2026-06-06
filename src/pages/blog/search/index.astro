@@ -1,0 +1,87 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="記事を検索"
+  description="Hattのブログ記事をキーワードで検索できます。"
+>
+  <section class="page-hero">
+    <div class="narrow-page">
+      <h1>記事を検索</h1>
+      <p class="lead">絵、小説、モデリングの記事を検索できます。</p>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="narrow-page search-box">
+      <form class="search-form" id="search-form">
+        <label class="sr-only" for="search-input">検索キーワード</label>
+        <input
+          id="search-input"
+          name="q"
+          type="search"
+          placeholder="キーワードを入力..."
+          autocomplete="off"
+        />
+        <button class="primary-button" type="submit">
+          検索
+          <span class="i-lucide-search" aria-hidden="true"></span>
+        </button>
+      </form>
+      <div class="search-results" id="search-results" aria-live="polite">
+        <p class="empty-state">キーワードを入力してください。</p>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    const form = document.querySelector('#search-form')
+    const input = document.querySelector('#search-input')
+    const results = document.querySelector('#search-results')
+
+    async function runSearch(query) {
+      results.innerHTML = '<p class="empty-state">検索を読み込んでいます...</p>'
+      try {
+        const pagefind = await import(
+          /* @vite-ignore */ '/pagefind/pagefind.js'
+        )
+        const search = await pagefind.search(query)
+        const rows = await Promise.all(
+          search.results.slice(0, 10).map((result) => result.data()),
+        )
+
+        if (rows.length === 0) {
+          results.innerHTML =
+            '<p class="empty-state">一致する記事が見つかりませんでした。</p>'
+          return
+        }
+
+        results.innerHTML = rows
+          .map(
+            (row) => `
+              <a class="search-result" href="${row.url}">
+                <h2>${row.meta.title}</h2>
+                <p>${row.excerpt}</p>
+              </a>
+            `,
+          )
+          .join('')
+      } catch {
+        results.innerHTML =
+          '<p class="empty-state">検索インデックスはビルド後に有効になります。ブログ一覧もお試しください。</p>'
+      }
+    }
+
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault()
+      const query = input?.value?.trim()
+      if (!query) {
+        results.innerHTML =
+          '<p class="empty-state">キーワードを入力してください。</p>'
+        return
+      }
+      runSearch(query)
+    })
+  </script>
+</BaseLayout>

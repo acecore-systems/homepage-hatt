@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hatt.acecore.net/sitemap-index.xml
+

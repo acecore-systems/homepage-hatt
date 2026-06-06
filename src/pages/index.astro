@@ -1,0 +1,198 @@
+---
+import ArticleCard from '@/components/ArticleCard.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import {
+  getArchiveStats,
+  getPosts,
+  getSiteConfig,
+  getTagMap,
+  getTagStats,
+} from '@/utils/blog'
+import { externalAttrs } from '@/utils/routes'
+
+const site = await getSiteConfig()
+const posts = await getPosts()
+const tagMap = await getTagMap()
+const tagStats = await getTagStats()
+const archiveStats = await getArchiveStats()
+const latestPosts = posts.slice(0, 2)
+const modelingLinks = [
+  { label: 'BOOTHで販売中', href: 'https://vetumheberehama.booth.pm/' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@hatt9241' },
+  { label: 'X', href: 'https://x.com/borubin' },
+]
+---
+
+<BaseLayout
+  title={site.name}
+  description={site.description}
+  image={site.cover}
+  pageClass="home-page"
+>
+  <section class="home-hero">
+    <div class="section-inner">
+      <div class="home-hero-top">
+        <div class="home-hero-copy">
+          <p>いろいろ作って、いろいろ残していく場所。</p>
+          <div class="button-row">
+            <a class="primary-button" href="/blog/">
+              記事を読む
+              <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+            </a>
+            <a class="secondary-button" href="/modeling/">
+              ページへ行く
+              <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+            </a>
+          </div>
+        </div>
+        <h1>{site.name}</h1>
+        <div class="home-hero-sketch" aria-hidden="true">
+          <img src="/uploads/hatt/novel-desert-boy.png" alt="" />
+        </div>
+      </div>
+
+      <div class="home-pillar-board" aria-label="3つの制作軸">
+        {
+          site.homePillars.map((pillar) => (
+            <article class={`home-pillar home-pillar--${pillar.id}`}>
+              <div class="home-pillar-head">
+                <span class="home-pillar-icon" aria-hidden="true">
+                  <span
+                    class={
+                      pillar.id === 'picture'
+                        ? 'i-lucide-brush'
+                        : pillar.id === 'novel'
+                          ? 'i-lucide-book-open'
+                          : 'i-lucide-box'
+                    }
+                  />
+                </span>
+                <div>
+                  <h2>{pillar.label}</h2>
+                  <p>{pillar.eyebrow}</p>
+                </div>
+              </div>
+              <div class="home-pillar-image">
+                <img src={pillar.image} alt="" />
+              </div>
+              <div class="home-pillar-body">
+                <h3>{pillar.title}</h3>
+                <p>{pillar.description}</p>
+                {pillar.id === 'modeling' ? (
+                  <div class="home-pillar-actions">
+                    {modelingLinks.map((link) => (
+                      <a href={link.href} {...externalAttrs(link.href)}>
+                        {link.label}
+                        <span
+                          class="i-lucide-arrow-up-right"
+                          aria-hidden="true"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <a
+                    class="home-pillar-button"
+                    href={pillar.href}
+                    {...externalAttrs(pillar.href)}
+                  >
+                    {pillar.cta}
+                    <span class="i-lucide-arrow-right" aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="home-modeling-strip" aria-labelledby="modeling-title">
+    <div class="section-inner">
+      <div class="home-modeling-copy">
+        <h2 id="modeling-title">モデリングも、しっかり活動中。</h2>
+        <p>
+          VRChat向けのアバターやギミックを制作しています。制作の様子や使い方はYouTube、販売導線はBOOTHへ。
+        </p>
+      </div>
+      <div class="home-modeling-gallery">
+        <img src="/uploads/hatt/modeling-preview.png" alt="" loading="lazy" />
+        <img src="/uploads/hatt/modeling-preview.png" alt="" loading="lazy" />
+        <img src="/uploads/hatt/modeling-preview.png" alt="" loading="lazy" />
+      </div>
+      <div class="home-modeling-stats" aria-label="モデリング活動の概要">
+        <div>
+          <span>アバター</span>
+          <strong>9種</strong>
+        </div>
+        <div>
+          <span>ギミック</span>
+          <strong>5種</strong>
+        </div>
+        <div>
+          <span>BOOTHで公開中</span>
+          <strong>全14商品</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-latest" aria-labelledby="latest-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="latest-title">最新の記事</h2>
+        </div>
+        <a class="chip-link" href="/blog/">すべての記事を見る</a>
+      </div>
+      <div class="home-latest-layout">
+        <div class="article-grid">
+          {
+            latestPosts.map((post) => (
+              <ArticleCard post={post} tagMap={tagMap} compact />
+            ))
+          }
+        </div>
+        <aside class="home-latest-side" aria-label="ブログナビゲーション">
+          <section>
+            <div>
+              <h3>タグ</h3>
+              <a href="/blog/">一覧へ</a>
+            </div>
+            <ul>
+              {
+                tagStats.map((tag) => (
+                  <li>
+                    <a href={`/blog/tag/${tag.slug}/`}>
+                      <span>{tag.name}</span>
+                      <strong>{tag.count}</strong>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </section>
+          <section>
+            <div>
+              <h3>アーカイブ</h3>
+              <a href="/blog/">一覧へ</a>
+            </div>
+            <ul>
+              {
+                archiveStats.map((archive) => (
+                  <li>
+                    <a href={`/blog/archive/${archive.year}/`}>
+                      <span>{archive.year}年</span>
+                      <strong>{archive.count}</strong>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

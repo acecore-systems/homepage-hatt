@@ -1,0 +1,33 @@
+---
+import { externalAttrs } from '@/utils/routes'
+
+type Pillar = {
+  id: string
+  label: string
+  eyebrow: string
+  title: string
+  description: string
+  href: string
+  cta: string
+  image: string
+  tone: 'cyan' | 'ember' | 'mint'
+}
+
+const { pillar } = Astro.props as { pillar: Pillar }
+---
+
+<article class={`pillar-card pillar-card--${pillar.tone}`}>
+  <div class="pillar-media">
+    <img src={pillar.image} alt="" loading="lazy" />
+    <span>{pillar.label}</span>
+  </div>
+  <div class="pillar-copy">
+    <p>{pillar.eyebrow}</p>
+    <h3>{pillar.title}</h3>
+    <p>{pillar.description}</p>
+    <a class="text-arrow" href={pillar.href} {...externalAttrs(pillar.href)}>
+      {pillar.cta}
+      <span class="i-lucide-arrow-up-right" aria-hidden="true"></span>
+    </a>
+  </div>
+</article>

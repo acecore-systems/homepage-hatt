@@ -1,0 +1,71 @@
+---
+import type { AuthorEntry } from '@/utils/blog'
+
+type TagStat = {
+  id: string
+  name: string
+  slug: string
+  count: number
+}
+
+type ArchiveStat = {
+  year: number
+  count: number
+}
+
+const { tags, archives, authors } = Astro.props as {
+  tags: TagStat[]
+  archives: ArchiveStat[]
+  authors: AuthorEntry[]
+}
+---
+
+<aside class="blog-sidebar" aria-label="ブログサイドバー">
+  <section>
+    <h2><span class="i-lucide-tags" aria-hidden="true"></span>タグ</h2>
+    <ul>
+      {
+        tags.map((tag) => (
+          <li>
+            <a href={`/blog/tag/${tag.slug}/`}>
+              {tag.name}
+              <span>{tag.count}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+  <section>
+    <h2><span class="i-lucide-archive" aria-hidden="true"></span>アーカイブ</h2>
+    <ul>
+      {
+        archives.map((archive) => (
+          <li>
+            <a href={`/blog/archive/${archive.year}/`}>
+              {archive.year}
+              <span>{archive.count}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+  <section>
+    <h2>
+      <span class="i-lucide-user-round" aria-hidden="true"></span>ライター
+    </h2>
+    <ul>
+      {
+        authors.map((author) => (
+          <li>
+            <a href={`/blog/author/${author.data.id}/`}>
+              {author.data.name}
+              <span>→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</aside>

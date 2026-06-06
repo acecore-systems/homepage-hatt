@@ -1,0 +1,6 @@
+dist
+.astro
+.serena
+node_modules
+public/pagefind
+.github/ISSUE_TEMPLATE

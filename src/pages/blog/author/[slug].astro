@@ -1,0 +1,71 @@
+---
+import ArticleCard from '@/components/ArticleCard.astro'
+import BlogSidebar from '@/components/BlogSidebar.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import {
+  getArchiveStats,
+  getAuthors,
+  getPosts,
+  getPostsByAuthor,
+  getTagMap,
+  getTagStats,
+} from '@/utils/blog'
+import { externalAttrs } from '@/utils/routes'
+
+export async function getStaticPaths() {
+  const authors = await getAuthors()
+  return authors.map((author) => ({
+    params: { slug: author.data.id },
+    props: { author },
+  }))
+}
+
+const { author } = Astro.props
+const posts = await getPosts()
+const filteredPosts = getPostsByAuthor(posts, author.data.id)
+const tagMap = await getTagMap()
+const tagStats = await getTagStats()
+const archives = await getArchiveStats()
+const authors = await getAuthors()
+---
+
+<BaseLayout title={`${author.data.name}の記事`} description={author.data.bio}>
+  <section class="blog-hero">
+    <div class="blog-shell" style="padding-bottom: 0;">
+      <div class="blog-title">
+        <div>
+          <h1>{author.data.name}の記事</h1>
+          <p class="lead">{author.data.bio}</p>
+          <div class="social-row" style="margin-top: 18px;">
+            {
+              author.data.links.map((link) => (
+                <a href={link.href} {...externalAttrs(link.href)}>
+                  {link.label}
+                </a>
+              ))
+            }
+          </div>
+        </div>
+        {
+          author.data.avatar && (
+            <img
+              src={author.data.avatar}
+              alt=""
+              width="84"
+              height="84"
+              style="border-radius: 16px;"
+            />
+          )
+        }
+      </div>
+      <div aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <div class="blog-shell">
+    <div class="blog-list">
+      {filteredPosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
+    </div>
+    <BlogSidebar tags={tagStats} archives={archives} authors={authors} />
+  </div>
+</BaseLayout>

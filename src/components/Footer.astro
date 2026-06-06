@@ -1,0 +1,30 @@
+---
+import { externalAttrs } from '@/utils/routes'
+
+type Site = {
+  name: string
+  description: string
+  socialLinks: { label: string; href: string }[]
+}
+
+const { site } = Astro.props as { site: Site }
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <p class="footer-title">{site.name}</p>
+      <p class="footer-description">{site.description}</p>
+    </div>
+    <div class="footer-links">
+      {
+        site.socialLinks.map((link) => (
+          <a href={link.href} {...externalAttrs(link.href)}>
+            {link.label}
+          </a>
+        ))
+      }
+      <a href="/rss.xml">RSS</a>
+    </div>
+  </div>
+</footer>

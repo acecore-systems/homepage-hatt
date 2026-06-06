@@ -1,0 +1,101 @@
+---
+import { render } from 'astro:content'
+import ArticleCard from '@/components/ArticleCard.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import {
+  getAdjacentPosts,
+  getBlogPath,
+  getBlogSlug,
+  getPosts,
+  getRelatedPosts,
+  getTagMap,
+} from '@/utils/blog'
+import { formatDate } from '@/utils/format'
+
+export async function getStaticPaths() {
+  const posts = await getPosts()
+  return posts.map((post) => ({
+    params: { slug: getBlogSlug(post) },
+    props: { post, posts },
+  }))
+}
+
+const { post, posts } = Astro.props
+const { Content } = await render(post)
+const tagMap = await getTagMap()
+const relatedPosts = getRelatedPosts(posts, post)
+const { previous, next } = getAdjacentPosts(posts, post)
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  image={post.data.image}
+>
+  <article class="post-layout">
+    <header class="post-header">
+      <div class="post-meta">
+        <time datetime={post.data.date.toISOString()}
+          >{formatDate(post.data.date)}</time
+        >
+        <span>Hatt</span>
+      </div>
+      <h1>{post.data.title}</h1>
+      <ul class="tag-list" aria-label="タグ">
+        {
+          post.data.tags.map((tagId) => {
+            const tag = tagMap.get(tagId)
+            return tag ? (
+              <a href={`/blog/tag/${tag.slug}/`}>#{tag.name}</a>
+            ) : null
+          })
+        }
+      </ul>
+    </header>
+
+    {
+      post.data.image && (
+        <div class="post-cover">
+          <img src={post.data.image} alt="" />
+        </div>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <nav class="post-nav" aria-label="前後の記事">
+      <div>
+        {
+          previous && (
+            <a href={getBlogPath(previous)}>← {previous.data.title}</a>
+          )
+        }
+      </div>
+      <div>
+        {next && <a href={getBlogPath(next)}>{next.data.title} →</a>}
+      </div>
+    </nav>
+  </article>
+
+  {
+    relatedPosts.length > 0 && (
+      <section class="section-band" aria-labelledby="related-title">
+        <div class="section-inner">
+          <div class="section-heading">
+            <h2 id="related-title">関連記事</h2>
+            <a class="chip-link" href="/blog/">
+              ブログ一覧へ
+            </a>
+          </div>
+          <div class="article-grid">
+            {relatedPosts.map((related) => (
+              <ArticleCard post={related} tagMap={tagMap} compact />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
