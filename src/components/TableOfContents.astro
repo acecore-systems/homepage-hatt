@@ -1,0 +1,27 @@
+---
+type Heading = {
+  depth: number
+  slug: string
+  text: string
+}
+
+const { headings } = Astro.props as { headings: Heading[] }
+---
+
+{
+  headings.length > 0 && (
+    <details class="toc-box" data-pagefind-ignore>
+      <summary>
+        <span class="i-lucide-list" aria-hidden="true" />
+        目次
+      </summary>
+      <ol>
+        {headings.map((heading) => (
+          <li style={`--toc-indent: ${(heading.depth - 2) * 14}px`}>
+            <a href={`#${heading.slug}`}>{heading.text}</a>
+          </li>
+        ))}
+      </ol>
+    </details>
+  )
+}

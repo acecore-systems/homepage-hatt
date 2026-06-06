@@ -47,11 +47,23 @@ const isAllowedDomain = (domain, allowedDomains) => {
   if (!allowedDomains) return true
   if (!domain) return false
 
-  const normalizedDomain = domain.toLowerCase()
+  const normalizeDomain = (value) => {
+    const normalized = value.trim().toLowerCase()
+
+    try {
+      return new URL(
+        normalized.includes('://') ? normalized : `https://${normalized}`,
+      ).host
+    } catch {
+      return normalized.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+    }
+  }
+
+  const normalizedDomain = normalizeDomain(domain)
 
   return allowedDomains
     .split(',')
-    .map((value) => value.trim().toLowerCase())
+    .map(normalizeDomain)
     .filter(Boolean)
     .some((pattern) => {
       const regex = new RegExp(

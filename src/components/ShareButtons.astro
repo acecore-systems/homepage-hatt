@@ -1,0 +1,55 @@
+---
+const { title, url } = Astro.props as { title: string; url: string }
+const encodedTitle = encodeURIComponent(title)
+const encodedUrl = encodeURIComponent(url)
+---
+
+<div class="share-buttons" data-pagefind-ignore>
+  <span>共有</span>
+  <a
+    href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <span class="i-lucide-twitter" aria-hidden="true"></span>
+    X
+  </a>
+  <a
+    href={`https://b.hatena.ne.jp/add?mode=confirm&title=${encodedTitle}&url=${encodedUrl}`}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    B!
+  </a>
+  <button
+    type="button"
+    data-copy-url={url}
+    data-default-label="リンクをコピー"
+    data-copied-label="コピーしました"
+  >
+    <span class="i-lucide-link" aria-hidden="true"></span>
+    <span>リンクをコピー</span>
+  </button>
+</div>
+
+<script>
+  document.querySelectorAll('[data-copy-url]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const element = button as HTMLButtonElement
+      const label = element.querySelector('span:last-child')
+      const defaultLabel = element.dataset.defaultLabel ?? 'リンクをコピー'
+      const copiedLabel = element.dataset.copiedLabel ?? 'コピーしました'
+
+      try {
+        await navigator.clipboard.writeText(element.dataset.copyUrl ?? '')
+        if (label) label.textContent = copiedLabel
+      } catch {
+        if (label) label.textContent = 'コピーできませんでした'
+      }
+
+      window.setTimeout(() => {
+        if (label) label.textContent = defaultLabel
+      }, 2000)
+    })
+  })
+</script>

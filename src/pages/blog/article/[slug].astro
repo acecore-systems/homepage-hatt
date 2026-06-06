@@ -1,6 +1,9 @@
 ---
 import { render } from 'astro:content'
 import ArticleCard from '@/components/ArticleCard.astro'
+import Breadcrumb from '@/components/Breadcrumb.astro'
+import ShareButtons from '@/components/ShareButtons.astro'
+import TableOfContents from '@/components/TableOfContents.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import {
   getAdjacentPosts,
@@ -29,7 +32,7 @@ export async function getStaticPaths() {
 }
 
 const { isCanonical, post, posts } = Astro.props
-const { Content } = await render(post)
+const { Content, headings } = await render(post)
 const tagMap = await getTagMap()
 const authorMap = await getAuthorMap()
 const relatedPosts = getRelatedPosts(posts, post)
@@ -44,6 +47,9 @@ const postUrl = new URL(getBlogPath(post), Astro.site ?? Astro.url).toString()
 const ogImagePath = `/blog/og/${slug}.png`
 const ogImageUrl = new URL(ogImagePath, Astro.site ?? Astro.url).toString()
 const modifiedDate = post.data.lastUpdated ?? post.data.date
+const tocHeadings = headings.filter(
+  (heading) => heading.depth >= 2 && heading.depth <= 3,
+)
 const articleJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -82,8 +88,15 @@ const articleJsonLd = {
   authorName={authorName}
   robots={isCanonical ? undefined : 'noindex,follow'}
   jsonLd={articleJsonLd}
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: post.data.title, item: getBlogPath(post) },
+  ]}
 >
   <article class="post-layout">
+    <Breadcrumb
+      items={[{ label: 'ブログ', href: '/blog/' }, { label: post.data.title }]}
+    />
     <header class="post-header">
       <div class="post-meta">
         <time datetime={post.data.date.toISOString()}
@@ -119,6 +132,8 @@ const articleJsonLd = {
       )
     }
 
+    <TableOfContents headings={tocHeadings} />
+
     <div class="prose" {...isCanonical ? { 'data-pagefind-body': true } : {}}>
       {
         isCanonical && (
@@ -142,6 +157,8 @@ const articleJsonLd = {
       }
       <Content />
     </div>
+
+    <ShareButtons url={postUrl} title={post.data.title} />
 
     <nav class="post-nav" aria-label="前後の記事">
       <div>

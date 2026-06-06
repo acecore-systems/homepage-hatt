@@ -22,7 +22,11 @@ const { tags, archives, authors } = Astro.props as {
 
 <aside class="blog-sidebar" aria-label="ブログサイドバー">
   <section>
-    <h2><span class="i-lucide-tags" aria-hidden="true"></span>タグ</h2>
+    <h2>
+      <a href="/blog/tag/">
+        <span class="i-lucide-tags" aria-hidden="true"></span>タグ
+      </a>
+    </h2>
     <ul>
       {
         tags.map((tag) => (
@@ -37,7 +41,11 @@ const { tags, archives, authors } = Astro.props as {
     </ul>
   </section>
   <section>
-    <h2><span class="i-lucide-archive" aria-hidden="true"></span>アーカイブ</h2>
+    <h2>
+      <a href="/blog/archive/">
+        <span class="i-lucide-archive" aria-hidden="true"></span>アーカイブ
+      </a>
+    </h2>
     <ul>
       {
         archives.map((archive) => (

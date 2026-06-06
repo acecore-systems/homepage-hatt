@@ -1,0 +1,46 @@
+---
+import BlogSidebar from '@/components/BlogSidebar.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getArchiveStats, getAuthors, getTagStats } from '@/utils/blog'
+
+const archives = await getArchiveStats()
+const tags = await getTagStats()
+const authors = await getAuthors()
+---
+
+<BaseLayout
+  title="アーカイブ"
+  description="Hattのブログ記事を年別にまとめています。"
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: 'アーカイブ', item: '/blog/archive/' },
+  ]}
+>
+  <section class="blog-hero">
+    <div class="blog-shell" style="padding-bottom: 0;">
+      <div class="blog-title">
+        <div>
+          <h1>アーカイブ</h1>
+          <p class="lead">公開年ごとの記事一覧です。</p>
+        </div>
+        <a class="chip-link" href="/blog/">ブログ一覧へ</a>
+      </div>
+      <div aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <div class="blog-shell">
+    <div class="index-link-grid">
+      {
+        archives.map((archive) => (
+          <a href={`/blog/archive/${archive.year}/`} class="index-link-card">
+            <span>{archive.year}年</span>
+            <strong>{archive.count}件</strong>
+          </a>
+        ))
+      }
+    </div>
+    <BlogSidebar tags={tags} archives={archives} authors={authors} />
+  </div>
+</BaseLayout>

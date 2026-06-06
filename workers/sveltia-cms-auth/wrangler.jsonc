@@ -7,7 +7,7 @@
     "enabled": true,
   },
   "vars": {
-    "ALLOWED_DOMAINS": "hatt.acecore.net,localhost,localhost:4321,localhost:4331,127.0.0.1,127.0.0.1:4321,127.0.0.1:4331",
+    "ALLOWED_DOMAINS": "acecore.net,hatt.acecore.net,*.acecore-net.pages.dev,*.homepage-hatt.pages.dev,localhost,localhost:4321,localhost:4331,127.0.0.1,127.0.0.1:4321,127.0.0.1:4331",
     "GITHUB_SCOPE": "repo,user",
   },
 }

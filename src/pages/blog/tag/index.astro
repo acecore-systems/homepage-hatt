@@ -1,0 +1,47 @@
+---
+import BlogSidebar from '@/components/BlogSidebar.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getArchiveStats, getAuthors, getTagStats } from '@/utils/blog'
+
+const tags = await getTagStats()
+const archives = await getArchiveStats()
+const authors = await getAuthors()
+---
+
+<BaseLayout
+  title="タグ一覧"
+  description="Hattのブログで使っているタグ一覧です。"
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: 'タグ一覧', item: '/blog/tag/' },
+  ]}
+>
+  <section class="blog-hero">
+    <div class="blog-shell" style="padding-bottom: 0;">
+      <div class="blog-title">
+        <div>
+          <h1>タグ一覧</h1>
+          <p class="lead">絵、小説、モデリングの記事分類です。</p>
+        </div>
+        <a class="chip-link" href="/blog/">ブログ一覧へ</a>
+      </div>
+      <div aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <div class="blog-shell">
+    <div class="index-link-grid">
+      {
+        tags.map((tag) => (
+          <a href={`/blog/tag/${tag.slug}/`} class="index-link-card">
+            <span>{tag.name}</span>
+            <strong>{tag.count}件</strong>
+            {tag.description && <p>{tag.description}</p>}
+          </a>
+        ))
+      }
+    </div>
+    <BlogSidebar tags={tags} archives={archives} authors={authors} />
+  </div>
+</BaseLayout>

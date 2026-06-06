@@ -29,7 +29,16 @@ const archives = await getArchiveStats()
 const authors = await getAuthors()
 ---
 
-<BaseLayout title={`${author.data.name}の記事`} description={author.data.bio}>
+<BaseLayout
+  title={`${author.data.name}の記事`}
+  description={author.data.bio}
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: '著者', item: `/blog/author/${author.data.id}/` },
+    { name: author.data.name, item: `/blog/author/${author.data.id}/` },
+  ]}
+>
   <section class="blog-hero">
     <div class="blog-shell" style="padding-bottom: 0;">
       <div class="blog-title">

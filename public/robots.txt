@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /pagefind/
 
 Sitemap: https://hatt.acecore.net/sitemap-index.xml
 

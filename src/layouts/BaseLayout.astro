@@ -21,6 +21,7 @@ type Props = {
   authorName?: string
   robots?: string
   jsonLd?: JsonLd
+  breadcrumbItems?: { name: string; item?: string }[]
 }
 
 const site = await getSiteConfig()
@@ -54,11 +55,40 @@ const siteJsonLd = {
     'query-input': 'required name=search_term_string',
   },
 }
+const breadcrumbJsonLd =
+  props.breadcrumbItems && props.breadcrumbItems.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'ホーム',
+            item: siteUrl,
+          },
+          ...props.breadcrumbItems.map((item, index) => ({
+            '@type': 'ListItem',
+            position: index + 2,
+            name: item.name,
+            item: toAbsolute(item.item ?? Astro.url.pathname),
+          })),
+        ],
+      }
+    : undefined
 const jsonLdItems = Array.isArray(props.jsonLd)
-  ? [siteJsonLd, ...props.jsonLd]
+  ? [
+      siteJsonLd,
+      ...(breadcrumbJsonLd ? [breadcrumbJsonLd] : []),
+      ...props.jsonLd,
+    ]
   : props.jsonLd
-    ? [siteJsonLd, props.jsonLd]
-    : [siteJsonLd]
+    ? [
+        siteJsonLd,
+        ...(breadcrumbJsonLd ? [breadcrumbJsonLd] : []),
+        props.jsonLd,
+      ]
+    : [siteJsonLd, ...(breadcrumbJsonLd ? [breadcrumbJsonLd] : [])]
 const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
 ---
 

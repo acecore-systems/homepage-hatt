@@ -30,6 +30,12 @@ const authors = await getAuthors()
 <BaseLayout
   title={`${year}年の記事`}
   description={`${year}年に公開されたHattの記事一覧です。`}
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: 'アーカイブ', item: '/blog/archive/' },
+    { name: `${year}年`, item: `/blog/archive/${year}/` },
+  ]}
 >
   <section class="blog-hero">
     <div class="blog-shell" style="padding-bottom: 0;">
@@ -38,7 +44,7 @@ const authors = await getAuthors()
           <h1>{year}年の記事</h1>
           <p class="lead">{filteredPosts.length}件の記事があります。</p>
         </div>
-        <a class="chip-link" href="/blog/">ブログ一覧へ</a>
+        <a class="chip-link" href="/blog/archive/">アーカイブ一覧へ</a>
       </div>
       <div aria-hidden="true"></div>
     </div>

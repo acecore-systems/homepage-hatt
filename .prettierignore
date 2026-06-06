@@ -4,3 +4,7 @@ dist
 node_modules
 public/pagefind
 .github/ISSUE_TEMPLATE
+.playwright-cli
+.wrangler
+test-results
+playwright-report

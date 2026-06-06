@@ -33,6 +33,10 @@ const modelingLinks = [
     <div class="section-inner">
       <div class="home-hero-top">
         <div class="home-hero-copy">
+          <h1>
+            <span>Hattの</span>
+            <span>ホームページ</span>
+          </h1>
           <p>いろいろ作って、いろいろ残していく場所。</p>
           <div class="button-row">
             <a class="primary-button" href="/blog/">
@@ -40,14 +44,13 @@ const modelingLinks = [
               <span class="i-lucide-arrow-right" aria-hidden="true"></span>
             </a>
             <a class="secondary-button" href="/modeling/">
-              ページへ行く
+              モデリングを見る
               <span class="i-lucide-arrow-right" aria-hidden="true"></span>
             </a>
           </div>
         </div>
-        <h1>{site.name}</h1>
         <div class="home-hero-sketch" aria-hidden="true">
-          <img src="/uploads/hatt/novel-desert-boy.png" alt="" />
+          <img src="/uploads/hatt/site-cover.jpg" alt="" />
         </div>
       </div>
 
@@ -116,10 +119,28 @@ const modelingLinks = [
           VRChat向けのアバターやギミックを制作しています。制作の様子や使い方はYouTube、販売導線はBOOTHへ。
         </p>
       </div>
-      <div class="home-modeling-gallery">
-        <img src="/uploads/hatt/modeling-preview.jpg" alt="" loading="lazy" />
-        <img src="/uploads/hatt/modeling-preview.jpg" alt="" loading="lazy" />
-        <img src="/uploads/hatt/modeling-preview.jpg" alt="" loading="lazy" />
+      <div class="home-modeling-links">
+        <a href="/modeling/">
+          <span class="i-lucide-box" aria-hidden="true"></span>
+          <strong>作品一覧</strong>
+          <small>公開導線を見る</small>
+        </a>
+        <a
+          href="https://www.youtube.com/@hatt9241"
+          {...externalAttrs('https://www.youtube.com/@hatt9241')}
+        >
+          <span class="i-lucide-youtube" aria-hidden="true"></span>
+          <strong>YouTube</strong>
+          <small>制作の様子へ</small>
+        </a>
+        <a
+          href="https://vetumheberehama.booth.pm/"
+          {...externalAttrs('https://vetumheberehama.booth.pm/')}
+        >
+          <span class="i-lucide-shopping-bag" aria-hidden="true"></span>
+          <strong>BOOTH</strong>
+          <small>販売ページへ</small>
+        </a>
       </div>
       <div class="home-modeling-stats" aria-label="モデリング活動の概要">
         <div>
@@ -158,7 +179,7 @@ const modelingLinks = [
           <section>
             <div>
               <h3>タグ</h3>
-              <a href="/blog/">一覧へ</a>
+              <a href="/blog/tag/">一覧へ</a>
             </div>
             <ul>
               {
@@ -176,7 +197,7 @@ const modelingLinks = [
           <section>
             <div>
               <h3>アーカイブ</h3>
-              <a href="/blog/">一覧へ</a>
+              <a href="/blog/archive/">一覧へ</a>
             </div>
             <ul>
               {

@@ -5,6 +5,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 <BaseLayout
   title="記事を検索"
   description="Hattのブログ記事をキーワードで検索できます。"
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: '記事を検索', item: '/blog/search/' },
+  ]}
 >
   <section class="page-hero">
     <div class="narrow-page">

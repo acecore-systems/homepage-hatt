@@ -32,6 +32,12 @@ const authors = await getAuthors()
 <BaseLayout
   title={`タグ: ${tag.data.name}`}
   description={tag.data.description ?? `${tag.data.name}の記事一覧です。`}
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: 'タグ一覧', item: '/blog/tag/' },
+    { name: tag.data.name, item: `/blog/tag/${tag.data.slug}/` },
+  ]}
 >
   <section class="blog-hero">
     <div class="blog-shell" style="padding-bottom: 0;">
@@ -40,7 +46,7 @@ const authors = await getAuthors()
           <h1>タグ: {tag.data.name}</h1>
           <p class="lead">{tag.data.description}</p>
         </div>
-        <a class="chip-link" href="/blog/">ブログ一覧へ</a>
+        <a class="chip-link" href="/blog/tag/">タグ一覧へ</a>
       </div>
       <div aria-hidden="true"></div>
     </div>

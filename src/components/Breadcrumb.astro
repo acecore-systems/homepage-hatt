@@ -1,0 +1,31 @@
+---
+type BreadcrumbItem = {
+  label: string
+  href?: string
+}
+
+const { items } = Astro.props as { items: BreadcrumbItem[] }
+---
+
+<nav class="breadcrumb" aria-label="パンくず" data-pagefind-ignore>
+  <ol>
+    <li>
+      <a href="/">
+        <span class="i-lucide-house" aria-hidden="true"></span>
+        ホーム
+      </a>
+    </li>
+    {
+      items.map((item, index) => (
+        <li>
+          <span class="i-lucide-chevron-right" aria-hidden="true" />
+          {item.href && index !== items.length - 1 ? (
+            <a href={item.href}>{item.label}</a>
+          ) : (
+            <span aria-current="page">{item.label}</span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

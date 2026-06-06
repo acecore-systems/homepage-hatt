@@ -71,6 +71,12 @@ dist
 # Local coding assistant state
 .serena/
 
+# Local preview/testing state
+.playwright-cli/
+.wrangler/
+test-results/
+playwright-report/
+
 # vuepress build output
 .vuepress/dist
 

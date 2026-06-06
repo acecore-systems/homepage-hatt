@@ -10,7 +10,14 @@ export default defineConfig({
     UnoCSS(),
     sitemap({
       filter: (page) =>
-        !page.includes('/blog/og/') && !/\/blog\/article\/\d{8}_/.test(page),
+        ![
+          /\/blog\/og\//,
+          /\/blog\/article\/\d{8}_/,
+          /\/blog\/tag\//,
+          /\/blog\/archive\//,
+          /\/blog\/author\//,
+          /\/blog\/search\//,
+        ].some((pattern) => pattern.test(page)),
     }),
   ],
   markdown: {
