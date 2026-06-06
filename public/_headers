@@ -26,7 +26,7 @@
 /admin/*
   X-Robots-Tag: noindex
   Cache-Control: no-store
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https:; font-src 'self' data: https://unpkg.com; connect-src 'self' https://api.github.com https://github.com https://*.githubusercontent.com https://sveltia-cms-auth.sparkling-tree-7cef.workers.dev; frame-src 'self' https://github.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://github.com
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://unpkg.com https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://github.com https://*.githubusercontent.com https://sveltia-cms-auth.sparkling-tree-7cef.workers.dev; frame-src 'self' https://github.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://github.com
 
 /admin/config.yml
   Content-Type: text/yaml; charset=utf-8
