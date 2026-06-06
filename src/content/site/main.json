@@ -2,7 +2,7 @@
   "name": "Hattのホームページ",
   "description": "絵、小説、VRChat向け3Dアバター・ギミック制作をまとめるHattの個人サイトです。",
   "icon": "/uploads/hatt/favicon.png",
-  "cover": "/uploads/hatt/site-cover.png",
+  "cover": "/uploads/hatt/site-cover.jpg",
   "adsenseClientId": "ca-pub-3935803464310919",
   "headerLinks": [
     { "label": "ブログ", "href": "/blog/" },
@@ -46,7 +46,7 @@
       "description": "アバター、ギミック、アクセサリー制作をYouTubeやBOOTHとつなげて紹介します。",
       "href": "/modeling/",
       "cta": "作品を見る",
-      "image": "/uploads/hatt/modeling-preview.png",
+      "image": "/uploads/hatt/modeling-preview.jpg",
       "tone": "mint"
     }
   ]

@@ -1,8 +1,8 @@
 :root {
   color-scheme: light;
   --font-sans:
-    'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+    'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
   --ink-900: #151a24;
   --ink-800: #232a38;
   --ink-700: #30384a;
@@ -720,6 +720,11 @@ main {
   font-weight: 700;
 }
 
+.empty-state a {
+  color: var(--ink-900);
+  font-weight: 800;
+}
+
 .site-footer {
   border-top: 1px solid rgba(21, 26, 36, 0.08);
   background: rgba(255, 255, 255, 0.66);
@@ -1185,8 +1190,15 @@ main {
   }
 
   .home-hero-sketch {
-    order: -1;
     max-height: 240px;
+  }
+
+  .home-hero h1 {
+    order: -2;
+  }
+
+  .home-hero-copy {
+    order: -1;
   }
 
   .home-pillar-board {

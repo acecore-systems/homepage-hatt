@@ -40,8 +40,51 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
     const input = document.querySelector('#search-input')
     const results = document.querySelector('#search-results')
 
+    function clearResults() {
+      results?.replaceChildren()
+    }
+
+    function setMessage(message, withBlogLink = false) {
+      clearResults()
+      const paragraph = document.createElement('p')
+      paragraph.className = 'empty-state'
+      paragraph.textContent = message
+
+      if (withBlogLink) {
+        paragraph.append(' ')
+        const link = document.createElement('a')
+        link.href = '/blog/'
+        link.textContent = 'ブログ一覧へ'
+        paragraph.append(link)
+      }
+
+      results?.append(paragraph)
+    }
+
+    function textFromExcerpt(excerpt) {
+      return String(excerpt ?? '')
+        .replace(/<[^>]*>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }
+
+    function appendResult(row) {
+      const link = document.createElement('a')
+      link.className = 'search-result'
+      link.href = row.url
+
+      const title = document.createElement('h2')
+      title.textContent = row.meta?.title ?? '無題の記事'
+
+      const excerpt = document.createElement('p')
+      excerpt.textContent = textFromExcerpt(row.excerpt)
+
+      link.append(title, excerpt)
+      results?.append(link)
+    }
+
     async function runSearch(query) {
-      results.innerHTML = '<p class="empty-state">検索を読み込んでいます...</p>'
+      setMessage('検索を読み込んでいます...')
       try {
         const pagefind = await import(
           /* @vite-ignore */ '/pagefind/pagefind.js'
@@ -52,24 +95,17 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         )
 
         if (rows.length === 0) {
-          results.innerHTML =
-            '<p class="empty-state">一致する記事が見つかりませんでした。</p>'
+          setMessage('一致する記事が見つかりませんでした。', true)
           return
         }
 
-        results.innerHTML = rows
-          .map(
-            (row) => `
-              <a class="search-result" href="${row.url}">
-                <h2>${row.meta.title}</h2>
-                <p>${row.excerpt}</p>
-              </a>
-            `,
-          )
-          .join('')
+        clearResults()
+        rows.forEach(appendResult)
       } catch {
-        results.innerHTML =
-          '<p class="empty-state">検索インデックスはビルド後に有効になります。ブログ一覧もお試しください。</p>'
+        setMessage(
+          '検索インデックスはビルド後に有効になります。ブログ一覧もお試しください。',
+          true,
+        )
       }
     }
 
@@ -77,11 +113,22 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
       event.preventDefault()
       const query = input?.value?.trim()
       if (!query) {
-        results.innerHTML =
-          '<p class="empty-state">キーワードを入力してください。</p>'
+        setMessage('キーワードを入力してください。')
         return
       }
+      const url = new URL(window.location.href)
+      url.searchParams.set('q', query)
+      window.history.replaceState({}, '', url)
       runSearch(query)
     })
+
+    const initialQuery = new URLSearchParams(window.location.search)
+      .get('q')
+      ?.trim()
+
+    if (initialQuery) {
+      input.value = initialQuery
+      runSearch(initialQuery)
+    }
   </script>
 </BaseLayout>

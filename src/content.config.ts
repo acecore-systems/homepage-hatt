@@ -13,12 +13,14 @@ const blog = defineCollection({
   }),
   schema: z.object({
     title: z.string(),
+    slug: z.string().optional(),
     description: z.string(),
     date: z.coerce.date(),
     lastUpdated: z.coerce.date().optional(),
     tags: z.array(z.string()).default([]),
     author: z.string(),
     image: z.string().optional(),
+    legacySlugs: z.array(z.string()).default([]),
   }),
 })
 

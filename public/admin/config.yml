@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.166.0/schema/sveltia-cms.json
 
 backend:
   name: github
@@ -20,16 +20,25 @@ collections:
   - name: blog
     label: ブログ
     label_singular: ブログ記事
+    description: 絵・小説・モデリングに関する記事を編集します。
     icon: article
     folder: src/content/blog
-    slug: '{{fields._slug}}'
+    slug: '{{fields.slug}}'
     preview_path: blog/article/{{slug}}/
     summary: '{{title}} - {{date}}'
     thumbnail: image
+    sortable_fields: [date, lastUpdated, title, slug, author]
     fields:
       - name: title
         label: タイトル
         widget: string
+      - name: slug
+        label: URLスラッグ
+        widget: string
+        hint: 半角英数字、ハイフン、アンダースコアで入力します。
+        pattern:
+          - '^[a-z0-9][a-z0-9_-]*$'
+          - 半角英数字で始まるURL用文字列を入力してください。
       - name: description
         label: 概要
         widget: text
@@ -64,6 +73,15 @@ collections:
         label: 画像
         widget: image
         required: false
+      - name: legacySlugs
+        label: 旧URLスラッグ
+        widget: list
+        required: false
+        hint: 旧記事URLを200で残したい場合だけ追加します。
+        field:
+          name: slug
+          label: 旧スラッグ
+          widget: string
       - name: body
         label: 本文
         widget: markdown
@@ -71,13 +89,17 @@ collections:
   - name: modeling
     label: モデリング
     label_singular: モデリング項目
+    description: VRChat向けアバター、ギミック、外部販売導線を編集します。
     icon: deployed_code
     folder: src/content/modeling
     format: json
     extension: json
     identifier_field: title
     slug: '{{fields.title}}'
+    preview_path: modeling/
     summary: '{{title}} - {{kind}}'
+    thumbnail: image
+    sortable_fields: [title, kind, featured]
     fields:
       - name: title
         label: タイトル
@@ -117,6 +139,7 @@ collections:
   - name: tags
     label: タグ
     label_singular: タグ
+    description: ブログ記事の分類を編集します。
     icon: sell
     folder: src/content/tags
     format: json
@@ -124,6 +147,7 @@ collections:
     identifier_field: id
     slug: '{{fields.id}}'
     summary: '{{name}} ({{id}})'
+    sortable_fields: [name, id, slug]
     fields:
       - name: id
         label: ID
@@ -142,6 +166,7 @@ collections:
   - name: authors
     label: 著者
     label_singular: 著者
+    description: 著者プロフィールと外部リンクを編集します。
     icon: person
     folder: src/content/authors
     format: json
@@ -149,6 +174,8 @@ collections:
     identifier_field: id
     slug: '{{fields.id}}'
     summary: '{{name}} ({{id}})'
+    thumbnail: avatar
+    sortable_fields: [name, id]
     fields:
       - name: id
         label: ID

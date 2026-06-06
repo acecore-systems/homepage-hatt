@@ -5,8 +5,15 @@ export type TagEntry = CollectionEntry<'tags'>
 export type AuthorEntry = CollectionEntry<'authors'>
 
 export function getBlogSlug(post: BlogPost) {
+  const configuredSlug = post.data.slug?.trim()
+  if (configuredSlug) return configuredSlug
+
   const fallback = post.id.replace(/\.md$/, '').replace(/\/index$/, '')
   return 'slug' in post && typeof post.slug === 'string' ? post.slug : fallback
+}
+
+export function getBlogSlugs(post: BlogPost) {
+  return [...new Set([getBlogSlug(post), ...post.data.legacySlugs])]
 }
 
 export function getBlogPath(post: BlogPost) {
