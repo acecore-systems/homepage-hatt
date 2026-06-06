@@ -1,0 +1,48 @@
+---
+import type { BlogPost } from '@/utils/blog'
+import { getBlogPath } from '@/utils/blog'
+import { formatDate } from '@/utils/format'
+
+type TagData = {
+  id: string
+  name: string
+  slug: string
+}
+
+const { post, tagMap, compact } = Astro.props as {
+  post: BlogPost
+  tagMap: Map<string, TagData>
+  compact?: boolean
+}
+---
+
+<a
+  class:list={['article-card', { 'article-card--compact': compact }]}
+  href={getBlogPath(post)}
+>
+  {
+    post.data.image && (
+      <img
+        class="article-card-image"
+        src={post.data.image}
+        alt=""
+        loading="lazy"
+      />
+    )
+  }
+  <div class="article-card-body">
+    <time datetime={post.data.date.toISOString()}
+      >{formatDate(post.data.date)}</time
+    >
+    <h3>{post.data.title}</h3>
+    <p>{post.data.description}</p>
+    <ul class="tag-list" aria-label="タグ">
+      {
+        post.data.tags.map((tagId) => {
+          const tag = tagMap.get(tagId)
+          return tag ? <li>#{tag.name}</li> : null
+        })
+      }
+    </ul>
+  </div>
+</a>

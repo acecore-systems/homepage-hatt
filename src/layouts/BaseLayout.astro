@@ -1,0 +1,146 @@
+---
+import '@/styles/global.css'
+
+import Footer from '@/components/Footer.astro'
+import Header from '@/components/Header.astro'
+import { getSiteConfig } from '@/utils/blog'
+
+type JsonLd = Record<string, unknown> | Record<string, unknown>[]
+
+type Props = {
+  title?: string
+  description?: string
+  image?: string
+  imageAlt?: string
+  ogType?: 'website' | 'article'
+  canonicalPath?: string
+  pageClass?: string
+  publishedTime?: Date | string
+  modifiedTime?: Date | string
+  tags?: string[]
+  authorName?: string
+  robots?: string
+  jsonLd?: JsonLd
+}
+
+const site = await getSiteConfig()
+const props = Astro.props
+const title = Astro.props.title ?? site.name
+const description = Astro.props.description ?? site.description
+const pageTitle = title === site.name ? title : `${title} | ${site.name}`
+const pageClass = Astro.props.pageClass ?? ''
+const toAbsolute = (path: string) =>
+  /^https?:\/\//.test(path)
+    ? path
+    : new URL(path, Astro.site ?? Astro.url).toString()
+const ogImage = toAbsolute(Astro.props.image ?? site.cover)
+const ogImageAlt = props.imageAlt ?? pageTitle
+const canonical = toAbsolute(props.canonicalPath ?? Astro.url.pathname)
+const siteUrl = new URL('/', Astro.site ?? Astro.url).toString()
+const rssUrl = new URL('/rss.xml', Astro.site ?? Astro.url).toString()
+const searchUrl = `${new URL('/blog/search/', Astro.site ?? Astro.url).toString()}?q={search_term_string}`
+const normalizeDate = (value: Date | string | undefined) =>
+  value instanceof Date ? value.toISOString() : value
+const siteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: site.name,
+  url: siteUrl,
+  description: site.description,
+  inLanguage: 'ja',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: searchUrl,
+    'query-input': 'required name=search_term_string',
+  },
+}
+const jsonLdItems = Array.isArray(props.jsonLd)
+  ? [siteJsonLd, ...props.jsonLd]
+  : props.jsonLd
+    ? [siteJsonLd, props.jsonLd]
+    : [siteJsonLd]
+const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={props.robots ?? 'index,follow'} />
+    <link rel="canonical" href={canonical} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${site.name} RSS`}
+      href={rssUrl}
+    />
+    <link rel="icon" type="image/png" href={site.icon} />
+    <meta property="og:type" content={props.ogType ?? 'website'} />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    {
+      props.publishedTime && (
+        <meta
+          property="article:published_time"
+          content={normalizeDate(props.publishedTime)}
+        />
+      )
+    }
+    {
+      props.modifiedTime && (
+        <meta
+          property="article:modified_time"
+          content={normalizeDate(props.modifiedTime)}
+        />
+      )
+    }
+    {
+      props.authorName && (
+        <meta property="article:author" content={props.authorName} />
+      )
+    }
+    {props.tags?.map((tag) => <meta property="article:tag" content={tag} />)}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+    {
+      site.adsenseClientId && (
+        <>
+          <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+          <link rel="preconnect" href="https://googleads.g.doubleclick.net" />
+        </>
+      )
+    }
+    <script type="application/ld+json" set:html={jsonLd} />
+    {
+      site.adsenseClientId && (
+        <script
+          async
+          crossorigin="anonymous"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${site.adsenseClientId}`}
+        />
+      )
+    }
+  </head>
+  <body class={pageClass}>
+    <a class="skip-link" href="#main-content">本文へスキップ</a>
+    <Header site={site} />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer site={site} />
+  </body>
+</html>

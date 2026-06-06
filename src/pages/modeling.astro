@@ -1,0 +1,100 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getCollection } from 'astro:content'
+import { getSiteConfig } from '@/utils/blog'
+import { externalAttrs } from '@/utils/routes'
+
+const site = await getSiteConfig()
+const items = (await getCollection('modeling')).sort((a, b) => {
+  if (a.data.featured === b.data.featured)
+    return a.data.title.localeCompare(b.data.title, 'ja')
+  return a.data.featured ? -1 : 1
+})
+---
+
+<BaseLayout
+  title="モデリング"
+  description="HattのVRChat向けオリジナル3Dアバター・ギミック制作と、YouTube・X・BOOTHへの導線です。"
+  image="/uploads/hatt/modeling-preview.jpg"
+>
+  <section class="page-hero">
+    <div class="section-inner modeling-feature">
+      <div>
+        <p class="hero-note">
+          <span class="i-lucide-box" aria-hidden="true"></span>
+          VRChat向けオリジナル3Dアバター
+        </p>
+        <h1>モデリング</h1>
+        <p class="lead">
+          YouTubeチャンネルでは、VRChat向けオリジナル3Dアバター・ギミック制作を中心に活動が紹介されています。
+          BOOTHの商品画像を無断で作り直さず、ここでは公開説明と外部導線を整理します。
+        </p>
+        <div class="social-row" style="margin-top: 24px;">
+          {
+            site.socialLinks.map((link) => (
+              <a href={link.href} {...externalAttrs(link.href)}>
+                {link.label}
+              </a>
+            ))
+          }
+        </div>
+      </div>
+      <div class="modeling-preview">
+        <img src="/uploads/hatt/modeling-preview.jpg" alt="" />
+        <p>作品詳細はBOOTH / YouTube / Xで確認できます</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band" aria-labelledby="lineup-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="lineup-title">公開導線</h2>
+        </div>
+        <p>
+          価格や商品名は公開説明欄で確認できた範囲だけを掲載し、販売ページへつなげます。
+        </p>
+      </div>
+      <div class="modeling-grid">
+        {
+          items.map((item) => (
+            <article class="modeling-card">
+              <div>
+                <span class="price-label">{item.data.kind}</span>
+                <h3>{item.data.title}</h3>
+              </div>
+              <p>{item.data.summary}</p>
+              {item.data.priceLabel && (
+                <span class="price-label">{item.data.priceLabel}</span>
+              )}
+              <div class="social-row">
+                {item.data.boothUrl && (
+                  <a
+                    href={item.data.boothUrl}
+                    {...externalAttrs(item.data.boothUrl)}
+                  >
+                    BOOTH
+                  </a>
+                )}
+                {item.data.youtubeUrl && (
+                  <a
+                    href={item.data.youtubeUrl}
+                    {...externalAttrs(item.data.youtubeUrl)}
+                  >
+                    YouTube
+                  </a>
+                )}
+                {item.data.xUrl && (
+                  <a href={item.data.xUrl} {...externalAttrs(item.data.xUrl)}>
+                    X
+                  </a>
+                )}
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

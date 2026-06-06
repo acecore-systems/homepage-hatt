@@ -1,0 +1,29 @@
+---
+import { externalAttrs } from '@/utils/routes'
+
+type Site = {
+  name: string
+  icon: string
+  headerLinks: { label: string; href: string }[]
+}
+
+const { site } = Astro.props as { site: Site }
+---
+
+<header class="site-header">
+  <nav class="site-nav" aria-label="メインナビゲーション">
+    <a class="brand-link" href="/">
+      <img src={site.icon} alt="" width="32" height="32" />
+      <span>{site.name}</span>
+    </a>
+    <div class="nav-links">
+      {
+        site.headerLinks.map((link) => (
+          <a href={link.href} {...externalAttrs(link.href)}>
+            {link.label}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+</header>

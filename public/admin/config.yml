@@ -1,0 +1,281 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.166.0/schema/sveltia-cms.json
+
+backend:
+  name: github
+  repo: acecore-systems/homepage-hatt
+  branch: main
+  base_url: https://sveltia-cms-auth.sparkling-tree-7cef.workers.dev
+  auth_methods: [oauth]
+  commit_messages:
+    create: 'cms: create {{collection}} "{{slug}}"'
+    update: 'cms: update {{collection}} "{{slug}}"'
+    delete: 'cms: delete {{collection}} "{{slug}}"'
+    uploadMedia: 'cms: upload "{{path}}"'
+    deleteMedia: 'cms: delete media "{{path}}"'
+
+media_folder: public/uploads/hatt
+public_folder: /uploads/hatt
+
+collections:
+  - name: blog
+    label: ブログ
+    label_singular: ブログ記事
+    description: 絵・小説・モデリングに関する記事を編集します。
+    icon: article
+    folder: src/content/blog
+    slug: '{{fields.slug}}'
+    preview_path: blog/article/{{slug}}/
+    summary: '{{title}} - {{date}}'
+    thumbnail: image
+    sortable_fields: [date, lastUpdated, title, slug, author]
+    fields:
+      - name: title
+        label: タイトル
+        widget: string
+      - name: slug
+        label: URLスラッグ
+        widget: string
+        hint: 半角英数字、ハイフン、アンダースコアで入力します。
+        pattern:
+          - '^[a-z0-9][a-z0-9_-]*$'
+          - 半角英数字で始まるURL用文字列を入力してください。
+      - name: description
+        label: 概要
+        widget: text
+      - name: date
+        label: 公開日
+        widget: datetime
+        format: YYYY-MM-DDTHH:mm
+        default: '{{now}}'
+      - name: lastUpdated
+        label: 最終更新日
+        widget: datetime
+        type: date
+        format: YYYY-MM-DD
+        required: false
+      - name: tags
+        label: タグ
+        widget: relation
+        collection: tags
+        value_field: id
+        display_fields: ['{{name}} ({{id}})']
+        search_fields: [name, id]
+        multiple: true
+        required: false
+      - name: author
+        label: 著者
+        widget: relation
+        collection: authors
+        value_field: id
+        display_fields: ['{{name}} ({{id}})']
+        search_fields: [name, id]
+      - name: image
+        label: 画像
+        widget: image
+        required: false
+      - name: legacySlugs
+        label: 旧URLスラッグ
+        widget: list
+        required: false
+        hint: 旧記事URLを200で残したい場合だけ追加します。
+        field:
+          name: slug
+          label: 旧スラッグ
+          widget: string
+      - name: body
+        label: 本文
+        widget: markdown
+
+  - name: modeling
+    label: モデリング
+    label_singular: モデリング項目
+    description: VRChat向けアバター、ギミック、外部販売導線を編集します。
+    icon: deployed_code
+    folder: src/content/modeling
+    format: json
+    extension: json
+    identifier_field: title
+    slug: '{{fields.title}}'
+    preview_path: modeling/
+    summary: '{{title}} - {{kind}}'
+    thumbnail: image
+    sortable_fields: [title, kind, featured]
+    fields:
+      - name: title
+        label: タイトル
+        widget: string
+      - name: kind
+        label: 種別
+        widget: select
+        options: [オリジナル3Dアバター, ギミック, アクセサリー, ラインアップ]
+      - name: summary
+        label: 概要
+        widget: text
+      - name: priceLabel
+        label: 価格表示
+        widget: string
+        required: false
+      - name: boothUrl
+        label: BOOTH URL
+        widget: string
+        required: false
+      - name: youtubeUrl
+        label: YouTube URL
+        widget: string
+        required: false
+      - name: xUrl
+        label: X URL
+        widget: string
+        required: false
+      - name: image
+        label: 画像
+        widget: image
+        required: false
+      - name: featured
+        label: 注目表示
+        widget: boolean
+        default: false
+
+  - name: tags
+    label: タグ
+    label_singular: タグ
+    description: ブログ記事の分類を編集します。
+    icon: sell
+    folder: src/content/tags
+    format: json
+    extension: json
+    identifier_field: id
+    slug: '{{fields.id}}'
+    summary: '{{name}} ({{id}})'
+    sortable_fields: [name, id, slug]
+    fields:
+      - name: id
+        label: ID
+        widget: string
+      - name: name
+        label: 名前
+        widget: string
+      - name: slug
+        label: スラッグ
+        widget: string
+      - name: description
+        label: 説明
+        widget: text
+        required: false
+
+  - name: authors
+    label: 著者
+    label_singular: 著者
+    description: 著者プロフィールと外部リンクを編集します。
+    icon: person
+    folder: src/content/authors
+    format: json
+    extension: json
+    identifier_field: id
+    slug: '{{fields.id}}'
+    summary: '{{name}} ({{id}})'
+    thumbnail: avatar
+    sortable_fields: [name, id]
+    fields:
+      - name: id
+        label: ID
+        widget: string
+      - name: name
+        label: 名前
+        widget: string
+      - name: bio
+        label: プロフィール
+        widget: text
+      - name: avatar
+        label: アバター
+        widget: image
+        required: false
+      - name: links
+        label: 外部リンク
+        widget: list
+        required: false
+        fields:
+          - name: label
+            label: ラベル
+            widget: string
+          - name: href
+            label: URL
+            widget: string
+
+  - name: site
+    label: サイト設定
+    icon: settings
+    format: json
+    files:
+      - name: main
+        label: 基本設定
+        file: src/content/site/main.json
+        fields:
+          - name: name
+            label: サイト名
+            widget: string
+          - name: description
+            label: 説明
+            widget: text
+          - name: icon
+            label: アイコン
+            widget: image
+          - name: cover
+            label: カバー画像
+            widget: image
+          - name: adsenseClientId
+            label: AdSense Client ID
+            widget: string
+            required: false
+          - name: headerLinks
+            label: ヘッダーリンク
+            widget: list
+            fields:
+              - name: label
+                label: ラベル
+                widget: string
+              - name: href
+                label: URL
+                widget: string
+          - name: socialLinks
+            label: 外部リンク
+            widget: list
+            fields:
+              - name: label
+                label: ラベル
+                widget: string
+              - name: href
+                label: URL
+                widget: string
+          - name: homePillars
+            label: トップ3本柱
+            widget: list
+            fields:
+              - name: id
+                label: ID
+                widget: string
+              - name: label
+                label: ラベル
+                widget: string
+              - name: eyebrow
+                label: 補助テキスト
+                widget: string
+              - name: title
+                label: タイトル
+                widget: string
+              - name: description
+                label: 説明
+                widget: text
+              - name: href
+                label: URL
+                widget: string
+              - name: cta
+                label: CTA
+                widget: string
+              - name: image
+                label: 画像
+                widget: image
+              - name: tone
+                label: 色
+                widget: select
+                options: [cyan, ember, mint]
