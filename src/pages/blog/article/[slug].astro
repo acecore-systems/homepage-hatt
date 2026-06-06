@@ -19,12 +19,16 @@ export async function getStaticPaths() {
   return posts.flatMap((post) =>
     getBlogSlugs(post).map((slug) => ({
       params: { slug },
-      props: { post, posts },
+      props: {
+        isCanonical: slug === getBlogSlug(post),
+        post,
+        posts,
+      },
     })),
   )
 }
 
-const { post, posts } = Astro.props
+const { isCanonical, post, posts } = Astro.props
 const { Content } = await render(post)
 const tagMap = await getTagMap()
 const authorMap = await getAuthorMap()
@@ -76,6 +80,7 @@ const articleJsonLd = {
   modifiedTime={modifiedDate}
   tags={tagNames}
   authorName={authorName}
+  robots={isCanonical ? undefined : 'noindex,follow'}
   jsonLd={articleJsonLd}
 >
   <article class="post-layout">
@@ -114,17 +119,26 @@ const articleJsonLd = {
       )
     }
 
-    <div class="prose" data-pagefind-body>
-      <span class="sr-only" data-pagefind-filter="author">{authorName}</span>
-      <span class="sr-only" data-pagefind-filter="year">
-        {post.data.date.getFullYear()}
-      </span>
+    <div class="prose" {...isCanonical ? { 'data-pagefind-body': true } : {}}>
       {
-        tagNames.map((tagName) => (
-          <span class="sr-only" data-pagefind-filter="tag">
-            {tagName}
-          </span>
-        ))
+        isCanonical && (
+          <>
+            <span class="sr-only" data-pagefind-filter="author">
+              {authorName}
+            </span>
+            <span class="sr-only" data-pagefind-filter="year">
+              {post.data.date.getFullYear()}
+            </span>
+          </>
+        )
+      }
+      {
+        isCanonical &&
+          tagNames.map((tagName) => (
+            <span class="sr-only" data-pagefind-filter="tag">
+              {tagName}
+            </span>
+          ))
       }
       <Content />
     </div>
