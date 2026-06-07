@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "homepage-hatt",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-06-07",
+  "d1_databases": [
+    {
+      "binding": "COMMENTS_DB",
+      "database_name": "homepage-hatt-comments-preview",
+      "database_id": "e28b875f-81a8-4c37-a574-59e4ad350215",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "vars": {
+    "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+  },
+  "env": {
+    "preview": {
+      "d1_databases": [
+        {
+          "binding": "COMMENTS_DB",
+          "database_name": "homepage-hatt-comments-preview",
+          "database_id": "e28b875f-81a8-4c37-a574-59e4ad350215",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "vars": {
+        "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+      },
+    },
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "COMMENTS_DB",
+          "database_name": "homepage-hatt-comments-production",
+          "database_id": "ac7dc82b-e1d1-4816-951d-3e27880008ed",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "vars": {
+        "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+      },
+    },
+  },
+}
