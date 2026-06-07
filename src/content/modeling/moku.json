@@ -2,9 +2,34 @@
   "title": "モク",
   "kind": "オリジナル3Dアバター",
   "summary": "きつねの男の子のVRChat向けアバターです。ショボクレ眼鏡、表情の変化、衣装着脱メニュー、同時発売のモクギミックセットとの連携が紹介されています。LipSync、PhysBone、Avatar 3.0、フルボディトラッキングに対応しています。",
+  "order": 20,
   "priceLabel": "¥1,500",
   "boothUrl": "https://vetumheberehama.booth.pm/items/7896488",
   "youtubeUrl": "https://youtu.be/93fDGtPtEas",
   "xUrl": "https://x.com/borubin",
+  "image": "/uploads/hatt/modeling/moku.jpg",
+  "tryOnUrl": "https://vrchat.com/home/launch?worldId=wrld_8c3caca6-8138-4c93-afbe-d5d128b45cab",
+  "features": [
+    "きつねの男の子として紹介されているオリジナル3Dアバターです。",
+    "ショボクレ眼鏡、表情変化、衣装着脱メニューが見どころです。",
+    "同時発売のモクギミックセットと合わせると、持ち物や変身演出まで広がります。"
+  ],
+  "specs": [
+    "価格: ¥1,500",
+    "パフォーマンスランク: Medium",
+    "△36,554 / マテリアル5 / メッシュ4",
+    "表情シェイプキー 21種"
+  ],
+  "requirements": [
+    "LipSync / PhysBone / Avatar 3.0 対応",
+    "フルボディトラッキング対応",
+    "前提アセット: lilToon",
+    "Unity 2022.3.22f1 / VRChat SDK"
+  ],
+  "related": [
+    { "label": "モクギミックセット", "href": "https://youtu.be/SOhvYMNOdZI" },
+    { "label": "リバーシ", "href": "https://youtu.be/rjd70HD1pow" },
+    { "label": "オロロウルス", "href": "https://youtu.be/GfEU7uVr1Ww" }
+  ],
   "featured": true
 }

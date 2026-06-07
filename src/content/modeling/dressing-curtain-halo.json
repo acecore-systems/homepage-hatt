@@ -2,9 +2,32 @@
   "title": "お着換えカーテンヘイロー",
   "kind": "アクセサリー",
   "summary": "エクスプレッションメニューでの着替え時に、人目を遮るためのカーテン型ヘイローです。位置と大きさを調整して全アバターで使える設計で、初期データには8種類の模様が用意されています。",
+  "order": 60,
   "priceLabel": "¥500",
   "boothUrl": "https://vetumheberehama.booth.pm/items/7586035",
   "youtubeUrl": "https://youtu.be/1l6-3lmZ2tA",
   "xUrl": "https://x.com/borubin",
+  "image": "/uploads/hatt/modeling/dressing-curtain-halo.jpg",
+  "tryOnUrl": "https://vrchat.com/home/launch?worldId=wrld_8c3caca6-8138-4c93-afbe-d5d128b45cab",
+  "features": [
+    "着替え中の目隠しに使えるカーテン型ヘイローです。",
+    "位置と大きさを調整するだけで全アバターに使えます。",
+    "テクスチャで柄を変更でき、初期データに8種類の模様があります。"
+  ],
+  "specs": [
+    "価格: ¥500",
+    "△1,426 / マテリアル2",
+    "アニメーション2 / PhysBone2",
+    "操作方法: 握って起動 / エクスプレッションメニューで起動"
+  ],
+  "requirements": [
+    "Modular Avatar / lilToon",
+    "Unity 2022.3.22f1 / VRChat SDK",
+    "カーテンの柄を試せるワールドあり"
+  ],
+  "related": [
+    { "label": "詳細説明動画", "href": "https://youtu.be/xcOnLpQp6Nk" },
+    { "label": "あかるい友達", "href": "https://youtu.be/vle0XAJ9u9I" }
+  ],
   "featured": true
 }

@@ -8,7 +8,10 @@ import { externalAttrs } from '@/utils/routes'
 const site = await getSiteConfig()
 const items = (await getCollection('modeling')).sort((a, b) => {
   if (a.data.featured === b.data.featured)
-    return a.data.title.localeCompare(b.data.title, 'ja')
+    return (
+      a.data.order - b.data.order ||
+      a.data.title.localeCompare(b.data.title, 'ja')
+    )
   return a.data.featured ? -1 : 1
 })
 ---
@@ -64,6 +67,46 @@ const items = (await getCollection('modeling')).sort((a, b) => {
 
   <CampaignNotices placement="modeling-after-hero" />
 
+  <section
+    class="section-band modeling-overview"
+    aria-labelledby="overview-title"
+  >
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="overview-title">ここで確認できること</h2>
+        </div>
+        <p>
+          商品ページへ移動する前に、用途、見どころ、導入前に見るべき情報をざっと確認できます。
+        </p>
+      </div>
+      <div class="modeling-info-grid">
+        <article>
+          <span class="i-lucide-sparkles" aria-hidden="true"></span>
+          <h3>作品の見どころ</h3>
+          <p>
+            アバターのコンセプト、ギミックの使い方、紹介動画で確認できる動きや演出を作品ごとに整理しています。
+          </p>
+        </article>
+        <article>
+          <span class="i-lucide-settings" aria-hidden="true"></span>
+          <h3>導入前の確認</h3>
+          <p>
+            Modular Avatar、lilToon、Unity / VRChat SDK
+            など、購入前に見ておきたい前提情報をまとめています。
+          </p>
+        </article>
+        <article>
+          <span class="i-lucide-route" aria-hidden="true"></span>
+          <h3>試着と購入導線</h3>
+          <p>
+            BOOTH、YouTube、試着ワールド、関連作品を行き来しやすくし、気になった作品をすぐ確認できるようにしています。
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <section class="section-band" aria-labelledby="lineup-title">
     <div class="section-inner">
       <div class="section-heading">
@@ -78,6 +121,15 @@ const items = (await getCollection('modeling')).sort((a, b) => {
         {
           items.map((item) => (
             <article class="modeling-card">
+              {item.data.image && (
+                <div class="modeling-card-image">
+                  <img
+                    src={item.data.image}
+                    alt={`${item.data.title}の紹介画像`}
+                    loading="lazy"
+                  />
+                </div>
+              )}
               <div>
                 <span class="price-label">{item.data.kind}</span>
                 <h3>{item.data.title}</h3>
@@ -85,6 +137,53 @@ const items = (await getCollection('modeling')).sort((a, b) => {
               <p>{item.data.summary}</p>
               {item.data.priceLabel && (
                 <span class="price-label">{item.data.priceLabel}</span>
+              )}
+              {item.data.features.length > 0 && (
+                <div class="modeling-detail-block">
+                  <h4>主な特徴</h4>
+                  <ul>
+                    {item.data.features.map((feature) => (
+                      <li>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {(item.data.specs.length > 0 ||
+                item.data.requirements.length > 0) && (
+                <div class="modeling-meta-grid">
+                  {item.data.specs.length > 0 && (
+                    <div>
+                      <h4>商品情報</h4>
+                      <ul>
+                        {item.data.specs.map((spec) => (
+                          <li>{spec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {item.data.requirements.length > 0 && (
+                    <div>
+                      <h4>対応・前提</h4>
+                      <ul>
+                        {item.data.requirements.map((requirement) => (
+                          <li>{requirement}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+              {item.data.related.length > 0 && (
+                <div class="modeling-related">
+                  <h4>関連リンク</h4>
+                  <div>
+                    {item.data.related.map((link) => (
+                      <a href={link.href} {...externalAttrs(link.href)}>
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
               )}
               <div class="social-row">
                 {item.data.boothUrl && (
@@ -101,6 +200,14 @@ const items = (await getCollection('modeling')).sort((a, b) => {
                     {...externalAttrs(item.data.youtubeUrl)}
                   >
                     YouTube
+                  </a>
+                )}
+                {item.data.tryOnUrl && (
+                  <a
+                    href={item.data.tryOnUrl}
+                    {...externalAttrs(item.data.tryOnUrl)}
+                  >
+                    試着ワールド
                   </a>
                 )}
                 {item.data.xUrl && (

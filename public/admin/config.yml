@@ -112,10 +112,40 @@ collections:
       - name: summary
         label: 概要
         widget: text
+      - name: order
+        label: 表示順
+        widget: number
+        value_type: int
+        default: 100
+        required: false
       - name: priceLabel
         label: 価格表示
         widget: string
         required: false
+      - name: features
+        label: 主な特徴
+        widget: list
+        required: false
+        field:
+          name: feature
+          label: 特徴
+          widget: string
+      - name: specs
+        label: スペック・商品情報
+        widget: list
+        required: false
+        field:
+          name: spec
+          label: 項目
+          widget: string
+      - name: requirements
+        label: 対応環境・前提
+        widget: list
+        required: false
+        field:
+          name: requirement
+          label: 項目
+          widget: string
       - name: boothUrl
         label: BOOTH URL
         widget: string
@@ -128,10 +158,25 @@ collections:
         label: X URL
         widget: string
         required: false
+      - name: tryOnUrl
+        label: 試着ワールド URL
+        widget: string
+        required: false
       - name: image
         label: 画像
         widget: image
         required: false
+      - name: related
+        label: 関連リンク
+        widget: list
+        required: false
+        fields:
+          - name: label
+            label: ラベル
+            widget: string
+          - name: href
+            label: URL
+            widget: string
       - name: featured
         label: 注目表示
         widget: boolean

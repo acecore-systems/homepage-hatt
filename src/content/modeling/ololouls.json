@@ -2,9 +2,34 @@
   "title": "オロロウルス",
   "kind": "オリジナル3Dアバター",
   "summary": "中でくつろげるデフォルメ人外アバターです。大きな体、内側の空間、独特な目線の変化といったコンセプトを紹介動画で確認できます。アイルック、Avatar 3.0、Visemesに対応し、パフォーマンスランクはGoodです。",
+  "order": 40,
   "priceLabel": "¥1,000",
   "boothUrl": "https://vetumheberehama.booth.pm/items/7759821",
   "youtubeUrl": "https://youtu.be/GfEU7uVr1Ww",
   "xUrl": "https://x.com/borubin",
+  "image": "/uploads/hatt/modeling/ololouls.jpg",
+  "tryOnUrl": "https://vrchat.com/home/launch?worldId=wrld_8c3caca6-8138-4c93-afbe-d5d128b45cab",
+  "features": [
+    "中でくつろげる内側の空間を持つデフォルメ人外アバターです。",
+    "大きな体と、目線の高さが変わる独特な動きが紹介されています。",
+    "軽量なGoodランクで、Blenderソースファイルも付属しています。"
+  ],
+  "specs": [
+    "価格: ¥1,000",
+    "パフォーマンスランク: Good",
+    "△6,192 / マテリアル4 / メッシュ1",
+    "ダウンロードサイズ 0.19MB / テクスチャメモリー 0.04MB"
+  ],
+  "requirements": [
+    "アイルック対応",
+    "Avatar 3.0 対応",
+    "Visemes（リップシンク）対応",
+    "前提アセット: lilToon"
+  ],
+  "related": [
+    { "label": "リバーシ", "href": "https://youtu.be/rjd70HD1pow" },
+    { "label": "モク", "href": "https://youtu.be/93fDGtPtEas" },
+    { "label": "あかるい友達", "href": "https://youtu.be/vle0XAJ9u9I" }
+  ],
   "featured": true
 }

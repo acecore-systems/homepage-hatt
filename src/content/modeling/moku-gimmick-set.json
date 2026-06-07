@@ -2,9 +2,36 @@
   "title": "モクギミックセット",
   "kind": "ギミック",
   "summary": "モク本体との併用を想定したVRChat向けギミックセットです。落ち葉、どんぐり、松ぼっくり、小判、狐火、イヤホン、カメラ、ボイスレコーダー、お稲荷変化などを収録し、Modular Avatarで他アバターにも使える構成です。",
+  "order": 30,
   "priceLabel": "¥1,500",
   "boothUrl": "https://vetumheberehama.booth.pm/items/7924454",
   "youtubeUrl": "https://youtu.be/SOhvYMNOdZI",
   "xUrl": "https://x.com/borubin",
+  "image": "/uploads/hatt/modeling/moku-gimmick-set.jpg",
+  "tryOnUrl": "https://vrchat.com/home/launch?worldId=wrld_8c3caca6-8138-4c93-afbe-d5d128b45cab",
+  "features": [
+    "落ち葉、どんぐり、松ぼっくりを背面から取り出せます。",
+    "小判、狐火、イヤホン、カメラ、ボイスレコーダー、お稲荷変化を収録しています。",
+    "カメラはVRChat内で撮影でき、FOVやISO操作のラジアルメニューがあります。"
+  ],
+  "specs": [
+    "価格: ¥1,500",
+    "アバターへの増加量目安: △12,181",
+    "マテリアル6 / ライト1 / オーディオ1",
+    "アニメーション31 / ラジアルメニュー1"
+  ],
+  "requirements": [
+    "モク本体との併用を想定",
+    "Modular Avatar対応で他アバターにも使用可能",
+    "前提アセット: lilToon",
+    "Unity 2022.3.22f1 / VRChat SDK"
+  ],
+  "related": [
+    {
+      "label": "モク本体",
+      "href": "https://vetumheberehama.booth.pm/items/7896488"
+    },
+    { "label": "モク紹介動画", "href": "https://youtu.be/93fDGtPtEas" }
+  ],
   "featured": true
 }
