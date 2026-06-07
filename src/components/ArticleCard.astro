@@ -2,6 +2,7 @@
 import type { BlogPost } from '@/utils/blog'
 import { getBlogPath } from '@/utils/blog'
 import { formatDate } from '@/utils/format'
+import { isWithinPublicationWindow } from '@/utils/publication-window'
 
 type TagData = {
   id: string
@@ -14,11 +15,17 @@ const { post, tagMap, compact } = Astro.props as {
   tagMap: Map<string, TagData>
   compact?: boolean
 }
+const publicationStartsAt = post.data.date.toISOString()
+const isPublished = isWithinPublicationWindow(publicationStartsAt)
 ---
 
 <a
   class:list={['article-card', { 'article-card--compact': compact }]}
   href={getBlogPath(post)}
+  data-publication-window="true"
+  data-publication-starts-at={publicationStartsAt}
+  data-pagefind-ignore
+  hidden={!isPublished}
 >
   {
     post.data.image && (
@@ -47,3 +54,9 @@ const { post, tagMap, compact } = Astro.props as {
     </ul>
   </div>
 </a>
+
+<script>
+  import { initPublicationWindowRuntime } from '../scripts/publication-window'
+
+  initPublicationWindowRuntime()
+</script>

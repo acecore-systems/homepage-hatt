@@ -19,6 +19,7 @@ import {
   getTagMap,
 } from '@/utils/blog'
 import { formatDate } from '@/utils/format'
+import { isWithinPublicationWindow } from '@/utils/publication-window'
 
 export async function getStaticPaths() {
   const posts = await getPosts()
@@ -50,6 +51,9 @@ const postUrl = new URL(getBlogPath(post), Astro.site ?? Astro.url).toString()
 const ogImagePath = `/blog/og/${slug}.png`
 const ogImageUrl = new URL(ogImagePath, Astro.site ?? Astro.url).toString()
 const modifiedDate = post.data.lastUpdated ?? post.data.date
+const publicationStartsAt = post.data.date.toISOString()
+const isPublished = isWithinPublicationWindow(publicationStartsAt)
+const robots = isCanonical && isPublished ? undefined : 'noindex,follow'
 const tocHeadings = headings.filter(
   (heading) => heading.depth >= 2 && heading.depth <= 3,
 )
@@ -89,146 +93,165 @@ const articleJsonLd = {
   modifiedTime={modifiedDate}
   tags={tagNames}
   authorName={authorName}
-  robots={isCanonical ? undefined : 'noindex,follow'}
+  robots={robots}
   jsonLd={articleJsonLd}
   breadcrumbItems={[
     { name: 'ブログ', item: '/blog/' },
     { name: post.data.title, item: getBlogPath(post) },
   ]}
 >
-  <article class="post-layout">
-    <Breadcrumb
-      items={[{ label: 'ブログ', href: '/blog/' }, { label: post.data.title }]}
-    />
-    <header class="post-header">
-      <div class="post-meta">
-        <time datetime={post.data.date.toISOString()}
-          >{formatDate(post.data.date)}</time
-        >
-        {
-          post.data.lastUpdated && (
-            <time datetime={post.data.lastUpdated.toISOString()}>
-              更新 {formatDate(post.data.lastUpdated)}
-            </time>
-          )
-        }
-        <span>{authorName}</span>
-      </div>
-      <h1>{post.data.title}</h1>
-      <ul class="tag-list" aria-label="タグ">
-        {
-          post.data.tags.map((tagId) => {
-            const tag = tagMap.get(tagId)
-            return tag ? (
-              <a href={`/blog/tag/${tag.slug}/`}>#{tag.name}</a>
-            ) : null
-          })
-        }
-      </ul>
-    </header>
-
-    {
-      post.data.image && (
-        <div class="post-cover">
-          <img
-            src={post.data.image}
-            alt={post.data.title}
-            loading="eager"
-            decoding="async"
-          />
+  <div
+    data-publication-window="true"
+    data-publication-starts-at={publicationStartsAt}
+    hidden={!isPublished}
+    {...!isPublished ? { 'data-pagefind-ignore': true } : {}}
+  >
+    <article class="post-layout">
+      <Breadcrumb
+        items={[
+          { label: 'ブログ', href: '/blog/' },
+          { label: post.data.title },
+        ]}
+      />
+      <header class="post-header">
+        <div class="post-meta">
+          <time datetime={post.data.date.toISOString()}
+            >{formatDate(post.data.date)}</time
+          >
+          {
+            post.data.lastUpdated && (
+              <time datetime={post.data.lastUpdated.toISOString()}>
+                更新 {formatDate(post.data.lastUpdated)}
+              </time>
+            )
+          }
+          <span>{authorName}</span>
         </div>
-      )
-    }
+        <h1>{post.data.title}</h1>
+        <ul class="tag-list" aria-label="タグ">
+          {
+            post.data.tags.map((tagId) => {
+              const tag = tagMap.get(tagId)
+              return tag ? (
+                <a href={`/blog/tag/${tag.slug}/`}>#{tag.name}</a>
+              ) : null
+            })
+          }
+        </ul>
+      </header>
 
-    <CampaignNotices placement="blog-article-after-header" />
-
-    <TableOfContents headings={tocHeadings} />
-
-    <div class="prose" {...isCanonical ? { 'data-pagefind-body': true } : {}}>
       {
-        isCanonical && (
-          <>
-            <span class="sr-only" data-pagefind-filter="author">
-              {authorName}
-            </span>
-            <span class="sr-only" data-pagefind-filter="year">
-              {post.data.date.getFullYear()}
-            </span>
-          </>
+        post.data.image && (
+          <div class="post-cover">
+            <img
+              src={post.data.image}
+              alt={post.data.title}
+              loading="eager"
+              decoding="async"
+            />
+          </div>
         )
       }
-      {
-        isCanonical &&
-          tagNames.map((tagName) => (
-            <span class="sr-only" data-pagefind-filter="tag">
-              {tagName}
-            </span>
-          ))
-      }
-      <Content />
-    </div>
 
-    {isCanonical && <AdUnit placement="article" />}
+      <CampaignNotices placement="blog-article-after-header" />
 
-    <ShareButtons url={postUrl} title={post.data.title} />
+      <TableOfContents headings={tocHeadings} />
 
-    <BlogComments slug={slug} />
-
-    <nav class="post-nav" aria-label="前後の記事">
-      <div>
+      <div
+        class="prose"
+        {...isCanonical && isPublished ? { 'data-pagefind-body': true } : {}}
+      >
         {
-          previous && (
-            <a href={getBlogPath(previous)}>← {previous.data.title}</a>
+          isCanonical && (
+            <>
+              <span class="sr-only" data-pagefind-filter="author">
+                {authorName}
+              </span>
+              <span class="sr-only" data-pagefind-filter="year">
+                {post.data.date.getFullYear()}
+              </span>
+            </>
           )
         }
+        {
+          isCanonical &&
+            tagNames.map((tagName) => (
+              <span class="sr-only" data-pagefind-filter="tag">
+                {tagName}
+              </span>
+            ))
+        }
+        <Content />
       </div>
-      <div>
-        {next && <a href={getBlogPath(next)}>{next.data.title} →</a>}
-      </div>
-    </nav>
 
-    <section class="post-followup" aria-labelledby="post-followup-title">
-      <div>
-        <p>次に見る</p>
-        <h2 id="post-followup-title">Hattの活動をもう少し見る</h2>
-      </div>
-      <div class="post-followup-grid">
-        <a href="/blog/">
-          <span class="i-lucide-newspaper" aria-hidden="true"></span>
-          <strong>ブログ一覧</strong>
-          <small>絵・小説・モデリングの記事へ</small>
-        </a>
-        <a href="/modeling/">
-          <span class="i-lucide-box" aria-hidden="true"></span>
-          <strong>モデリング</strong>
-          <small>BOOTHやYouTubeへの導線へ</small>
-        </a>
-        <a href="/profile/">
-          <span class="i-lucide-user-round" aria-hidden="true"></span>
-          <strong>プロフィール</strong>
-          <small>活動場所と外部リンクへ</small>
-        </a>
-      </div>
-    </section>
-  </article>
+      {isCanonical && <AdUnit placement="article" />}
 
-  {
-    relatedPosts.length > 0 && (
-      <section class="section-band" aria-labelledby="related-title">
-        <div class="section-inner">
-          <div class="section-heading">
-            <h2 id="related-title">関連記事</h2>
-            <a class="chip-link" href="/blog/">
-              ブログ一覧へ
-            </a>
-          </div>
-          <div class="article-grid">
-            {relatedPosts.map((related) => (
-              <ArticleCard post={related} tagMap={tagMap} compact />
-            ))}
-          </div>
+      <ShareButtons url={postUrl} title={post.data.title} />
+
+      <BlogComments slug={slug} />
+
+      <nav class="post-nav" aria-label="前後の記事">
+        <div>
+          {
+            previous && (
+              <a href={getBlogPath(previous)}>← {previous.data.title}</a>
+            )
+          }
+        </div>
+        <div>
+          {next && <a href={getBlogPath(next)}>{next.data.title} →</a>}
+        </div>
+      </nav>
+
+      <section class="post-followup" aria-labelledby="post-followup-title">
+        <div>
+          <p>次に見る</p>
+          <h2 id="post-followup-title">Hattの活動をもう少し見る</h2>
+        </div>
+        <div class="post-followup-grid">
+          <a href="/blog/">
+            <span class="i-lucide-newspaper" aria-hidden="true"></span>
+            <strong>ブログ一覧</strong>
+            <small>絵・小説・モデリングの記事へ</small>
+          </a>
+          <a href="/modeling/">
+            <span class="i-lucide-box" aria-hidden="true"></span>
+            <strong>モデリング</strong>
+            <small>BOOTHやYouTubeへの導線へ</small>
+          </a>
+          <a href="/profile/">
+            <span class="i-lucide-user-round" aria-hidden="true"></span>
+            <strong>プロフィール</strong>
+            <small>活動場所と外部リンクへ</small>
+          </a>
         </div>
       </section>
-    )
-  }
+    </article>
+
+    {
+      relatedPosts.length > 0 && (
+        <section class="section-band" aria-labelledby="related-title">
+          <div class="section-inner">
+            <div class="section-heading">
+              <h2 id="related-title">関連記事</h2>
+              <a class="chip-link" href="/blog/">
+                ブログ一覧へ
+              </a>
+            </div>
+            <div class="article-grid">
+              {relatedPosts.map((related) => (
+                <ArticleCard post={related} tagMap={tagMap} compact />
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+  </div>
+
+  <script>
+    import { initPublicationWindowRuntime } from '../../../scripts/publication-window'
+
+    initPublicationWindowRuntime()
+  </script>
 </BaseLayout>

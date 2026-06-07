@@ -18,12 +18,7 @@ const { placement, className = '' } = Astro.props as {
 
 const campaigns = await getCollection('campaigns')
 const notices = campaigns
-  .filter(
-    (entry) =>
-      entry.data.enabled &&
-      entry.data.placement === placement &&
-      isWithinPublicationWindow(entry.data.startsAt, entry.data.endsAt),
-  )
+  .filter((entry) => entry.data.enabled && entry.data.placement === placement)
   .sort(
     (a, b) => a.data.order - b.data.order || a.data.id.localeCompare(b.data.id),
   )
@@ -41,6 +36,9 @@ const toneIcon = {
     const isBanner = notice.data.kind === 'banner' || placement === 'global'
     const href = notice.data.href?.trim()
     const icon = notice.data.icon?.trim() || toneIcon[notice.data.tone]
+    const startsAt = notice.data.startsAt?.trim() || undefined
+    const endsAt = notice.data.endsAt?.trim() || undefined
+    const isPublished = isWithinPublicationWindow(startsAt, endsAt)
 
     return (
       <section
@@ -51,7 +49,11 @@ const toneIcon = {
         ]}
         aria-label={notice.data.title}
         data-campaign-id={notice.data.id}
+        data-publication-window="true"
+        data-publication-starts-at={startsAt}
+        data-publication-ends-at={endsAt}
         data-pagefind-ignore
+        hidden={!isPublished}
       >
         <div class={isBanner ? 'campaign-banner-inner' : 'section-inner'}>
           <div class="campaign-copy">
@@ -79,3 +81,8 @@ const toneIcon = {
     )
   })
 }
+<script>
+  import { initPublicationWindowRuntime } from '../scripts/publication-window'
+
+  initPublicationWindowRuntime()
+</script>
