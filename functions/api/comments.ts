@@ -178,7 +178,10 @@ export const onRequestPost = async ({
     )
   }
 
-  if (!env.TURNSTILE_SECRET_KEY && !isLocalRequestHost(request)) {
+  if (
+    (!env.TURNSTILE_SECRET_KEY || !env.COMMENT_HASH_SALT) &&
+    !isLocalRequestHost(request)
+  ) {
     return jsonResponse({ ok: false, message: message('unavailable') }, 503)
   }
 
@@ -205,7 +208,7 @@ export const onRequestPost = async ({
   }
 
   const now = new Date()
-  const salt = env.COMMENT_HASH_SALT || 'hatt-comments'
+  const salt = env.COMMENT_HASH_SALT || 'hatt-comments-local'
   const userAgent = request.headers.get('User-Agent') || ''
   const clientIp = getClientIp(request)
   const clientHash = await sha256Hex(
