@@ -69,6 +69,37 @@ const modeling = defineCollection({
   }),
 })
 
+const campaigns = defineCollection({
+  loader: glob({
+    base: './src/content/campaigns',
+    pattern: '**/*.json',
+  }),
+  schema: z.object({
+    id: z.string(),
+    enabled: z.boolean().default(false),
+    kind: z.enum(['banner', 'notice']).default('notice'),
+    placement: z
+      .enum([
+        'global',
+        'home-after-hero',
+        'blog-after-hero',
+        'blog-article-after-header',
+        'modeling-after-hero',
+        'profile-after-hero',
+      ])
+      .default('global'),
+    title: z.string(),
+    body: z.string().optional(),
+    href: z.string().optional(),
+    ctaLabel: z.string().optional(),
+    icon: z.string().optional(),
+    tone: z.enum(['cyan', 'ember', 'mint', 'pollen']).default('cyan'),
+    order: z.number().default(100),
+    startsAt: z.string().optional(),
+    endsAt: z.string().optional(),
+  }),
+})
+
 const site = defineCollection({
   loader: glob({
     base: './src/content/site',
@@ -80,6 +111,7 @@ const site = defineCollection({
     icon: z.string(),
     cover: z.string(),
     adsenseClientId: z.string().optional(),
+    turnstileSiteKey: z.string().optional(),
     headerLinks: z.array(linkSchema).default([]),
     socialLinks: z.array(linkSchema).default([]),
     homePillars: z.array(
@@ -101,6 +133,7 @@ const site = defineCollection({
 export const collections = {
   authors,
   blog,
+  campaigns,
   modeling,
   site,
   tags,

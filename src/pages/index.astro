@@ -1,5 +1,6 @@
 ---
 import ArticleCard from '@/components/ArticleCard.astro'
+import CampaignNotices from '@/components/CampaignNotices.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import {
   getArchiveStats,
@@ -110,6 +111,8 @@ const modelingLinks = [
       </div>
     </div>
   </section>
+
+  <CampaignNotices placement="home-after-hero" />
 
   <section class="home-modeling-strip" aria-labelledby="modeling-title">
     <div class="section-inner">

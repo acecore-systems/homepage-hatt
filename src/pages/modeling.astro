@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import CampaignNotices from '@/components/CampaignNotices.astro'
 import { getCollection } from 'astro:content'
 import { getSiteConfig } from '@/utils/blog'
 import { externalAttrs } from '@/utils/routes'
@@ -45,6 +46,8 @@ const items = (await getCollection('modeling')).sort((a, b) => {
       </div>
     </div>
   </section>
+
+  <CampaignNotices placement="modeling-after-hero" />
 
   <section class="section-band" aria-labelledby="lineup-title">
     <div class="section-inner">

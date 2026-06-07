@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css'
 
+import CampaignNotices from '@/components/CampaignNotices.astro'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
 import { getSiteConfig } from '@/utils/blog'
@@ -168,6 +169,7 @@ const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
   <body class={pageClass}>
     <a class="skip-link" href="#main-content">本文へスキップ</a>
     <Header site={site} />
+    <CampaignNotices placement="global" />
     <main id="main-content">
       <slot />
     </main>

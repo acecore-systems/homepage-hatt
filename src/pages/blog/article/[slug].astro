@@ -1,7 +1,9 @@
 ---
 import { render } from 'astro:content'
 import ArticleCard from '@/components/ArticleCard.astro'
+import BlogComments from '@/components/BlogComments.astro'
 import Breadcrumb from '@/components/Breadcrumb.astro'
+import CampaignNotices from '@/components/CampaignNotices.astro'
 import ShareButtons from '@/components/ShareButtons.astro'
 import TableOfContents from '@/components/TableOfContents.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
@@ -127,10 +129,17 @@ const articleJsonLd = {
     {
       post.data.image && (
         <div class="post-cover">
-          <img src={post.data.image} alt={post.data.title} />
+          <img
+            src={post.data.image}
+            alt={post.data.title}
+            loading="eager"
+            decoding="async"
+          />
         </div>
       )
     }
+
+    <CampaignNotices placement="blog-article-after-header" />
 
     <TableOfContents headings={tocHeadings} />
 
@@ -160,6 +169,8 @@ const articleJsonLd = {
 
     <ShareButtons url={postUrl} title={post.data.title} />
 
+    <BlogComments slug={slug} />
+
     <nav class="post-nav" aria-label="前後の記事">
       <div>
         {
@@ -172,6 +183,30 @@ const articleJsonLd = {
         {next && <a href={getBlogPath(next)}>{next.data.title} →</a>}
       </div>
     </nav>
+
+    <section class="post-followup" aria-labelledby="post-followup-title">
+      <div>
+        <p>次に見る</p>
+        <h2 id="post-followup-title">Hattの活動をもう少し見る</h2>
+      </div>
+      <div class="post-followup-grid">
+        <a href="/blog/">
+          <span class="i-lucide-newspaper" aria-hidden="true"></span>
+          <strong>ブログ一覧</strong>
+          <small>絵・小説・モデリングの記事へ</small>
+        </a>
+        <a href="/modeling/">
+          <span class="i-lucide-box" aria-hidden="true"></span>
+          <strong>モデリング</strong>
+          <small>BOOTHやYouTubeへの導線へ</small>
+        </a>
+        <a href="/profile/">
+          <span class="i-lucide-user-round" aria-hidden="true"></span>
+          <strong>プロフィール</strong>
+          <small>活動場所と外部リンクへ</small>
+        </a>
+      </div>
+    </section>
   </article>
 
   {

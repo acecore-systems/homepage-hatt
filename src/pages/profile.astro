@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import CampaignNotices from '@/components/CampaignNotices.astro'
 import { getAuthors, getSiteConfig } from '@/utils/blog'
 import { externalAttrs } from '@/utils/routes'
 
@@ -26,6 +27,8 @@ const [author] = await getAuthors()
       />
     </div>
   </section>
+
+  <CampaignNotices placement="profile-after-hero" />
 
   <section class="section-band">
     <div class="narrow-page profile-grid">

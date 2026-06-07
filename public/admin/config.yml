@@ -227,6 +227,11 @@ collections:
             label: AdSense Client ID
             widget: string
             required: false
+          - name: turnstileSiteKey
+            label: Turnstile Site Key
+            widget: string
+            required: false
+            hint: コメント投稿のCloudflare Turnstile公開キーです。secret keyはCloudflare Pagesの環境変数に設定します。
           - name: headerLinks
             label: ヘッダーリンク
             widget: list
@@ -279,3 +284,90 @@ collections:
                 label: 色
                 widget: select
                 options: [cyan, ember, mint]
+
+  - name: campaigns
+    label: キャンペーン通知
+    label_singular: キャンペーン通知
+    description: サイト上部の告知バナーや、ページ内のキャンペーン通知を編集します。
+    icon: campaign
+    folder: src/content/campaigns
+    format: json
+    extension: json
+    identifier_field: id
+    slug: '{{fields.id}}'
+    summary: '{{title}} - {{placement}}'
+    sortable_fields: [order, title, placement, enabled]
+    fields:
+      - name: id
+        label: ID
+        widget: string
+        pattern:
+          - '^[a-z0-9][a-z0-9_-]*$'
+          - 半角英数字で始まるIDを入力してください。
+      - name: enabled
+        label: 表示する
+        widget: boolean
+        default: false
+      - name: kind
+        label: 種別
+        widget: select
+        options:
+          - { label: トップ告知バナー, value: banner }
+          - { label: ページ内キャンペーン通知, value: notice }
+        default: notice
+      - name: placement
+        label: 表示位置
+        widget: select
+        options:
+          - { label: サイト上部, value: global }
+          - { label: トップページ・ヒーロー下, value: home-after-hero }
+          - { label: ブログ一覧・ヒーロー下, value: blog-after-hero }
+          - { label: 記事ページ・見出し下, value: blog-article-after-header }
+          - { label: モデリング・ヒーロー下, value: modeling-after-hero }
+          - { label: プロフィール・ヒーロー下, value: profile-after-hero }
+      - name: title
+        label: タイトル
+        widget: string
+      - name: body
+        label: 本文
+        widget: text
+        required: false
+      - name: href
+        label: リンクURL
+        widget: string
+        required: false
+      - name: ctaLabel
+        label: ボタン文言
+        widget: string
+        required: false
+      - name: icon
+        label: アイコン
+        widget: select
+        required: false
+        options:
+          - { label: 告知, value: i-lucide-megaphone }
+          - { label: 星, value: i-lucide-star }
+          - { label: 制作, value: i-lucide-sparkles }
+          - { label: モデリング, value: i-lucide-box }
+          - { label: 絵, value: i-lucide-brush }
+          - { label: 小説, value: i-lucide-book-open }
+      - name: tone
+        label: 色
+        widget: select
+        options: [cyan, ember, mint, pollen]
+        default: cyan
+      - name: order
+        label: 表示順
+        widget: number
+        value_type: int
+        default: 100
+      - name: startsAt
+        label: 表示開始日時
+        widget: datetime
+        format: YYYY-MM-DDTHH:mm
+        required: false
+      - name: endsAt
+        label: 表示終了日時
+        widget: datetime
+        format: YYYY-MM-DDTHH:mm
+        required: false
