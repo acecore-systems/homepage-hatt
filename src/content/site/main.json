@@ -5,6 +5,8 @@
   "cover": "/uploads/hatt/site-cover.jpg",
   "adsenseClientId": "ca-pub-3935803464310919",
   "turnstileSiteKey": "0x4AAAAAADgFdX0i7Etno1bL",
+  "adsenseSlotId": "3228710511",
+  "adsenseInlineSlotId": "4541792182",
   "headerLinks": [
     { "label": "ブログ", "href": "/blog/" },
     { "label": "モデリング", "href": "/modeling/" },

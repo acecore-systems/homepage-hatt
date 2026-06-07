@@ -1,5 +1,6 @@
 ---
 import { render } from 'astro:content'
+import AdUnit from '@/components/AdUnit.astro'
 import ArticleCard from '@/components/ArticleCard.astro'
 import BlogComments from '@/components/BlogComments.astro'
 import Breadcrumb from '@/components/Breadcrumb.astro'
@@ -166,6 +167,8 @@ const articleJsonLd = {
       }
       <Content />
     </div>
+
+    {isCanonical && <AdUnit placement="article" />}
 
     <ShareButtons url={postUrl} title={post.data.title} />
 

@@ -1,0 +1,47 @@
+---
+import AdsRuntime from '@/components/AdsRuntime.astro'
+import { getSiteConfig } from '@/utils/blog'
+
+type Placement = 'article' | 'list'
+
+type Props = {
+  adSlot?: string
+  placement?: Placement
+  class?: string
+}
+
+const site = await getSiteConfig()
+const { adSlot, placement = 'article', class: className } = Astro.props as Props
+const defaultSlot =
+  placement === 'list'
+    ? (site.adsenseSlotId ?? site.adsenseInlineSlotId)
+    : (site.adsenseInlineSlotId ?? site.adsenseSlotId)
+const slot = adSlot ?? defaultSlot
+const canRender = Boolean(site.adsenseClientId && slot)
+---
+
+{
+  canRender && (
+    <>
+      <aside
+        class:list={['ad-unit', `ad-unit--${placement}`, className]}
+        aria-label="広告"
+        data-hatt-ad-container
+        data-hatt-ad-state="pending"
+        data-pagefind-ignore
+      >
+        <span class="ad-unit-label">スポンサーリンク</span>
+        <ins
+          class="adsbygoogle"
+          data-hatt-ad-slot
+          style="display:block"
+          data-ad-client={site.adsenseClientId}
+          data-ad-slot={slot}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+      </aside>
+      <AdsRuntime />
+    </>
+  )
+}

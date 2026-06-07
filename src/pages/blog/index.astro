@@ -1,4 +1,5 @@
 ---
+import AdUnit from '@/components/AdUnit.astro'
 import ArticleCard from '@/components/ArticleCard.astro'
 import BlogSidebar from '@/components/BlogSidebar.astro'
 import CampaignNotices from '@/components/CampaignNotices.astro'
@@ -7,12 +8,10 @@ import {
   getArchiveStats,
   getAuthors,
   getPosts,
-  getSiteConfig,
   getTagMap,
   getTagStats,
 } from '@/utils/blog'
 
-const site = await getSiteConfig()
 const posts = await getPosts()
 const tagMap = await getTagMap()
 const tagStats = await getTagStats()
@@ -54,6 +53,7 @@ const authors = await getAuthors()
       <div class="blog-list">
         {posts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
       </div>
+      <AdUnit placement="list" />
     </div>
     <BlogSidebar tags={tagStats} archives={archives} authors={authors} />
   </div>
