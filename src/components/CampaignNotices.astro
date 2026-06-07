@@ -71,6 +71,9 @@ const toneIcon = {
               href={href}
               {...externalAttrs(href)}
               data-campaign-link={notice.data.id}
+              data-hatt-event="campaign_click"
+              data-hatt-label={notice.data.id}
+              data-hatt-location={placement}
             >
               {notice.data.ctaLabel}
               <span class="i-lucide-arrow-right" aria-hidden="true" />

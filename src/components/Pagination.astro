@@ -1,0 +1,51 @@
+---
+import { getBlogPagePath } from '@/utils/blog'
+
+const { currentPage, totalPages } = Astro.props as {
+  currentPage: number
+  totalPages: number
+}
+
+const pages = Array.from({ length: totalPages }, (_, index) => index + 1)
+const previousPage = currentPage > 1 ? currentPage - 1 : undefined
+const nextPage = currentPage < totalPages ? currentPage + 1 : undefined
+---
+
+{
+  totalPages > 1 && (
+    <nav class="pagination" aria-label="ブログページ">
+      <a
+        class:list={['pagination-link', !previousPage && 'is-disabled']}
+        href={previousPage ? getBlogPagePath(previousPage) : undefined}
+        aria-disabled={!previousPage}
+      >
+        <span class="i-lucide-chevron-left" aria-hidden="true" />
+        前へ
+      </a>
+      <ol>
+        {pages.map((page) => (
+          <li>
+            <a
+              class:list={[
+                'pagination-page',
+                page === currentPage && 'is-current',
+              ]}
+              href={getBlogPagePath(page)}
+              aria-current={page === currentPage ? 'page' : undefined}
+            >
+              {page}
+            </a>
+          </li>
+        ))}
+      </ol>
+      <a
+        class:list={['pagination-link', !nextPage && 'is-disabled']}
+        href={nextPage ? getBlogPagePath(nextPage) : undefined}
+        aria-disabled={!nextPage}
+      >
+        次へ
+        <span class="i-lucide-chevron-right" aria-hidden="true" />
+      </a>
+    </nav>
+  )
+}

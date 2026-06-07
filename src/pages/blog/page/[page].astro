@@ -2,21 +2,30 @@
 import AdUnit from '@/components/AdUnit.astro'
 import ArticleCard from '@/components/ArticleCard.astro'
 import BlogSidebar from '@/components/BlogSidebar.astro'
-import CampaignNotices from '@/components/CampaignNotices.astro'
 import Pagination from '@/components/Pagination.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import {
-  getBlogPageCount,
   getArchiveStats,
   getAuthors,
+  getBlogPageCount,
   getPaginatedPosts,
   getPosts,
   getTagMap,
   getTagStats,
 } from '@/utils/blog'
 
+export async function getStaticPaths() {
+  const posts = await getPosts()
+  const totalPages = getBlogPageCount(posts)
+
+  return Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) => {
+    const page = index + 2
+    return { params: { page: String(page) } }
+  })
+}
+
 const posts = await getPosts()
-const currentPage = 1
+const currentPage = Number(Astro.params.page)
 const totalPages = getBlogPageCount(posts)
 const pagePosts = getPaginatedPosts(posts, currentPage)
 const tagMap = await getTagMap()
@@ -26,36 +35,32 @@ const authors = await getAuthors()
 ---
 
 <BaseLayout
-  title="ブログ"
-  description="Hattの絵、小説、モデリングに関する記事一覧です。"
+  title={`ブログ ${currentPage}ページ目`}
+  description={`Hattの絵、小説、モデリングに関する記事一覧 ${currentPage}ページ目です。`}
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: `${currentPage}ページ目`, item: `/blog/page/${currentPage}/` },
+  ]}
 >
   <section class="blog-hero">
     <div class="blog-shell" style="padding-bottom: 0;">
       <div class="blog-title">
         <div>
           <h1>ブログ</h1>
-          <p class="lead">絵、小説、モデリングの記録をまとめています。</p>
+          <p class="lead">
+            絵、小説、モデリングの記録をまとめています。{currentPage}ページ目
+            です。
+          </p>
         </div>
-        <a class="primary-button" href="/blog/search/">
-          記事を検索
-          <span class="i-lucide-search" aria-hidden="true"></span>
-        </a>
+        <a class="chip-link" href="/blog/">最新記事へ</a>
       </div>
       <div aria-hidden="true"></div>
     </div>
   </section>
 
-  <CampaignNotices placement="blog-after-hero" />
-
   <div class="blog-shell">
     <div>
-      <div class="tag-list" style="margin-bottom: 18px;">
-        {
-          tagStats.map((tag) => (
-            <a href={`/blog/tag/${tag.slug}/`}>#{tag.name}</a>
-          ))
-        }
-      </div>
       <div class="blog-list">
         {pagePosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
       </div>

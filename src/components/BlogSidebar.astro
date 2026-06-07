@@ -9,7 +9,8 @@ type TagStat = {
 }
 
 type ArchiveStat = {
-  year: number
+  month: string
+  label: string
   count: number
 }
 
@@ -50,8 +51,8 @@ const { tags, archives, authors } = Astro.props as {
       {
         archives.map((archive) => (
           <li>
-            <a href={`/blog/archive/${archive.year}/`}>
-              {archive.year}
+            <a href={`/blog/archive/${archive.month}/`}>
+              {archive.label}
               <span>{archive.count}</span>
             </a>
           </li>

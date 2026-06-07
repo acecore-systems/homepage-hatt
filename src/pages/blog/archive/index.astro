@@ -10,7 +10,7 @@ const authors = await getAuthors()
 
 <BaseLayout
   title="アーカイブ"
-  description="Hattのブログ記事を年別にまとめています。"
+  description="Hattのブログ記事を月別にまとめています。"
   robots="noindex,follow"
   breadcrumbItems={[
     { name: 'ブログ', item: '/blog/' },
@@ -22,7 +22,7 @@ const authors = await getAuthors()
       <div class="blog-title">
         <div>
           <h1>アーカイブ</h1>
-          <p class="lead">公開年ごとの記事一覧です。</p>
+          <p class="lead">公開月ごとの記事一覧です。</p>
         </div>
         <a class="chip-link" href="/blog/">ブログ一覧へ</a>
       </div>
@@ -34,8 +34,8 @@ const authors = await getAuthors()
     <div class="index-link-grid">
       {
         archives.map((archive) => (
-          <a href={`/blog/archive/${archive.year}/`} class="index-link-card">
-            <span>{archive.year}年</span>
+          <a href={`/blog/archive/${archive.month}/`} class="index-link-card">
+            <span>{archive.label}</span>
             <strong>{archive.count}件</strong>
           </a>
         ))

@@ -10,6 +10,30 @@ tags:
   - modeling
 author: hatt
 image: /uploads/hatt/site-cover.jpg
+callout:
+  title: まず見てほしい入口
+  text: モデリングページでは、作品ごとのBOOTH、YouTube、対応環境、試着ワールドへの導線をまとめています。
+  tone: mint
+checklist:
+  title: 今後も増やしていく内容
+  items:
+    - 作品ごとの制作メモや使い方の補足
+    - 絵、小説、VRChat作品を横断して探せる導線
+    - BOOTHやYouTubeで公開した作品の更新履歴
+linkCards:
+  - label: モデリングページ
+    href: /modeling/
+    description: VRChat向けアバター、ギミック、アクセサリーの一覧
+  - label: プロフィール
+    href: /profile/
+    description: Hattの活動場所と外部リンク
+faq:
+  title: このサイトについて
+  items:
+    - question: BOOTHの商品情報はどこで見られますか？
+      answer: モデリングページで作品ごとにBOOTH、YouTube、試着ワールドへの導線をまとめています。
+    - question: 絵や小説の記事も増えますか？
+      answer: ブログで制作記録や外部公開先への導線を少しずつ追加していく予定です。
 ---
 
 Hattのホームページを公開しました。

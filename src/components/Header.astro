@@ -17,9 +17,27 @@ const { site } = Astro.props as { site: Site }
       <span>{site.name}</span>
     </a>
     <div class="nav-links">
+      <button
+        class="nav-search-button"
+        type="button"
+        data-search-open
+        data-hatt-event="search_open"
+        data-hatt-label="header_search"
+        data-hatt-location="header"
+        aria-controls="site-search-modal"
+      >
+        <span class="i-lucide-search" aria-hidden="true"></span>
+        <span>検索</span>
+      </button>
       {
         site.headerLinks.map((link) => (
-          <a href={link.href} {...externalAttrs(link.href)}>
+          <a
+            href={link.href}
+            {...externalAttrs(link.href)}
+            data-hatt-event="nav_click"
+            data-hatt-label={link.label}
+            data-hatt-location="header"
+          >
             {link.label}
           </a>
         ))

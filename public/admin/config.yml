@@ -83,6 +83,199 @@ collections:
           name: slug
           label: 旧スラッグ
           widget: string
+      - name: callout
+        label: 補足コールアウト
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: title
+            label: 見出し
+            widget: string
+            required: false
+          - name: text
+            label: 本文
+            widget: text
+            required: false
+          - name: tone
+            label: 色
+            widget: select
+            options: [cyan, ember, mint, pollen]
+            default: cyan
+            required: false
+      - name: timeline
+        label: タイムライン
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: title
+            label: 見出し
+            widget: string
+            required: false
+          - name: items
+            label: 項目
+            widget: list
+            required: false
+            fields:
+              - name: title
+                label: タイトル
+                widget: string
+              - name: text
+                label: 説明
+                widget: text
+                required: false
+              - name: date
+                label: 日付・補足
+                widget: string
+                required: false
+      - name: compareTable
+        label: 比較表
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: title
+            label: 見出し
+            widget: string
+            required: false
+          - name: columns
+            label: 列
+            widget: list
+            required: false
+            field:
+              name: column
+              label: 列名
+              widget: string
+          - name: rows
+            label: 行
+            widget: list
+            required: false
+            fields:
+              - name: label
+                label: 行見出し
+                widget: string
+                required: false
+              - name: cells
+                label: セル
+                widget: list
+                required: false
+                field:
+                  name: cell
+                  label: セル
+                  widget: string
+      - name: checklist
+        label: チェックリスト
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: title
+            label: 見出し
+            widget: string
+            required: false
+          - name: items
+            label: 項目
+            widget: list
+            required: false
+            field:
+              name: item
+              label: 項目
+              widget: string
+      - name: gallery
+        label: ギャラリー
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: title
+            label: 見出し
+            widget: string
+            required: false
+          - name: images
+            label: 画像
+            widget: list
+            required: false
+            fields:
+              - name: src
+                label: 画像
+                widget: image
+              - name: alt
+                label: 代替テキスト
+                widget: string
+                required: false
+              - name: caption
+                label: キャプション
+                widget: string
+                required: false
+      - name: youtube
+        label: YouTube埋め込み
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: url
+            label: YouTube URL
+            widget: string
+            required: false
+          - name: title
+            label: タイトル
+            widget: string
+            required: false
+          - name: caption
+            label: キャプション
+            widget: string
+            required: false
+      - name: faq
+        label: FAQ
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: title
+            label: 見出し
+            widget: string
+            required: false
+          - name: items
+            label: 質問
+            widget: list
+            required: false
+            fields:
+              - name: question
+                label: 質問
+                widget: string
+              - name: answer
+                label: 回答
+                widget: text
+      - name: linkCards
+        label: リンクカード
+        widget: list
+        required: false
+        fields:
+          - name: label
+            label: ラベル
+            widget: string
+          - name: href
+            label: URL
+            widget: string
+          - name: description
+            label: 説明
+            widget: text
+            required: false
+      - name: pullQuote
+        label: 引用
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: quote
+            label: 引用文
+            widget: text
+            required: false
+          - name: source
+            label: 出典・補足
+            widget: string
+            required: false
       - name: body
         label: 本文
         widget: markdown

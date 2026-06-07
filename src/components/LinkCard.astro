@@ -1,0 +1,24 @@
+---
+import { externalAttrs } from '@/utils/routes'
+
+const { label, href, description } = Astro.props as {
+  label: string
+  href: string
+  description?: string
+}
+---
+
+<a
+  class="rich-link-card"
+  href={href}
+  {...externalAttrs(href)}
+  data-hatt-event="rich_link_click"
+  data-hatt-label={label}
+  data-hatt-location="article_block"
+>
+  <span>
+    <strong>{label}</strong>
+    {description && <small>{description}</small>}
+  </span>
+  <span class="i-lucide-arrow-up-right" aria-hidden="true"></span>
+</a>

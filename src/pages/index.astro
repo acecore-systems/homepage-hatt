@@ -40,11 +40,23 @@ const modelingLinks = [
           </h1>
           <p>絵、小説、VRChat向け3D作品をまとめてたどれる場所。</p>
           <div class="button-row">
-            <a class="primary-button" href="/blog/">
+            <a
+              class="primary-button"
+              href="/blog/"
+              data-hatt-event="cta_click"
+              data-hatt-label="hero_blog"
+              data-hatt-location="home_hero"
+            >
               記事を読む
               <span class="i-lucide-arrow-right" aria-hidden="true"></span>
             </a>
-            <a class="secondary-button" href="/modeling/">
+            <a
+              class="secondary-button"
+              href="/modeling/"
+              data-hatt-event="cta_click"
+              data-hatt-label="hero_modeling"
+              data-hatt-location="home_hero"
+            >
               モデリングを見る
               <span class="i-lucide-arrow-right" aria-hidden="true"></span>
             </a>
@@ -85,7 +97,13 @@ const modelingLinks = [
                 {pillar.id === 'modeling' ? (
                   <div class="home-pillar-actions">
                     {modelingLinks.map((link) => (
-                      <a href={link.href} {...externalAttrs(link.href)}>
+                      <a
+                        href={link.href}
+                        {...externalAttrs(link.href)}
+                        data-hatt-event="modeling_link_click"
+                        data-hatt-label={link.label}
+                        data-hatt-location="home_pillar_modeling"
+                      >
                         {link.label}
                         <span
                           class="i-lucide-arrow-up-right"
@@ -99,6 +117,9 @@ const modelingLinks = [
                     class="home-pillar-button"
                     href={pillar.href}
                     {...externalAttrs(pillar.href)}
+                    data-hatt-event="pillar_click"
+                    data-hatt-label={pillar.id}
+                    data-hatt-location="home_pillars"
                   >
                     {pillar.cta}
                     <span class="i-lucide-arrow-right" aria-hidden="true" />
@@ -206,8 +227,8 @@ const modelingLinks = [
               {
                 archiveStats.map((archive) => (
                   <li>
-                    <a href={`/blog/archive/${archive.year}/`}>
-                      <span>{archive.year}年</span>
+                    <a href={`/blog/archive/${archive.month}/`}>
+                      <span>{archive.label}</span>
                       <strong>{archive.count}</strong>
                     </a>
                   </li>

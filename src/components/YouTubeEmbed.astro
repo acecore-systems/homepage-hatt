@@ -1,0 +1,43 @@
+---
+const {
+  url,
+  title = 'YouTube動画',
+  caption,
+} = Astro.props as {
+  url?: string
+  title?: string
+  caption?: string
+}
+
+function getVideoId(value?: string) {
+  if (!value) return undefined
+  try {
+    const parsed = new URL(value)
+    if (parsed.hostname.includes('youtu.be')) return parsed.pathname.slice(1)
+    if (parsed.searchParams.get('v')) return parsed.searchParams.get('v')
+    const embedMatch = parsed.pathname.match(/\/embed\/([^/]+)/)
+    return embedMatch?.[1]
+  } catch {
+    return undefined
+  }
+}
+
+const videoId = getVideoId(url)
+---
+
+{
+  videoId && (
+    <figure class="rich-block rich-youtube">
+      <div>
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+          title={title}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        />
+      </div>
+      {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+  )
+}

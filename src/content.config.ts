@@ -6,6 +6,68 @@ const linkSchema = z.object({
   label: z.string(),
   href: z.string(),
 })
+const richImageSchema = z.object({
+  src: z.string(),
+  alt: z.string().default(''),
+  caption: z.string().optional(),
+})
+const calloutSchema = z.object({
+  title: z.string().optional(),
+  text: z.string().optional(),
+  tone: z.enum(['cyan', 'ember', 'mint', 'pollen']).default('cyan'),
+})
+const timelineSchema = z.object({
+  title: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        title: z.string(),
+        text: z.string().optional(),
+        date: z.string().optional(),
+      }),
+    )
+    .default([]),
+})
+const compareTableSchema = z.object({
+  title: z.string().optional(),
+  columns: z.array(z.string()).default([]),
+  rows: z
+    .array(
+      z.object({
+        label: z.string().optional(),
+        cells: z.array(z.string()).default([]),
+      }),
+    )
+    .default([]),
+})
+const checklistSchema = z.object({
+  title: z.string().optional(),
+  items: z.array(z.string()).default([]),
+})
+const gallerySchema = z.object({
+  title: z.string().optional(),
+  images: z.array(richImageSchema).default([]),
+})
+const youtubeSchema = z.object({
+  url: z.string().optional(),
+  title: z.string().optional(),
+  caption: z.string().optional(),
+})
+const faqSchema = z.object({
+  title: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+      }),
+    )
+    .default([]),
+})
+const pullQuoteSchema = z.object({
+  quote: z.string().optional(),
+  source: z.string().optional(),
+})
 const cmsDate = z.preprocess(
   (value) => parseCmsDateTime(value) ?? value,
   z.date(),
@@ -26,6 +88,17 @@ const blog = defineCollection({
     author: z.string(),
     image: z.string().optional(),
     legacySlugs: z.array(z.string()).default([]),
+    callout: calloutSchema.optional(),
+    timeline: timelineSchema.optional(),
+    compareTable: compareTableSchema.optional(),
+    checklist: checklistSchema.optional(),
+    gallery: gallerySchema.optional(),
+    youtube: youtubeSchema.optional(),
+    faq: faqSchema.optional(),
+    linkCards: z
+      .array(linkSchema.extend({ description: z.string().optional() }))
+      .default([]),
+    pullQuote: pullQuoteSchema.optional(),
   }),
 })
 
