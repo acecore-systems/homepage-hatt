@@ -1,6 +1,7 @@
 ---
 import ArticleCard from '@/components/ArticleCard.astro'
 import BlogSidebar from '@/components/BlogSidebar.astro'
+import CampaignNotices from '@/components/CampaignNotices.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import {
   getArchiveStats,
@@ -38,6 +39,8 @@ const authors = await getAuthors()
       <div aria-hidden="true"></div>
     </div>
   </section>
+
+  <CampaignNotices placement="blog-after-hero" />
 
   <div class="blog-shell">
     <div>

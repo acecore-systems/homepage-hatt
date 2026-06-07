@@ -4,6 +4,7 @@
   "icon": "/uploads/hatt/favicon.png",
   "cover": "/uploads/hatt/site-cover.jpg",
   "adsenseClientId": "ca-pub-3935803464310919",
+  "turnstileSiteKey": "",
   "headerLinks": [
     { "label": "ブログ", "href": "/blog/" },
     { "label": "モデリング", "href": "/modeling/" },

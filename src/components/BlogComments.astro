@@ -1,0 +1,364 @@
+---
+import { getSiteConfig } from '@/utils/blog'
+
+const { slug } = Astro.props as { slug: string }
+const site = await getSiteConfig()
+const sitekey = site.turnstileSiteKey?.trim() ?? ''
+---
+
+<section
+  class="blog-comments"
+  data-comments-root
+  data-comments-slug={slug}
+  data-comments-sitekey={sitekey}
+  data-pagefind-ignore
+  aria-labelledby="comments-title"
+>
+  <div class="comments-heading">
+    <div>
+      <p>Comments</p>
+      <h2 id="comments-title">コメント</h2>
+    </div>
+    <span data-comments-count></span>
+  </div>
+
+  <div
+    class="comments-status"
+    data-comments-status
+    role="status"
+    aria-live="polite"
+  >
+    コメントを読み込んでいます。
+  </div>
+
+  <div class="comments-list" data-comments-list></div>
+
+  <form class="comments-form" data-comments-form>
+    <div class="comments-form-grid">
+      <div>
+        <label for={`comment-author-${slug}`}>名前</label>
+        <input
+          id={`comment-author-${slug}`}
+          name="authorName"
+          type="text"
+          maxlength="24"
+          autocomplete="name"
+          placeholder="表示名"
+          required
+        />
+      </div>
+      <div>
+        <label for={`comment-body-${slug}`}>コメント</label>
+        <textarea
+          id={`comment-body-${slug}`}
+          name="body"
+          rows="4"
+          maxlength="600"
+          placeholder="リンクなしで短い感想を書けます。"
+          required></textarea>
+      </div>
+    </div>
+
+    <input
+      type="text"
+      name="website"
+      value=""
+      autocomplete="off"
+      tabindex="-1"
+      aria-hidden="true"
+      hidden
+    />
+
+    <div class="comments-turnstile" data-comments-turnstile data-theme="light">
+    </div>
+
+    <div class="comments-actions">
+      <button type="submit" class="primary-button" data-comments-submit>
+        投稿する
+      </button>
+      <p>
+        スパム対策のため、URL・メールアドレス・HTMLを含むコメントは投稿できません。
+      </p>
+    </div>
+    <p class="comments-feedback" data-comments-feedback role="alert"></p>
+  </form>
+</section>
+
+<script is:inline>
+  ;(() => {
+    const blockedPattern =
+      /(https?:\/\/|www\.|[a-z0-9][a-z0-9.-]*\.(com|net|org|info|biz|xyz|top|site|online|shop|click|link|ru|cn|jp)\b|[^\s@]+@[^\s@]+\.[^\s@]+|<[^>]{2,}>|\[[^\]]+\]\([^)]+\))/i
+
+    document.querySelectorAll('[data-comments-root]').forEach((root) => {
+      if (root.dataset.commentsReady) return
+      root.dataset.commentsReady = 'true'
+
+      const slug = root.dataset.commentsSlug || ''
+      const sitekey = root.dataset.commentsSitekey || ''
+      const list = root.querySelector('[data-comments-list]')
+      const status = root.querySelector('[data-comments-status]')
+      const count = root.querySelector('[data-comments-count]')
+      const form = root.querySelector('[data-comments-form]')
+      const submit = root.querySelector('[data-comments-submit]')
+      const feedback = root.querySelector('[data-comments-feedback]')
+      const turnstileEl = root.querySelector('[data-comments-turnstile]')
+      const isLocal = isLocalHostname(window.location.hostname)
+
+      function setStatus(text, type) {
+        if (!status) return
+        status.textContent = text
+        status.className = text
+          ? type === 'error'
+            ? 'comments-status comments-status--error'
+            : 'comments-status'
+          : 'comments-status comments-status--hidden'
+      }
+
+      function setFeedback(text, type) {
+        if (!feedback) return
+        feedback.textContent = text
+        feedback.className = text
+          ? type === 'success'
+            ? 'comments-feedback comments-feedback--success'
+            : 'comments-feedback comments-feedback--error'
+          : 'comments-feedback'
+      }
+
+      function renderComments(comments) {
+        if (!list) return
+        list.textContent = ''
+
+        if (count) {
+          count.textContent = `${comments.length}件`
+        }
+
+        if (comments.length === 0) {
+          const empty = document.createElement('p')
+          empty.className = 'comments-empty'
+          empty.textContent = 'まだコメントはありません。'
+          list.append(empty)
+          return
+        }
+
+        for (const comment of comments) {
+          const article = document.createElement('article')
+          article.className = 'comment-item'
+
+          const header = document.createElement('div')
+          header.className = 'comment-item-header'
+
+          const author = document.createElement('strong')
+          author.textContent = comment.authorName || 'Guest'
+
+          const time = document.createElement('time')
+          time.dateTime = comment.createdAt
+          time.textContent = formatDate(comment.createdAt)
+
+          const body = document.createElement('p')
+          body.textContent = comment.body || ''
+
+          header.append(author, time)
+          article.append(header, body)
+          list.append(article)
+        }
+      }
+
+      async function loadComments() {
+        if (!slug) return
+        setStatus('コメントを読み込んでいます。')
+
+        try {
+          const response = await fetch(
+            `/api/comments?slug=${encodeURIComponent(slug)}`,
+            { headers: { Accept: 'application/json' } },
+          )
+          const data = await response.json()
+
+          if (!response.ok || !data.ok || !Array.isArray(data.comments)) {
+            throw new Error(data.message || 'Comments unavailable')
+          }
+
+          renderComments(data.comments)
+          setStatus('')
+        } catch {
+          if (list) list.textContent = ''
+          if (count) count.textContent = ''
+          setStatus('コメントは本番環境で利用できます。', 'error')
+        }
+      }
+
+      function renderTurnstile() {
+        if (
+          !turnstileEl ||
+          !sitekey ||
+          typeof window.turnstile === 'undefined' ||
+          turnstileEl.dataset.widgetId
+        ) {
+          return
+        }
+
+        const widgetId = window.turnstile.render(turnstileEl, {
+          sitekey,
+          language: 'ja',
+          theme: turnstileEl.dataset.theme || 'light',
+        })
+        turnstileEl.dataset.widgetId = String(widgetId)
+      }
+
+      function loadTurnstile() {
+        if (!sitekey || isLocal) return
+        if (typeof window.turnstile !== 'undefined') {
+          renderTurnstile()
+          return
+        }
+
+        const existingScript = document.querySelector(
+          'script[data-turnstile-script]',
+        )
+        if (existingScript) {
+          waitForTurnstile(renderTurnstile)
+          return
+        }
+
+        const script = document.createElement('script')
+        script.src =
+          'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+        script.async = true
+        script.defer = true
+        script.dataset.turnstileScript = 'true'
+        script.addEventListener('load', renderTurnstile)
+        document.head.append(script)
+      }
+
+      function waitForTurnstile(callback) {
+        let attempts = 0
+        const timer = window.setInterval(() => {
+          attempts += 1
+          if (typeof window.turnstile !== 'undefined') {
+            window.clearInterval(timer)
+            callback()
+          } else if (attempts > 30) {
+            window.clearInterval(timer)
+          }
+        }, 100)
+      }
+
+      function getTurnstileToken() {
+        if (isLocal && !sitekey) return 'local-dev'
+
+        const widgetId = turnstileEl?.dataset.widgetId
+        if (typeof window.turnstile !== 'undefined' && widgetId) {
+          return window.turnstile.getResponse(widgetId)
+        }
+
+        return String(
+          form?.querySelector('[name="cf-turnstile-response"]')?.value || '',
+        )
+      }
+
+      function resetTurnstile() {
+        const widgetId = turnstileEl?.dataset.widgetId
+        if (typeof window.turnstile !== 'undefined' && widgetId) {
+          window.turnstile.reset(widgetId)
+        }
+      }
+
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        setFeedback('')
+
+        const formData = new FormData(form)
+        const authorName = String(formData.get('authorName') || '').trim()
+        const body = String(formData.get('body') || '').trim()
+        const website = String(formData.get('website') || '').trim()
+        const meaningfulLength = Array.from(
+          body.replace(/[^\p{L}\p{N}]/gu, ''),
+        ).length
+
+        if (!authorName) {
+          setFeedback('名前を入力してください。', 'error')
+          return
+        }
+
+        if (
+          meaningfulLength < 8 ||
+          body.length > 600 ||
+          blockedPattern.test(`${authorName}\n${body}`)
+        ) {
+          setFeedback(
+            '8文字以上、リンクなしのコメントを入力してください。',
+            'error',
+          )
+          return
+        }
+
+        const turnstileToken = getTurnstileToken()
+        if (!turnstileToken) {
+          setFeedback('送信前の確認を完了してください。', 'error')
+          return
+        }
+
+        if (submit) submit.disabled = true
+        setFeedback('送信しています。')
+
+        try {
+          const response = await fetch('/api/comments', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              slug,
+              authorName,
+              body,
+              website,
+              turnstileToken,
+            }),
+          })
+          const data = await response.json().catch(() => ({}))
+
+          if (!response.ok || !data.ok) {
+            throw new Error(data.message || 'コメントを投稿できませんでした。')
+          }
+
+          form.reset()
+          resetTurnstile()
+          setFeedback('コメントを投稿しました。', 'success')
+          await loadComments()
+        } catch (error) {
+          setFeedback(
+            error instanceof Error
+              ? error.message
+              : 'コメントを投稿できませんでした。',
+            'error',
+          )
+          resetTurnstile()
+        } finally {
+          if (submit) submit.disabled = false
+        }
+      })
+
+      function formatDate(value) {
+        const date = new Date(value)
+        if (Number.isNaN(date.getTime())) return ''
+
+        return new Intl.DateTimeFormat('ja-JP', {
+          timeZone: 'Asia/Tokyo',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(date)
+      }
+
+      loadComments()
+      loadTurnstile()
+    })
+
+    function isLocalHostname(hostname) {
+      return hostname === 'localhost' || hostname === '127.0.0.1'
+    }
+  })()
+</script>

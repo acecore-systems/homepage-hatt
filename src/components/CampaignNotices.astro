@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content'
+import { isWithinPublicationWindow } from '@/utils/publication-window'
+import { externalAttrs } from '@/utils/routes'
+
+type Placement =
+  | 'global'
+  | 'home-after-hero'
+  | 'blog-after-hero'
+  | 'blog-article-after-header'
+  | 'modeling-after-hero'
+  | 'profile-after-hero'
+
+const { placement, className = '' } = Astro.props as {
+  placement: Placement
+  className?: string
+}
+
+const campaigns = await getCollection('campaigns')
+const notices = campaigns
+  .filter(
+    (entry) =>
+      entry.data.enabled &&
+      entry.data.placement === placement &&
+      isWithinPublicationWindow(entry.data.startsAt, entry.data.endsAt),
+  )
+  .sort(
+    (a, b) => a.data.order - b.data.order || a.data.id.localeCompare(b.data.id),
+  )
+
+const toneIcon = {
+  cyan: 'i-lucide-sparkles',
+  ember: 'i-lucide-flame',
+  mint: 'i-lucide-leaf',
+  pollen: 'i-lucide-star',
+}
+---
+
+{
+  notices.map((notice) => {
+    const isBanner = notice.data.kind === 'banner' || placement === 'global'
+    const href = notice.data.href?.trim()
+    const icon = notice.data.icon?.trim() || toneIcon[notice.data.tone]
+
+    return (
+      <section
+        class:list={[
+          isBanner ? 'campaign-banner' : 'campaign-notice',
+          `campaign-tone-${notice.data.tone}`,
+          className,
+        ]}
+        aria-label={notice.data.title}
+        data-campaign-id={notice.data.id}
+        data-pagefind-ignore
+      >
+        <div class={isBanner ? 'campaign-banner-inner' : 'section-inner'}>
+          <div class="campaign-copy">
+            <span class="campaign-icon" aria-hidden="true">
+              <span class={icon} />
+            </span>
+            <div>
+              <h2>{notice.data.title}</h2>
+              {notice.data.body && <p>{notice.data.body}</p>}
+            </div>
+          </div>
+          {href && notice.data.ctaLabel && (
+            <a
+              class="campaign-link"
+              href={href}
+              {...externalAttrs(href)}
+              data-campaign-link={notice.data.id}
+            >
+              {notice.data.ctaLabel}
+              <span class="i-lucide-arrow-right" aria-hidden="true" />
+            </a>
+          )}
+        </div>
+      </section>
+    )
+  })
+}

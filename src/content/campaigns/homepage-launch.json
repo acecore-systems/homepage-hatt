@@ -1,0 +1,13 @@
+{
+  "id": "homepage-launch",
+  "enabled": true,
+  "kind": "banner",
+  "placement": "global",
+  "title": "お知らせ",
+  "body": "Hattのホームページを公開しました。絵・小説・モデリングの入口をまとめています。",
+  "href": "/blog/article/homepage-launch/",
+  "ctaLabel": "記事を読む",
+  "icon": "i-lucide-megaphone",
+  "tone": "cyan",
+  "order": 10
+}

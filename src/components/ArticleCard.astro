@@ -27,6 +27,7 @@ const { post, tagMap, compact } = Astro.props as {
         src={post.data.image}
         alt=""
         loading="lazy"
+        decoding="async"
       />
     )
   }
