@@ -112,6 +112,8 @@ const site = defineCollection({
     cover: z.string(),
     adsenseClientId: z.string().optional(),
     turnstileSiteKey: z.string().optional(),
+    adsenseSlotId: z.string().optional(),
+    adsenseInlineSlotId: z.string().optional(),
     headerLinks: z.array(linkSchema).default([]),
     socialLinks: z.array(linkSchema).default([]),
     homePillars: z.array(

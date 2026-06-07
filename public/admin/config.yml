@@ -232,6 +232,14 @@ collections:
             widget: string
             required: false
             hint: コメント投稿のCloudflare Turnstile公開キーです。secret keyはCloudflare Pagesの環境変数に設定します。
+          - name: adsenseSlotId
+            label: AdSense List Slot ID
+            widget: string
+            required: false
+          - name: adsenseInlineSlotId
+            label: AdSense Inline Slot ID
+            widget: string
+            required: false
           - name: headerLinks
             label: ヘッダーリンク
             widget: list

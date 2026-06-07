@@ -156,15 +156,6 @@ const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
       )
     }
     <script type="application/ld+json" set:html={jsonLd} />
-    {
-      site.adsenseClientId && (
-        <script
-          async
-          crossorigin="anonymous"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${site.adsenseClientId}`}
-        />
-      )
-    }
   </head>
   <body class={pageClass}>
     <a class="skip-link" href="#main-content">本文へスキップ</a>
