@@ -23,13 +23,28 @@ const items = (await getCollection('modeling')).sort((a, b) => {
       <div>
         <p class="hero-note">
           <span class="i-lucide-box" aria-hidden="true"></span>
-          VRChat向けオリジナル3Dアバター
+          VRChat向けアバター・ギミック・アクセサリー
         </p>
         <h1>モデリング</h1>
         <p class="lead">
-          YouTubeチャンネルでは、VRChat向けオリジナル3Dアバター・ギミック制作を中心に活動が紹介されています。
-          BOOTHの商品画像を無断で作り直さず、ここでは公開説明と外部導線を整理します。
+          BOOTHショップ「エースコア」で公開しているVRChat向け作品を、紹介動画・価格・特徴とあわせて整理しています。
+          アバター本体、Modular
+          Avatar対応ギミック、着替え演出アクセサリーまで、用途からたどれる入口です。
         </p>
+        <div class="modeling-stats" aria-label="公開中のモデリング活動">
+          <div>
+            <span>アバター</span>
+            <strong>9種</strong>
+          </div>
+          <div>
+            <span>ギミック</span>
+            <strong>5種</strong>
+          </div>
+          <div>
+            <span>BOOTH</span>
+            <strong>全14商品</strong>
+          </div>
+        </div>
         <div class="social-row" style="margin-top: 24px;">
           {
             site.socialLinks.map((link) => (
@@ -42,7 +57,7 @@ const items = (await getCollection('modeling')).sort((a, b) => {
       </div>
       <div class="modeling-preview">
         <img src="/uploads/hatt/modeling-preview.jpg" alt="" />
-        <p>作品詳細はBOOTH / YouTube / Xで確認できます</p>
+        <p>商品ページ、紹介動画、試着ワールドへの導線をまとめています</p>
       </div>
     </div>
   </section>
@@ -53,10 +68,10 @@ const items = (await getCollection('modeling')).sort((a, b) => {
     <div class="section-inner">
       <div class="section-heading">
         <div>
-          <h2 id="lineup-title">公開導線</h2>
+          <h2 id="lineup-title">作品ラインアップ</h2>
         </div>
         <p>
-          価格や商品名は公開説明欄で確認できた範囲だけを掲載し、販売ページへつなげます。
+          YouTube説明欄とBOOTH公開情報をもとに、作品ごとの特徴・価格・購入先・紹介動画を見比べられるようにしました。
         </p>
       </div>
       <div class="modeling-grid">
