@@ -1,12 +1,17 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
-const cmsBranch =
+const defaultCmsBranch = 'cms-content'
+const deploymentBranch =
   process.env.CF_PAGES_BRANCH ||
   process.env.GITHUB_HEAD_REF ||
   process.env.GITHUB_REF_NAME ||
-  process.env.BRANCH ||
-  'main'
+  process.env.BRANCH
+const cmsBranch =
+  process.env.CMS_CONTENT_BRANCH ||
+  (deploymentBranch && deploymentBranch !== 'main'
+    ? deploymentBranch
+    : defaultCmsBranch)
 
 const outputPath = resolve('public/admin/runtime-config.js')
 
