@@ -1,10 +1,15 @@
 import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
+import { parseCmsDateTime } from './utils/publication-window'
 
 const linkSchema = z.object({
   label: z.string(),
   href: z.string(),
 })
+const cmsDate = z.preprocess(
+  (value) => parseCmsDateTime(value) ?? value,
+  z.date(),
+)
 
 const blog = defineCollection({
   loader: glob({
@@ -15,8 +20,8 @@ const blog = defineCollection({
     title: z.string(),
     slug: z.string().optional(),
     description: z.string(),
-    date: z.coerce.date(),
-    lastUpdated: z.coerce.date().optional(),
+    date: cmsDate,
+    lastUpdated: cmsDate.optional(),
     tags: z.array(z.string()).default([]),
     author: z.string(),
     image: z.string().optional(),
