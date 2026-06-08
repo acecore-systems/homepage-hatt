@@ -1,0 +1,7 @@
+{
+  "source": "x-browser",
+  "profileUrl": "https://x.com/borubin",
+  "generatedAt": "2026-06-09T00:00:00.000+09:00",
+  "note": "X public profile did not expose media posts to the logged-out browser session during sync. Add CMS art entries or replace items with browser-collected post data at build time.",
+  "items": []
+}

@@ -8,9 +8,11 @@
   "adsenseSlotId": "3228710511",
   "adsenseInlineSlotId": "4541792182",
   "headerLinks": [
-    { "label": "絵", "href": "/blog/tag/picture/" },
+    { "label": "絵", "href": "/art/" },
     { "label": "小説", "href": "/novels/" },
     { "label": "3D作品", "href": "/modeling/" },
+    { "label": "動画", "href": "/videos/" },
+    { "label": "ブログ", "href": "/blog/" },
     { "label": "Acecore", "href": "https://acecore.net" }
   ],
   "socialLinks": [
@@ -25,8 +27,8 @@
       "eyebrow": "hatt homepage",
       "title": "いろいろ描いてます",
       "description": "鉛筆画、アナログのメモ、制作途中の考えごとを少しずつ残しています。",
-      "href": "/blog/tag/picture/",
-      "cta": "記事を読む",
+      "href": "/art/",
+      "cta": "絵を見る",
       "image": "/uploads/hatt/hero-paint.jpg",
       "tone": "cyan"
     },

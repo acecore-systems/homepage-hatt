@@ -129,6 +129,26 @@ const authors = defineCollection({
   }),
 })
 
+const art = defineCollection({
+  loader: glob({
+    base: './src/content/art',
+    pattern: '**/*.json',
+  }),
+  schema: z.object({
+    id: z.string().optional(),
+    title: z.string(),
+    description: z.string().optional(),
+    date: cmsDate,
+    image: z.string(),
+    alt: z.string().default(''),
+    sourceUrl: z.string().optional(),
+    sourceLabel: z.string().default('X'),
+    tags: z.array(z.string()).default([]),
+    order: z.number().default(100),
+    featured: z.boolean().default(false),
+  }),
+})
+
 const modeling = defineCollection({
   loader: glob({
     base: './src/content/modeling',
@@ -218,6 +238,7 @@ const site = defineCollection({
 
 export const collections = {
   authors,
+  art,
   blog,
   campaigns,
   modeling,
