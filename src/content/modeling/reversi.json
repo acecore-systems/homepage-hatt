@@ -1,11 +1,32 @@
 {
   "title": "リバーシ",
   "kind": "オリジナル3Dアバター",
-  "summary": "上下反転する人型人外アバターとして紹介されている新作です。",
+  "summary": "白髪の「チョーク」と黒髪の「すみ」が一つになった、人型人外のVRChat向けアバターです。上下が反転する機能、表情変化、オルテガ柄の衣装、頭のすげ替え改変を補助する説明書が紹介されています。",
+  "order": 10,
   "priceLabel": "¥4,444",
-  "boothUrl": "https://vetumheberehama.booth.pm/",
-  "youtubeUrl": "https://www.youtube.com/@hatt9241",
+  "boothUrl": "https://vetumheberehama.booth.pm/items/8087659",
+  "youtubeUrl": "https://youtu.be/rjd70HD1pow",
   "xUrl": "https://x.com/borubin",
   "image": "/uploads/hatt/modeling-preview.jpg",
+  "tryOnUrl": "https://vrchat.com/home/launch?worldId=wrld_8c3caca6-8138-4c93-afbe-d5d128b45cab",
+  "features": [
+    "上下が反転するシークエンスを持つ、人型人外アバターです。",
+    "白髪の「チョーク」と黒髪の「すみ」が一体になった構成です。",
+    "表情変化、衣装、頭のすげ替え改変を補助する説明書が紹介されています。"
+  ],
+  "specs": [
+    "価格: ¥4,444",
+    "パフォーマンスランク: Very Poor",
+    "対応環境: Modular Avatar / lilToon"
+  ],
+  "requirements": [
+    "Unity 2022.3.22f1 / VRChat SDK",
+    "試着ワールド: 菌ノ木医院前"
+  ],
+  "related": [
+    { "label": "モク", "href": "https://youtu.be/93fDGtPtEas" },
+    { "label": "モクギミックセット", "href": "https://youtu.be/SOhvYMNOdZI" },
+    { "label": "オロロウルス", "href": "https://youtu.be/GfEU7uVr1Ww" }
+  ],
   "featured": true
 }

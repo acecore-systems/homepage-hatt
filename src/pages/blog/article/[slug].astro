@@ -5,6 +5,7 @@ import ArticleCard from '@/components/ArticleCard.astro'
 import BlogComments from '@/components/BlogComments.astro'
 import Breadcrumb from '@/components/Breadcrumb.astro'
 import CampaignNotices from '@/components/CampaignNotices.astro'
+import RichArticleBlocks from '@/components/RichArticleBlocks.astro'
 import ShareButtons from '@/components/ShareButtons.astro'
 import TableOfContents from '@/components/TableOfContents.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
@@ -80,6 +81,22 @@ const articleJsonLd = {
     '@id': postUrl,
   },
 }
+const faqJsonLd =
+  post.data.faq && post.data.faq.items.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: post.data.faq.items.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
+      }
+    : undefined
+const jsonLdData = faqJsonLd ? [articleJsonLd, faqJsonLd] : articleJsonLd
 ---
 
 <BaseLayout
@@ -94,7 +111,7 @@ const articleJsonLd = {
   tags={tagNames}
   authorName={authorName}
   robots={robots}
-  jsonLd={articleJsonLd}
+  jsonLd={jsonLdData}
   breadcrumbItems={[
     { name: 'ブログ', item: '/blog/' },
     { name: post.data.title, item: getBlogPath(post) },
@@ -182,6 +199,7 @@ const articleJsonLd = {
             ))
         }
         <Content />
+        <RichArticleBlocks data={post.data} />
       </div>
 
       {isCanonical && <AdUnit placement="article" />}
@@ -217,7 +235,7 @@ const articleJsonLd = {
           <a href="/modeling/">
             <span class="i-lucide-box" aria-hidden="true"></span>
             <strong>モデリング</strong>
-            <small>BOOTHやYouTubeへの導線へ</small>
+            <small>BOOTHやYouTubeで公開中の作品へ</small>
           </a>
           <a href="/profile/">
             <span class="i-lucide-user-round" aria-hidden="true"></span>

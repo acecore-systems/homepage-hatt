@@ -29,7 +29,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
           placeholder="キーワードを入力..."
           autocomplete="off"
         />
-        <button class="primary-button" type="submit">
+        <button
+          class="primary-button"
+          type="submit"
+          data-hatt-event="search_submit"
+          data-hatt-label="search_page"
+          data-hatt-location="blog_search"
+        >
           検索
           <span class="i-lucide-search" aria-hidden="true"></span>
         </button>

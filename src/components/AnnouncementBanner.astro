@@ -1,0 +1,106 @@
+---
+import { getCollection } from 'astro:content'
+import { isWithinPublicationWindow } from '@/utils/publication-window'
+import { externalAttrs } from '@/utils/routes'
+
+const campaigns = await getCollection('campaigns')
+const announcements = campaigns
+  .filter((entry) => entry.data.enabled && entry.data.placement === 'global')
+  .sort(
+    (a, b) => a.data.order - b.data.order || a.data.id.localeCompare(b.data.id),
+  )
+
+const toneIcon = {
+  cyan: 'i-lucide-sparkles',
+  ember: 'i-lucide-flame',
+  mint: 'i-lucide-leaf',
+  pollen: 'i-lucide-star',
+}
+---
+
+{
+  announcements.map((announcement) => {
+    const href = announcement.data.href?.trim()
+    const icon =
+      announcement.data.icon?.trim() || toneIcon[announcement.data.tone]
+    const startsAt = announcement.data.startsAt?.trim() || undefined
+    const endsAt = announcement.data.endsAt?.trim() || undefined
+    const isPublished = isWithinPublicationWindow(startsAt, endsAt)
+
+    return (
+      <section
+        class:list={[
+          'announcement-banner',
+          `announcement-tone-${announcement.data.tone}`,
+        ]}
+        aria-label={announcement.data.title}
+        data-announcement-banner={announcement.data.id}
+        data-publication-window="true"
+        data-publication-starts-at={startsAt}
+        data-publication-ends-at={endsAt}
+        data-pagefind-ignore
+        hidden={!isPublished}
+      >
+        <div class="announcement-banner-inner">
+          <span class="announcement-icon" aria-hidden="true">
+            <span class={icon} />
+          </span>
+          <div class="announcement-copy">
+            <strong>{announcement.data.title}</strong>
+            {announcement.data.body && <span>{announcement.data.body}</span>}
+          </div>
+          {href && announcement.data.ctaLabel && (
+            <a
+              class="announcement-link"
+              href={href}
+              {...externalAttrs(href)}
+              data-hatt-event="announcement_click"
+              data-hatt-label={announcement.data.id}
+              data-hatt-location="global_banner"
+            >
+              {announcement.data.ctaLabel}
+              <span class="i-lucide-arrow-right" aria-hidden="true" />
+            </a>
+          )}
+          <button
+            class="announcement-close"
+            type="button"
+            aria-label="告知を閉じる"
+            data-announcement-close
+          >
+            <span class="i-lucide-x" aria-hidden="true" />
+          </button>
+        </div>
+      </section>
+    )
+  })
+}
+
+<script>
+  import { initPublicationWindowRuntime } from '../scripts/publication-window'
+
+  initPublicationWindowRuntime()
+
+  document
+    .querySelectorAll<HTMLElement>('[data-announcement-banner]')
+    .forEach((banner) => {
+      const id = banner.dataset.announcementBanner
+      if (!id) return
+      const storageKey = `hatt-announcement-dismissed:${id}`
+      if (window.localStorage.getItem(storageKey) === 'true') {
+        banner.hidden = true
+        return
+      }
+
+      banner
+        .querySelector('[data-announcement-close]')
+        ?.addEventListener('click', () => {
+          window.localStorage.setItem(storageKey, 'true')
+          banner.hidden = true
+          window.hattTrackEvent?.('announcement_dismiss', {
+            label: id,
+            location: 'global_banner',
+          })
+        })
+    })
+</script>
