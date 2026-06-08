@@ -18,7 +18,7 @@ import {
   getRelatedPosts,
   getTagMap,
 } from '@/utils/blog'
-import { formatDate } from '@/utils/format'
+import { formatDate, getYear } from '@/utils/format'
 import { isWithinPublicationWindow } from '@/utils/publication-window'
 
 export async function getStaticPaths() {
@@ -168,7 +168,7 @@ const articleJsonLd = {
                 {authorName}
               </span>
               <span class="sr-only" data-pagefind-filter="year">
-                {post.data.date.getFullYear()}
+                {getYear(post.data.date)}
               </span>
             </>
           )
