@@ -1,4 +1,5 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content'
+import { getYear } from './format'
 
 export type BlogPost = CollectionEntry<'blog'>
 export type TagEntry = CollectionEntry<'tags'>
@@ -69,7 +70,7 @@ export async function getArchiveStats() {
   const years = new Map<number, number>()
 
   for (const post of posts) {
-    const year = post.data.date.getFullYear()
+    const year = getYear(post.data.date)
     years.set(year, (years.get(year) ?? 0) + 1)
   }
 
@@ -87,7 +88,7 @@ export function getPostsByAuthor(posts: BlogPost[], authorId: string) {
 }
 
 export function getPostsByYear(posts: BlogPost[], year: number) {
-  return posts.filter((post) => post.data.date.getFullYear() === year)
+  return posts.filter((post) => getYear(post.data.date) === year)
 }
 
 export function getAdjacentPosts(posts: BlogPost[], current: BlogPost) {
