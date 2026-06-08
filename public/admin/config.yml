@@ -283,7 +283,7 @@ collections:
   - name: modeling
     label: モデリング
     label_singular: モデリング項目
-    description: VRChat向けアバター、ギミック、外部販売導線を編集します。
+    description: VRChat向けアバター、ギミック、商品リンク、動画リンクを編集します。
     icon: deployed_code
     folder: src/content/modeling
     format: json
