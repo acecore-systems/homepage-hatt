@@ -51,8 +51,7 @@ collections:
       - name: lastUpdated
         label: 最終更新日
         widget: datetime
-        type: date
-        format: YYYY-MM-DD
+        format: YYYY-MM-DDTHH:mm
         required: false
       - name: tags
         label: タグ

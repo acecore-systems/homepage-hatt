@@ -68,10 +68,22 @@ const pullQuoteSchema = z.object({
   quote: z.string().optional(),
   source: z.string().optional(),
 })
-const cmsDate = z.preprocess(
-  (value) => parseCmsDateTime(value) ?? value,
-  z.date(),
-)
+const CONTENT_DATETIME_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?$/
+
+const cmsDate = z
+  .string()
+  .refine((value) => CONTENT_DATETIME_PATTERN.test(value.trim()), {
+    message:
+      'Content date must include time as YYYY-MM-DDTHH:mm, optionally with timezone',
+  })
+  .transform((value) => {
+    const date = parseCmsDateTime(value)
+    if (!date) {
+      throw new Error(`Invalid date value in content frontmatter: ${value}`)
+    }
+    return date
+  })
 
 const blog = defineCollection({
   loader: glob({
