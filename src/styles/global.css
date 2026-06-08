@@ -1576,14 +1576,16 @@ main {
 }
 
 .home-hero {
-  border-bottom-color: rgba(21, 26, 36, 0.18);
-  padding: 42px 0 26px;
+  border-bottom: 1px solid rgba(21, 26, 36, 0.18);
+  padding: 34px 0 22px;
 }
 
 .home-hero-top {
+  display: grid;
   grid-template-columns: minmax(300px, 0.7fr) minmax(460px, 1fr);
+  align-items: center;
   gap: clamp(34px, 5.2vw, 76px);
-  min-height: 520px;
+  min-height: 460px;
 }
 
 .home-hero-copy {
@@ -1626,9 +1628,10 @@ main {
   display: block;
   margin: 0 0 24px;
   color: #07172a;
-  font-size: clamp(2.55rem, 4.2vw, 4rem);
+  font-size: clamp(2.45rem, 3.25vw, 3.05rem);
   font-weight: 850;
   line-height: 1.24;
+  white-space: nowrap;
 }
 
 .home-hero h1::after {
@@ -1648,8 +1651,8 @@ main {
 .home-hero-sketch {
   position: relative;
   overflow: visible;
-  height: min(53vw, 540px);
-  min-height: 370px;
+  height: min(44vw, 440px);
+  min-height: 340px;
   border: 1px solid rgba(21, 26, 36, 0.34);
   border-radius: 2px;
   background: #fffefa;
@@ -1715,6 +1718,7 @@ main {
 }
 
 .home-pillar-board {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   margin-top: 26px;
@@ -1727,7 +1731,7 @@ main {
   grid-template-rows: 1fr;
   min-height: 330px;
   overflow: hidden;
-  border-color: rgba(21, 26, 36, 0.18);
+  border: 1px solid rgba(21, 26, 36, 0.18);
   border-radius: 8px;
   box-shadow: 0 12px 28px rgba(21, 26, 36, 0.07);
 }
@@ -1852,7 +1856,7 @@ main {
   width: 100%;
   margin: 28px 0 8px;
   color: #07172a;
-  font-size: clamp(1.55rem, 2.6vw, 2.15rem);
+  font-size: clamp(1.48rem, 2.1vw, 1.78rem);
   line-height: 1.22;
   text-align: center;
 }
@@ -1892,12 +1896,14 @@ main {
 }
 
 .home-modeling-strip .section-inner {
+  display: grid;
   grid-template-columns: minmax(260px, 1.1fr) minmax(260px, 0.9fr) minmax(
       220px,
       0.68fr
     );
+  align-items: center;
   gap: 18px;
-  border-color: rgba(21, 26, 36, 0.16);
+  border: 1px solid rgba(21, 26, 36, 0.16);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.72);
   padding: 16px 18px;
@@ -1938,9 +1944,11 @@ main {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-color: rgba(21, 26, 36, 0.16);
+  border: 1px solid rgba(21, 26, 36, 0.16);
   border-radius: 6px;
+  background: rgba(255, 255, 255, 0.78);
   padding: 10px;
+  text-decoration: none;
 }
 
 .home-modeling-links span {
@@ -1948,12 +1956,30 @@ main {
 }
 
 .home-modeling-stats {
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(21, 26, 36, 0.12);
   border-radius: 6px;
+  background: rgba(255, 255, 255, 0.76);
 }
 
 .home-modeling-stats div {
+  display: grid;
   min-height: 58px;
+  place-items: center;
+  padding: 8px;
+  text-align: center;
+}
+
+.home-modeling-stats div + div {
+  border-left: 1px solid rgba(21, 26, 36, 0.1);
+}
+
+.home-modeling-stats span {
+  color: var(--ink-800);
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .home-modeling-stats strong {
@@ -1969,16 +1995,20 @@ main {
 }
 
 .home-latest .section-heading h2 {
+  position: relative;
   color: #07172a;
   font-size: clamp(1.65rem, 2.6vw, 2.18rem);
 }
 
 .home-latest .section-heading h2::after {
+  position: absolute;
   bottom: -10px;
+  left: 0;
   width: 64px;
   height: 2px;
   border-radius: 0;
   background: #07172a;
+  content: '';
 }
 
 .home-latest .chip-link {
@@ -1992,11 +2022,14 @@ main {
 }
 
 .home-latest-layout {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 290px);
+  align-items: start;
   gap: 32px;
 }
 
 .home-latest .article-grid {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
 }
@@ -2030,11 +2063,12 @@ main {
 }
 
 .home-latest-side {
+  display: grid;
   gap: 16px;
 }
 
 .home-latest-side section {
-  border-color: rgba(21, 26, 36, 0.2);
+  border: 1px solid rgba(21, 26, 36, 0.2);
   border-radius: 0;
   background: rgba(255, 255, 255, 0.7);
   padding: 18px 20px 20px;
@@ -2048,6 +2082,7 @@ main {
 }
 
 .home-latest-side h3 {
+  margin: 0;
   color: #07172a;
   font-size: 1.02rem;
 }
@@ -2674,6 +2709,7 @@ main {
   .home-hero h1 {
     margin-bottom: 28px;
     font-size: clamp(2.35rem, 11vw, 3.1rem);
+    white-space: normal;
   }
 
   .home-hero-copy .button-row,
