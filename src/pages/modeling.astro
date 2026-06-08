@@ -49,6 +49,7 @@ const items = (await getCollection('modeling')).sort((a, b) => {
           </div>
         </div>
         <div class="social-row" style="margin-top: 24px;">
+          <a href="/videos/">動画一覧</a>
           {
             site.socialLinks.map((link) => (
               <a href={link.href} {...externalAttrs(link.href)}>

@@ -4,6 +4,10 @@
   "bio": "絵と小説を書きつつ、VRChat向けのオリジナル3Dアバター、ギミック、アクセサリーを制作しています。BOOTHショップ「エースコア」とYouTubeで作品を公開しています。",
   "avatar": "/uploads/hatt/favicon.png",
   "links": [
+    {
+      "label": "小説家になろう",
+      "href": "https://mypage.syosetu.com/2047731/"
+    },
     { "label": "YouTube", "href": "https://www.youtube.com/@hatt9241" },
     { "label": "X", "href": "https://x.com/borubin" },
     { "label": "BOOTH", "href": "https://vetumheberehama.booth.pm/" }

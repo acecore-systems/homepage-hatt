@@ -9,7 +9,7 @@
   "adsenseInlineSlotId": "4541792182",
   "headerLinks": [
     { "label": "絵", "href": "/blog/tag/picture/" },
-    { "label": "小説", "href": "https://ncode.syosetu.com/n9893go/" },
+    { "label": "小説", "href": "/novels/" },
     { "label": "3D作品", "href": "/modeling/" },
     { "label": "Acecore", "href": "https://acecore.net" }
   ],
@@ -34,10 +34,10 @@
       "id": "novel",
       "label": "小説",
       "eyebrow": "いろいろ書いてます",
-      "title": "砂漠の少年",
-      "description": "小説投稿サイトで公開している物語と、創作まわりの記録を置いていきます。",
-      "href": "https://ncode.syosetu.com/n9893go/",
-      "cta": "ページへ行く",
+      "title": "小説家になろうで公開中",
+      "description": "短編から連載まで、公開中の作品を一覧で読めます。新しい投稿もここからたどれます。",
+      "href": "/novels/",
+      "cta": "作品一覧へ",
       "image": "/uploads/hatt/novel-desert-boy.png",
       "tone": "ember"
     },

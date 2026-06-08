@@ -1,0 +1,109 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import novelsFeed from '@/data/external/novels.json'
+import { externalAttrs } from '@/utils/routes'
+
+const works = novelsFeed.works
+const serialCount = works.filter((work) => work.type === 'serial').length
+const shortCount = works.filter((work) => work.type === 'short').length
+const totalMinutes = works.reduce((sum, work) => sum + work.readingMinutes, 0)
+const formatDate = (value: string) =>
+  value ? value.slice(0, 10).replaceAll('-', '.') : ''
+---
+
+<BaseLayout
+  title="小説"
+  description="Hattが小説家になろうで公開している短編・連載作品の一覧です。"
+>
+  <section class="page-hero">
+    <div class="section-inner external-feature">
+      <div>
+        <p class="hero-note">
+          <span class="i-lucide-book-open" aria-hidden="true"></span>
+          小説家になろう
+        </p>
+        <h1>小説</h1>
+        <p class="lead">
+          短編、連載、改稿中の物語を小説投稿サイトで公開しています。
+        </p>
+        <div class="modeling-stats external-stats" aria-label="公開中の小説">
+          <div>
+            <span>公開作品</span>
+            <strong>{works.length}作</strong>
+          </div>
+          <div>
+            <span>連載</span>
+            <strong>{serialCount}作</strong>
+          </div>
+          <div>
+            <span>短編</span>
+            <strong>{shortCount}作</strong>
+          </div>
+          <div>
+            <span>読了目安</span>
+            <strong>{totalMinutes}分</strong>
+          </div>
+        </div>
+        <div class="social-row" style="margin-top: 24px;">
+          <a
+            href={novelsFeed.authorUrl}
+            {...externalAttrs(novelsFeed.authorUrl)}
+          >
+            作者ページ
+          </a>
+        </div>
+      </div>
+      <div class="external-preview external-preview--novels">
+        <span class="i-lucide-pen-line" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band" aria-labelledby="novels-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="novels-title">作品一覧</h2>
+        </div>
+        <p>最終更新順で並べています。</p>
+      </div>
+      <div class="external-grid">
+        {
+          works.map((work) => (
+            <article class="external-card">
+              <div class="external-card-meta">
+                <span>{work.type === 'short' ? '短編' : '連載'}</span>
+                {work.isCompleted && <span>完結</span>}
+                {work.isStopped && <span>停止中</span>}
+              </div>
+              <h3>{work.title}</h3>
+              <p>{work.story}</p>
+              <dl class="external-card-stats">
+                <div>
+                  <dt>文字数</dt>
+                  <dd>{work.length.toLocaleString('ja-JP')}</dd>
+                </div>
+                <div>
+                  <dt>話数</dt>
+                  <dd>{work.totalParts}</dd>
+                </div>
+                <div>
+                  <dt>更新</dt>
+                  <dd>{formatDate(work.lastUpdatedAt)}</dd>
+                </div>
+              </dl>
+              <a
+                class="text-arrow"
+                href={work.url}
+                {...externalAttrs(work.url)}
+              >
+                読みに行く
+                <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
