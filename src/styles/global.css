@@ -1487,73 +1487,29 @@ main {
 
 .home-page main::before {
   position: absolute;
-  top: 0;
-  left: -70px;
-  width: clamp(300px, 32vw, 460px);
-  height: 176px;
-  background:
-    radial-gradient(
-      circle at 78% 34%,
-      rgba(110, 189, 207, 0.62) 0 3px,
-      transparent 5px
-    ),
-    radial-gradient(
-      circle at 70% 50%,
-      rgba(110, 189, 207, 0.34) 0 8px,
-      transparent 13px
-    ),
-    radial-gradient(
-      ellipse at 20% 20%,
-      rgba(255, 255, 255, 0.3) 0 10%,
-      transparent 28%
-    ),
-    linear-gradient(
-      158deg,
-      rgba(159, 216, 227, 0.74) 0 36%,
-      rgba(159, 216, 227, 0.42) 48%,
-      rgba(159, 216, 227, 0.12) 57%,
-      transparent 68%
-    ),
-    linear-gradient(168deg, rgba(159, 216, 227, 0.45) 0 24%, transparent 52%);
-  filter: blur(0.5px);
-  opacity: 0.92;
+  top: -12px;
+  left: -92px;
+  width: clamp(380px, 38vw, 620px);
+  height: clamp(170px, 18vw, 260px);
+  background: url('/uploads/hatt/textures/watercolor-cyan-wash.png') left top /
+    100% 100% no-repeat;
+  opacity: 0.68;
   content: '';
+  pointer-events: none;
 }
 
 .home-page main::after {
   position: absolute;
-  top: 450px;
-  right: -72px;
-  width: 270px;
-  height: 70px;
-  transform: rotate(-19deg);
-  background:
-    radial-gradient(
-      ellipse at 28% 58%,
-      rgba(233, 188, 77, 0.76) 0 34%,
-      transparent 56%
-    ),
-    linear-gradient(
-      102deg,
-      transparent 0 8%,
-      rgba(233, 188, 77, 0.86) 18% 58%,
-      rgba(233, 188, 77, 0.35) 66%,
-      transparent 78%
-    );
-  clip-path: polygon(
-    0 48%,
-    18% 28%,
-    38% 36%,
-    58% 12%,
-    100% 22%,
-    94% 64%,
-    72% 58%,
-    48% 82%,
-    20% 68%
-  );
-  filter: blur(0.4px);
-  opacity: 0.92;
+  top: 444px;
+  right: -118px;
+  width: 390px;
+  height: 108px;
+  transform: rotate(-16deg);
+  background: url('/uploads/hatt/textures/watercolor-gold-stroke.png') center /
+    contain no-repeat;
+  opacity: 0.86;
   content: '';
+  pointer-events: none;
 }
 
 .home-page main > * {
@@ -1727,35 +1683,15 @@ main {
 
 .home-hero-sketch::after {
   position: absolute;
-  right: -26px;
-  bottom: 42px;
-  width: 190px;
-  height: 40px;
-  transform: rotate(-25deg);
-  background:
-    radial-gradient(
-      ellipse at 28% 58%,
-      rgba(233, 188, 77, 0.86) 0 34%,
-      transparent 58%
-    ),
-    linear-gradient(
-      103deg,
-      transparent 0 8%,
-      rgba(233, 188, 77, 0.92) 18% 62%,
-      transparent 78%
-    );
-  clip-path: polygon(
-    0 40%,
-    28% 12%,
-    42% 36%,
-    72% 8%,
-    100% 30%,
-    92% 74%,
-    68% 58%,
-    42% 84%,
-    18% 64%
-  );
+  right: -32px;
+  bottom: 34px;
+  width: 232px;
+  height: 64px;
+  transform: rotate(-24deg);
+  background: url('/uploads/hatt/textures/watercolor-gold-stroke.png') center /
+    contain no-repeat;
   content: '';
+  pointer-events: none;
 }
 
 .home-hero-tape {
