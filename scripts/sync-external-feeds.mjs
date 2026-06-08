@@ -22,15 +22,6 @@ async function fetchText(url) {
   return response.text()
 }
 
-function decodeHtml(value = '') {
-  return value
-    .replaceAll('&amp;', '&')
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#39;', "'")
-}
-
 function getVideoId(url = '') {
   const match = url.match(
     /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/,
@@ -81,32 +72,54 @@ async function syncNovels() {
   }
 }
 
-async function readModelingVideoIds() {
+function addVideoRef(refs, seenIds, url, titleHint) {
+  const videoId = getVideoId(url)
+  if (!videoId || seenIds.has(videoId)) return
+
+  seenIds.add(videoId)
+  refs.push({ videoId, titleHint })
+}
+
+async function readModelingVideoRefs() {
   const dir = path.join(root, 'src', 'content', 'modeling')
   const entries = await fs.readdir(dir, { withFileTypes: true })
-  const ids = new Set()
+  const refs = []
+  const seenIds = new Set()
 
   for (const entry of entries) {
     if (!entry.isFile() || !entry.name.endsWith('.json')) continue
 
     const content = await fs.readFile(path.join(dir, entry.name), 'utf8')
     const data = JSON.parse(content)
-    const videoId = getVideoId(data.youtubeUrl)
 
-    if (videoId) ids.add(videoId)
+    addVideoRef(refs, seenIds, data.youtubeUrl, data.title)
+
+    for (const link of data.related ?? []) {
+      addVideoRef(refs, seenIds, link.href, link.label)
+    }
   }
 
-  return [...ids]
+  return refs
 }
 
-async function fetchOEmbed(videoId) {
+async function fetchOEmbed({ videoId, titleHint }) {
   const url = new URL('https://www.youtube.com/oembed')
   url.search = new URLSearchParams({
     format: 'json',
     url: `https://www.youtube.com/watch?v=${videoId}`,
   })
 
-  const data = JSON.parse(await fetchText(url))
+  let data
+  try {
+    data = JSON.parse(await fetchText(url))
+  } catch {
+    data = {
+      title: titleHint ?? `YouTube動画 ${videoId}`,
+      author_name: 'Hatt',
+      author_url: youtubeChannelUrl,
+      thumbnail_url: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    }
+  }
 
   return {
     videoId,
@@ -120,115 +133,11 @@ async function fetchOEmbed(videoId) {
   }
 }
 
-function parseYoutubeFeed(xml) {
-  return [...xml.matchAll(/<entry>[\s\S]*?<\/entry>/g)].map((match) => {
-    const entry = match[0]
-    const videoId = entry.match(/<yt:videoId>([^<]+)/)?.[1] ?? ''
-    const title = decodeHtml(entry.match(/<title>([^<]+)/)?.[1] ?? '')
-    const link =
-      entry.match(/<link rel="alternate" href="([^"]+)/)?.[1] ??
-      `https://www.youtube.com/watch?v=${videoId}`
-    const thumbnailUrl =
-      entry.match(/<media:thumbnail url="([^"]+)/)?.[1] ??
-      `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
-
-    return {
-      videoId,
-      title,
-      url: decodeHtml(link),
-      authorName: decodeHtml(entry.match(/<name>([^<]+)/)?.[1] ?? 'Hatt'),
-      authorUrl: youtubeChannelUrl,
-      thumbnailUrl: decodeHtml(thumbnailUrl),
-      publishedAt: entry.match(/<published>([^<]+)/)?.[1] ?? '',
-      source: 'rss',
-    }
-  })
-}
-
-async function fetchYoutubeRssVideos() {
-  const feedUrl = new URL('https://www.youtube.com/feeds/videos.xml')
-  feedUrl.search = new URLSearchParams({ channel_id: youtubeChannelId })
-
-  return parseYoutubeFeed(await fetchText(feedUrl))
-}
-
-async function fetchYoutubeApiVideos() {
-  const apiKey = process.env.YOUTUBE_API_KEY
-  if (!apiKey) return []
-
-  const channelUrl = new URL('https://www.googleapis.com/youtube/v3/channels')
-  channelUrl.search = new URLSearchParams({
-    id: youtubeChannelId,
-    key: apiKey,
-    part: 'contentDetails',
-  })
-  const channelData = JSON.parse(await fetchText(channelUrl))
-  const uploadsPlaylistId =
-    channelData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads
-
-  if (!uploadsPlaylistId) return []
-
-  const videos = []
-  let pageToken = ''
-
-  do {
-    const playlistUrl = new URL(
-      'https://www.googleapis.com/youtube/v3/playlistItems',
-    )
-    playlistUrl.search = new URLSearchParams({
-      key: apiKey,
-      playlistId: uploadsPlaylistId,
-      part: 'snippet,contentDetails',
-      maxResults: '50',
-      ...(pageToken ? { pageToken } : {}),
-    })
-
-    const data = JSON.parse(await fetchText(playlistUrl))
-    for (const item of data.items ?? []) {
-      const videoId = item.contentDetails?.videoId
-      if (!videoId) continue
-
-      videos.push({
-        videoId,
-        title: item.snippet?.title ?? '',
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-        authorName: item.snippet?.channelTitle ?? 'Hatt',
-        authorUrl: youtubeChannelUrl,
-        thumbnailUrl:
-          item.snippet?.thumbnails?.high?.url ??
-          item.snippet?.thumbnails?.medium?.url ??
-          item.snippet?.thumbnails?.default?.url ??
-          `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-        publishedAt: item.contentDetails?.videoPublishedAt ?? '',
-        source: 'youtube-api',
-      })
-    }
-
-    pageToken = data.nextPageToken ?? ''
-  } while (pageToken)
-
-  return videos
-}
-
 async function syncYoutubeVideos() {
-  const byId = new Map()
-  const apiVideos = await fetchYoutubeApiVideos()
-  const rssVideos = apiVideos.length ? [] : await fetchYoutubeRssVideos()
-  const modelingVideoIds = await readModelingVideoIds()
-  const modelingVideos = await Promise.all(modelingVideoIds.map(fetchOEmbed))
+  const modelingVideoRefs = await readModelingVideoRefs()
+  const modelingVideos = await Promise.all(modelingVideoRefs.map(fetchOEmbed))
 
-  for (const video of [...rssVideos, ...apiVideos, ...modelingVideos]) {
-    if (!video.videoId) continue
-
-    const previous = byId.get(video.videoId)
-    byId.set(video.videoId, {
-      ...previous,
-      ...video,
-      source: previous ? `${previous.source}+${video.source}` : video.source,
-    })
-  }
-
-  const videos = [...byId.values()].sort((a, b) => {
+  const videos = modelingVideos.sort((a, b) => {
     if (!a.publishedAt && !b.publishedAt) return a.title.localeCompare(b.title)
     if (!a.publishedAt) return 1
     if (!b.publishedAt) return -1
@@ -236,7 +145,7 @@ async function syncYoutubeVideos() {
   })
 
   return {
-    source: apiVideos.length ? 'youtube-api' : 'youtube-rss+modeling-oembed',
+    source: 'modeling-oembed',
     channelId: youtubeChannelId,
     channelUrl: youtubeChannelUrl,
     syncedAt: new Date().toISOString(),
