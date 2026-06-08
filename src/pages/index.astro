@@ -17,12 +17,7 @@ const tagMap = await getTagMap()
 const tagStats = await getTagStats()
 const archiveStats = await getArchiveStats()
 const latestPosts = posts.slice(0, 2)
-const featuredPillars = site.homePillars.filter(
-  (pillar) => pillar.id !== 'modeling',
-)
-const modelingPillar = site.homePillars.find(
-  (pillar) => pillar.id === 'modeling',
-)
+const featuredPillars = site.homePillars
 const homeTagStats = tagStats.slice(0, 8)
 const modelingLinks = [
   { label: '作品一覧', href: '/modeling/', icon: 'i-lucide-box' },
@@ -72,7 +67,7 @@ const modelingLinks = [
         </div>
       </div>
 
-      <div class="home-pillar-board" aria-label="絵と小説">
+      <div class="home-pillar-board" aria-label="制作しているもの">
         {
           featuredPillars.map((pillar) => (
             <article class={`home-pillar home-pillar--${pillar.id}`}>
@@ -86,7 +81,9 @@ const modelingLinks = [
                       class={
                         pillar.id === 'picture'
                           ? 'i-lucide-pencil'
-                          : 'i-lucide-book-open'
+                          : pillar.id === 'novel'
+                            ? 'i-lucide-book-open'
+                            : 'i-lucide-box'
                       }
                     />
                   </span>
@@ -97,17 +94,53 @@ const modelingLinks = [
                 </div>
                 <h3>{pillar.title}</h3>
                 <p>{pillar.description}</p>
-                <a
-                  class="home-pillar-button"
-                  href={pillar.href}
-                  {...externalAttrs(pillar.href)}
-                  data-hatt-event="pillar_click"
-                  data-hatt-label={pillar.id}
-                  data-hatt-location="home_pillars"
-                >
-                  {pillar.cta}
-                  <span class="i-lucide-arrow-right" aria-hidden="true" />
-                </a>
+                {pillar.id === 'modeling' ? (
+                  <>
+                    <div class="home-pillar-actions">
+                      {modelingLinks.map((link) => (
+                        <a
+                          href={link.href}
+                          {...externalAttrs(link.href)}
+                          data-hatt-event="modeling_link_click"
+                          data-hatt-label={link.label}
+                          data-hatt-location="home_pillar_modeling"
+                        >
+                          <span class={link.icon} aria-hidden="true" />
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                    <div
+                      class="home-pillar-stats"
+                      aria-label="モデリング活動の概要"
+                    >
+                      <div>
+                        <span>アバター</span>
+                        <strong>9種</strong>
+                      </div>
+                      <div>
+                        <span>ギミック</span>
+                        <strong>5種</strong>
+                      </div>
+                      <div>
+                        <span>公開作品</span>
+                        <strong>14点</strong>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <a
+                    class="home-pillar-button"
+                    href={pillar.href}
+                    {...externalAttrs(pillar.href)}
+                    data-hatt-event="pillar_click"
+                    data-hatt-label={pillar.id}
+                    data-hatt-location="home_pillars"
+                  >
+                    {pillar.cta}
+                    <span class="i-lucide-arrow-right" aria-hidden="true" />
+                  </a>
+                )}
               </div>
             </article>
           ))
@@ -117,50 +150,6 @@ const modelingLinks = [
   </section>
 
   <CampaignNotices placement="home-after-hero" />
-
-  {
-    modelingPillar && (
-      <section class="home-modeling-strip" aria-labelledby="modeling-title">
-        <div class="section-inner">
-          <div class="home-modeling-copy">
-            <span class="i-lucide-box" aria-hidden="true" />
-            <div>
-              <h2 id="modeling-title">{modelingPillar.label}</h2>
-              <p>{modelingPillar.description}</p>
-            </div>
-          </div>
-          <div class="home-modeling-links">
-            {modelingLinks.map((link) => (
-              <a
-                href={link.href}
-                {...externalAttrs(link.href)}
-                data-hatt-event="modeling_link_click"
-                data-hatt-label={link.label}
-                data-hatt-location="home_modeling_strip"
-              >
-                <span class={link.icon} aria-hidden="true" />
-                <strong>{link.label}</strong>
-              </a>
-            ))}
-          </div>
-          <div class="home-modeling-stats" aria-label="モデリング活動の概要">
-            <div>
-              <span>アバター</span>
-              <strong>9種</strong>
-            </div>
-            <div>
-              <span>ギミック</span>
-              <strong>5種</strong>
-            </div>
-            <div>
-              <span>公開作品</span>
-              <strong>14点</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
 
   <section class="home-latest" aria-labelledby="latest-title">
     <div class="section-inner">
