@@ -1567,21 +1567,6 @@ main {
   padding: 34px 0 22px;
 }
 
-.home-hero::before {
-  position: absolute;
-  top: 86px;
-  left: clamp(36px, 5vw, 78px);
-  width: 86px;
-  height: 168px;
-  background:
-    radial-gradient(circle, rgba(21, 26, 36, 0.68) 0 2px, transparent 3px) 0
-      16px / 28px 42px,
-    radial-gradient(circle, rgba(21, 26, 36, 0.4) 0 1px, transparent 3px) 18px
-      0 / 32px 48px;
-  opacity: 0.72;
-  content: '';
-}
-
 .home-hero-top {
   display: grid;
   grid-template-columns: minmax(300px, 0.7fr) minmax(460px, 1fr);
@@ -1594,18 +1579,6 @@ main {
   position: relative;
   max-width: 500px;
   padding-left: clamp(18px, 4vw, 70px);
-}
-
-.home-hero-copy::before {
-  position: absolute;
-  bottom: -166px;
-  left: -58px;
-  width: 260px;
-  height: 204px;
-  transform: rotate(-7deg);
-  background: url('/uploads/hatt/textures/stationery-tools.png') center /
-    contain no-repeat;
-  content: '';
 }
 
 .home-hero-copy p {
@@ -2762,10 +2735,6 @@ main {
 
   .home-hero-copy {
     padding-left: 0;
-  }
-
-  .home-hero-copy::before {
-    display: none;
   }
 
   .home-hero-sketch {
