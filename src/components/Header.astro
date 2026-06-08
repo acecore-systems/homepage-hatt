@@ -8,13 +8,28 @@ type Site = {
 }
 
 const { site } = Astro.props as { site: Site }
+
+const iconByLabel: Record<string, string> = {
+  絵: 'i-lucide-pencil',
+  小説: 'i-lucide-book-open',
+  '3D作品': 'i-lucide-box',
+  Acecore: 'i-lucide-arrow-up-right',
+  ブログ: 'i-lucide-pencil',
+  モデリング: 'i-lucide-box',
+  プロフィール: 'i-lucide-user-round',
+}
 ---
 
 <header class="site-header">
   <nav class="site-nav" aria-label="メインナビゲーション">
     <a class="brand-link" href="/">
-      <img src={site.icon} alt="" width="32" height="32" />
-      <span>{site.name}</span>
+      <span class="brand-mark" aria-hidden="true">
+        <span class="i-lucide-feather"></span>
+      </span>
+      <span class="brand-copy">
+        <span class="brand-name">{site.name}</span>
+        <span class="brand-subtitle">hatt homepage</span>
+      </span>
     </a>
     <div class="nav-links">
       <button
@@ -25,22 +40,31 @@ const { site } = Astro.props as { site: Site }
         data-hatt-label="header_search"
         data-hatt-location="header"
         aria-controls="site-search-modal"
+        aria-label="検索"
       >
         <span class="i-lucide-search" aria-hidden="true"></span>
-        <span>検索</span>
       </button>
       {
-        site.headerLinks.map((link) => (
-          <a
-            href={link.href}
-            {...externalAttrs(link.href)}
-            data-hatt-event="nav_click"
-            data-hatt-label={link.label}
-            data-hatt-location="header"
-          >
-            {link.label}
-          </a>
-        ))
+        site.headerLinks.map((link) => {
+          const isExternal = link.href.startsWith('http')
+
+          return (
+            <a
+              class:list={['nav-link', { 'nav-link--external': isExternal }]}
+              href={link.href}
+              {...externalAttrs(link.href)}
+              data-hatt-event="nav_click"
+              data-hatt-label={link.label}
+              data-hatt-location="header"
+            >
+              <span
+                class={iconByLabel[link.label] ?? 'i-lucide-arrow-right'}
+                aria-hidden="true"
+              />
+              <span>{link.label}</span>
+            </a>
+          )
+        })
       }
     </div>
   </nav>

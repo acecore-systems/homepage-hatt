@@ -17,10 +17,25 @@ const tagMap = await getTagMap()
 const tagStats = await getTagStats()
 const archiveStats = await getArchiveStats()
 const latestPosts = posts.slice(0, 2)
+const featuredPillars = site.homePillars.filter(
+  (pillar) => pillar.id !== 'modeling',
+)
+const modelingPillar = site.homePillars.find(
+  (pillar) => pillar.id === 'modeling',
+)
+const homeTagStats = tagStats.slice(0, 8)
 const modelingLinks = [
-  { label: 'BOOTHで販売中', href: 'https://vetumheberehama.booth.pm/' },
-  { label: 'YouTube', href: 'https://www.youtube.com/@hatt9241' },
-  { label: 'X', href: 'https://x.com/borubin' },
+  { label: '作品一覧', href: '/modeling/', icon: 'i-lucide-box' },
+  {
+    label: 'BOOTH',
+    href: 'https://vetumheberehama.booth.pm/',
+    icon: 'i-lucide-shopping-bag',
+  },
+  {
+    label: 'YouTube',
+    href: 'https://www.youtube.com/@hatt9241',
+    icon: 'i-lucide-youtube',
+  },
 ]
 ---
 
@@ -34,11 +49,10 @@ const modelingLinks = [
     <div class="section-inner">
       <div class="home-hero-top">
         <div class="home-hero-copy">
-          <h1>
-            <span>Hattの</span>
-            <span>ホームページ</span>
-          </h1>
-          <p>絵、小説、VRChat向け3D作品を制作しています。</p>
+          <h1>いろいろ描いてます</h1>
+          <p>
+            鉛筆やペンで描いたイラストを中心に、創作の記録をのんびり公開しています。気ままに見てもらえるとうれしいです。
+          </p>
           <div class="button-row">
             <a
               class="primary-button"
@@ -50,81 +64,50 @@ const modelingLinks = [
               記事を読む
               <span class="i-lucide-arrow-right" aria-hidden="true"></span>
             </a>
-            <a
-              class="secondary-button"
-              href="/modeling/"
-              data-hatt-event="cta_click"
-              data-hatt-label="hero_modeling"
-              data-hatt-location="home_hero"
-            >
-              モデリングを見る
-              <span class="i-lucide-arrow-right" aria-hidden="true"></span>
-            </a>
           </div>
         </div>
         <div class="home-hero-sketch" aria-hidden="true">
-          <img src="/uploads/hatt/site-cover.jpg" alt="" />
+          <span class="home-hero-tape"></span>
+          <img src="/uploads/hatt/novel-desert-boy.png" alt="" />
         </div>
       </div>
 
-      <div class="home-pillar-board" aria-label="3つの制作軸">
+      <div class="home-pillar-board" aria-label="絵と小説">
         {
-          site.homePillars.map((pillar) => (
+          featuredPillars.map((pillar) => (
             <article class={`home-pillar home-pillar--${pillar.id}`}>
-              <div class="home-pillar-head">
-                <span class="home-pillar-icon" aria-hidden="true">
-                  <span
-                    class={
-                      pillar.id === 'picture'
-                        ? 'i-lucide-brush'
-                        : pillar.id === 'novel'
-                          ? 'i-lucide-book-open'
-                          : 'i-lucide-box'
-                    }
-                  />
-                </span>
-                <div>
-                  <h2>{pillar.label}</h2>
-                  <p>{pillar.eyebrow}</p>
-                </div>
-              </div>
               <div class="home-pillar-image">
                 <img src={pillar.image} alt="" />
               </div>
               <div class="home-pillar-body">
+                <div class="home-pillar-head">
+                  <span class="home-pillar-icon" aria-hidden="true">
+                    <span
+                      class={
+                        pillar.id === 'picture'
+                          ? 'i-lucide-pencil'
+                          : 'i-lucide-book-open'
+                      }
+                    />
+                  </span>
+                  <div>
+                    <h2>{pillar.label}</h2>
+                    <p>{pillar.eyebrow}</p>
+                  </div>
+                </div>
                 <h3>{pillar.title}</h3>
                 <p>{pillar.description}</p>
-                {pillar.id === 'modeling' ? (
-                  <div class="home-pillar-actions">
-                    {modelingLinks.map((link) => (
-                      <a
-                        href={link.href}
-                        {...externalAttrs(link.href)}
-                        data-hatt-event="modeling_link_click"
-                        data-hatt-label={link.label}
-                        data-hatt-location="home_pillar_modeling"
-                      >
-                        {link.label}
-                        <span
-                          class="i-lucide-arrow-up-right"
-                          aria-hidden="true"
-                        />
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <a
-                    class="home-pillar-button"
-                    href={pillar.href}
-                    {...externalAttrs(pillar.href)}
-                    data-hatt-event="pillar_click"
-                    data-hatt-label={pillar.id}
-                    data-hatt-location="home_pillars"
-                  >
-                    {pillar.cta}
-                    <span class="i-lucide-arrow-right" aria-hidden="true" />
-                  </a>
-                )}
+                <a
+                  class="home-pillar-button"
+                  href={pillar.href}
+                  {...externalAttrs(pillar.href)}
+                  data-hatt-event="pillar_click"
+                  data-hatt-label={pillar.id}
+                  data-hatt-location="home_pillars"
+                >
+                  {pillar.cta}
+                  <span class="i-lucide-arrow-right" aria-hidden="true" />
+                </a>
               </div>
             </article>
           ))
@@ -135,53 +118,49 @@ const modelingLinks = [
 
   <CampaignNotices placement="home-after-hero" />
 
-  <section class="home-modeling-strip" aria-labelledby="modeling-title">
-    <div class="section-inner">
-      <div class="home-modeling-copy">
-        <h2 id="modeling-title">VRChat向け作品を、購入先まで迷わず。</h2>
-        <p>
-          アバター、ギミック、アクセサリーをBOOTHで公開中。YouTubeでは見た目や使い方、モデリングページでは対応環境や試着ワールドも見られます。
-        </p>
-      </div>
-      <div class="home-modeling-links">
-        <a href="/modeling/">
-          <span class="i-lucide-box" aria-hidden="true"></span>
-          <strong>作品一覧</strong>
-          <small>作品一覧を見る</small>
-        </a>
-        <a
-          href="https://www.youtube.com/@hatt9241"
-          {...externalAttrs('https://www.youtube.com/@hatt9241')}
-        >
-          <span class="i-lucide-youtube" aria-hidden="true"></span>
-          <strong>YouTube</strong>
-          <small>制作の様子へ</small>
-        </a>
-        <a
-          href="https://vetumheberehama.booth.pm/"
-          {...externalAttrs('https://vetumheberehama.booth.pm/')}
-        >
-          <span class="i-lucide-shopping-bag" aria-hidden="true"></span>
-          <strong>BOOTH</strong>
-          <small>販売ページへ</small>
-        </a>
-      </div>
-      <div class="home-modeling-stats" aria-label="モデリング活動の概要">
-        <div>
-          <span>アバター</span>
-          <strong>9種</strong>
+  {
+    modelingPillar && (
+      <section class="home-modeling-strip" aria-labelledby="modeling-title">
+        <div class="section-inner">
+          <div class="home-modeling-copy">
+            <span class="i-lucide-box" aria-hidden="true" />
+            <div>
+              <h2 id="modeling-title">{modelingPillar.label}</h2>
+              <p>{modelingPillar.description}</p>
+            </div>
+          </div>
+          <div class="home-modeling-links">
+            {modelingLinks.map((link) => (
+              <a
+                href={link.href}
+                {...externalAttrs(link.href)}
+                data-hatt-event="modeling_link_click"
+                data-hatt-label={link.label}
+                data-hatt-location="home_modeling_strip"
+              >
+                <span class={link.icon} aria-hidden="true" />
+                <strong>{link.label}</strong>
+              </a>
+            ))}
+          </div>
+          <div class="home-modeling-stats" aria-label="モデリング活動の概要">
+            <div>
+              <span>アバター</span>
+              <strong>9種</strong>
+            </div>
+            <div>
+              <span>ギミック</span>
+              <strong>5種</strong>
+            </div>
+            <div>
+              <span>公開作品</span>
+              <strong>14点</strong>
+            </div>
+          </div>
         </div>
-        <div>
-          <span>ギミック</span>
-          <strong>5種</strong>
-        </div>
-        <div>
-          <span>BOOTHで公開中</span>
-          <strong>全14商品</strong>
-        </div>
-      </div>
-    </div>
-  </section>
+      </section>
+    )
+  }
 
   <section class="home-latest" aria-labelledby="latest-title">
     <div class="section-inner">
@@ -189,7 +168,10 @@ const modelingLinks = [
         <div>
           <h2 id="latest-title">最新の記事</h2>
         </div>
-        <a class="chip-link" href="/blog/">すべての記事を見る</a>
+        <a class="chip-link" href="/blog/"
+          >すべての記事を見る
+          <span class="i-lucide-arrow-right" aria-hidden="true"></span></a
+        >
       </div>
       <div class="home-latest-layout">
         <div class="article-grid">
@@ -201,43 +183,58 @@ const modelingLinks = [
         </div>
         <aside class="home-latest-side" aria-label="ブログナビゲーション">
           <section>
-            <div>
-              <h3>タグ</h3>
-              <a href="/blog/tag/">一覧へ</a>
+            <div class="home-side-heading">
+              <h3>タグから探す</h3>
             </div>
-            <ul>
+            <div class="home-tag-cloud">
               {
-                tagStats.map((tag) => (
-                  <li>
-                    <a href={`/blog/tag/${tag.slug}/`}>
-                      <span>{tag.name}</span>
-                      <strong>{tag.count}</strong>
-                    </a>
-                  </li>
+                homeTagStats.map((tag) => (
+                  <a
+                    href={`/blog/tag/${tag.slug}/`}
+                    data-hatt-event="tag_click"
+                    data-hatt-label={tag.slug}
+                    data-hatt-location="home_sidebar"
+                  >
+                    {tag.name}
+                  </a>
                 ))
               }
-            </ul>
+            </div>
           </section>
           <section>
-            <div>
+            <div class="home-side-heading">
               <h3>アーカイブ</h3>
-              <a href="/blog/archive/">一覧へ</a>
             </div>
-            <ul>
+            <label class="sr-only" for="home-archive-select">月を選択</label>
+            <select
+              id="home-archive-select"
+              class="home-archive-select"
+              data-home-archive-select
+            >
+              <option value="">月を選択</option>
               {
                 archiveStats.map((archive) => (
-                  <li>
-                    <a href={`/blog/archive/${archive.month}/`}>
-                      <span>{archive.label}</span>
-                      <strong>{archive.count}</strong>
-                    </a>
-                  </li>
+                  <option value={`/blog/archive/${archive.month}/`}>
+                    {archive.label}
+                  </option>
                 ))
               }
-            </ul>
+            </select>
           </section>
         </aside>
       </div>
     </div>
   </section>
+
+  <script>
+    const homeArchiveSelect = document.querySelector<HTMLSelectElement>(
+      '[data-home-archive-select]',
+    )
+
+    homeArchiveSelect?.addEventListener('change', () => {
+      if (homeArchiveSelect.value) {
+        window.location.href = homeArchiveSelect.value
+      }
+    })
+  </script>
 </BaseLayout>

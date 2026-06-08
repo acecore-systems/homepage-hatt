@@ -8,9 +8,9 @@
   "adsenseSlotId": "3228710511",
   "adsenseInlineSlotId": "4541792182",
   "headerLinks": [
-    { "label": "ブログ", "href": "/blog/" },
-    { "label": "モデリング", "href": "/modeling/" },
-    { "label": "プロフィール", "href": "/profile/" },
+    { "label": "絵", "href": "/blog/tag/picture/" },
+    { "label": "小説", "href": "https://ncode.syosetu.com/n9893go/" },
+    { "label": "3D作品", "href": "/modeling/" },
     { "label": "Acecore", "href": "https://acecore.net" }
   ],
   "socialLinks": [
@@ -23,8 +23,8 @@
       "id": "picture",
       "label": "絵",
       "eyebrow": "hatt homepage",
-      "title": "キャラクターと世界観を描いています",
-      "description": "絵、設定メモ、制作中に考えたことを、ブログ記事や作品紹介として残していきます。",
+      "title": "いろいろ描いてます",
+      "description": "鉛筆画、アナログのメモ、制作途中の考えごとを少しずつ残しています。",
       "href": "/blog/tag/picture/",
       "cta": "記事を読む",
       "image": "/uploads/hatt/hero-paint.jpg",
@@ -33,11 +33,11 @@
     {
       "id": "novel",
       "label": "小説",
-      "eyebrow": "砂漠の少年",
+      "eyebrow": "いろいろ書いてます",
       "title": "砂漠の少年を書いています",
       "description": "小説投稿サイトで公開している物語と、創作まわりの記録を置いていきます。",
       "href": "https://ncode.syosetu.com/n9893go/",
-      "cta": "小説を読む",
+      "cta": "ページへ行く",
       "image": "/uploads/hatt/novel-desert-boy.png",
       "tone": "ember"
     },
