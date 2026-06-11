@@ -11,6 +11,7 @@
     { "label": "ブログ", "href": "/blog/" },
     { "label": "モデリング", "href": "/modeling/" },
     { "label": "プロフィール", "href": "/profile/" },
+    { "label": "動画", "href": "/videos/" },
     { "label": "Acecore", "href": "https://acecore.net" }
   ],
   "socialLinks": [

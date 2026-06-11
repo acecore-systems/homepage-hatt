@@ -1,0 +1,106 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { externalAttrs } from '@/utils/routes'
+
+const channelUrl = 'https://www.youtube.com/@hatt9241'
+const channelId = 'UCzEhXHKDoOrvjFUcIe5q3jA'
+const uploadsPlaylistId = `UU${channelId.slice(2)}`
+const uploadsPlaylistUrl = `https://www.youtube.com/playlist?list=${uploadsPlaylistId}`
+const uploadsEmbedUrl = `https://www.youtube-nocookie.com/embed/videoseries?list=${uploadsPlaylistId}`
+
+const videoLinks = [
+  {
+    label: '全公開動画',
+    href: uploadsPlaylistUrl,
+    icon: 'i-lucide-list-video',
+    text: '通常動画、公開済みのライブ配信アーカイブ、ショートをアップロード順に見られます。',
+  },
+  {
+    label: 'ライブ',
+    href: `${channelUrl}/streams`,
+    icon: 'i-lucide-radio',
+    text: '配信予定、現在のライブ、過去のライブ配信アーカイブを確認できます。',
+  },
+  {
+    label: '動画',
+    href: `${channelUrl}/videos`,
+    icon: 'i-lucide-play-square',
+    text: 'チャンネルの通常動画タブを開きます。',
+  },
+  {
+    label: 'ショート',
+    href: `${channelUrl}/shorts`,
+    icon: 'i-lucide-smartphone',
+    text: 'ショート動画だけをまとめて確認できます。',
+  },
+]
+---
+
+<BaseLayout
+  title="動画"
+  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショートへの入口をまとめたページです。"
+  canonicalPath="/videos/"
+>
+  <section class="page-hero">
+    <div class="section-inner video-hero">
+      <div>
+        <p class="hero-note">
+          <span class="i-lucide-youtube" aria-hidden="true"></span>
+          YouTube @hatt9241
+        </p>
+        <h1>動画</h1>
+        <p class="lead">
+          HattのYouTubeチャンネルで公開している動画をまとめて見られるページです。
+          通常動画だけでなく、ライブ配信アーカイブやショートへの導線もここに集約しています。
+        </p>
+        <div class="social-row video-hero-actions">
+          <a href={uploadsPlaylistUrl} {...externalAttrs(uploadsPlaylistUrl)}>
+            全動画プレイリスト
+          </a>
+          <a href={channelUrl} {...externalAttrs(channelUrl)}>
+            チャンネルを開く
+          </a>
+        </div>
+      </div>
+      <figure class="video-player-card">
+        <div class="video-player-frame">
+          <iframe
+            src={uploadsEmbedUrl}
+            title="HattのYouTube全公開動画プレイリスト"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+        <figcaption>
+          YouTubeの公開アップロード一覧を表示しています。新しい公開動画はYouTube側のプレイリストに追加されます。
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section-band" aria-labelledby="video-links-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="video-links-title">チャンネル内の動画一覧</h2>
+        </div>
+        <p>ライブ配信やショートもYouTube側の各タブから確認できます。</p>
+      </div>
+      <div class="video-link-grid">
+        {
+          videoLinks.map((link) => (
+            <a
+              class="video-link-card"
+              href={link.href}
+              {...externalAttrs(link.href)}
+            >
+              <span class={link.icon} aria-hidden="true" />
+              <strong>{link.label}</strong>
+              <small>{link.text}</small>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

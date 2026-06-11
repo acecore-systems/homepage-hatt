@@ -394,6 +394,13 @@ main {
   gap: 34px;
   align-items: center;
 }
+.video-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(420px, 1.12fr);
+  gap: 34px;
+  align-items: center;
+}
+
 
 .modeling-feature h2 {
   margin: 0;
@@ -411,6 +418,42 @@ main {
   height: 420px;
   object-fit: cover;
 }
+.video-hero-actions {
+  margin-top: 24px;
+}
+
+.video-player-card {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(21, 26, 36, 0.12);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.video-player-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: rgba(21, 26, 36, 0.08);
+}
+
+.video-player-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-player-card figcaption {
+  margin: 0;
+  border-top: 1px solid rgba(21, 26, 36, 0.08);
+  padding: 12px 14px;
+  color: var(--ink-700);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 
 .modeling-stats {
   display: grid;
@@ -444,6 +487,51 @@ main {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
+.video-link-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.video-link-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(21, 26, 36, 0.1);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 18px;
+  color: var(--ink-700);
+  text-decoration: none;
+  box-shadow: 0 14px 38px rgba(21, 26, 36, 0.07);
+}
+
+.video-link-card:hover {
+  border-color: rgba(21, 26, 36, 0.24);
+  color: var(--ink-900);
+}
+
+.video-link-card > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(159, 216, 227, 0.28);
+  color: var(--ink-900);
+  font-size: 1.25rem;
+}
+
+.video-link-card strong {
+  color: var(--ink-900);
+  font-size: 1.05rem;
+}
+
+.video-link-card small {
+  color: var(--ink-500);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
 
 .article-card {
   display: grid;
@@ -1718,6 +1806,7 @@ main {
 @media (max-width: 940px) {
   .hero-grid,
   .modeling-feature,
+  .video-hero,
   .blog-title,
   .page-title,
   .blog-shell {
@@ -1732,6 +1821,7 @@ main {
   .pillars-grid,
   .article-grid,
   .modeling-grid,
+  .video-link-grid,
   .profile-grid {
     grid-template-columns: 1fr;
   }
