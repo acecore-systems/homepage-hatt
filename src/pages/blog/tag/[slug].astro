@@ -2,9 +2,12 @@
 import ArticleCard from '@/components/ArticleCard.astro'
 import BlogSidebar from '@/components/BlogSidebar.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import { formatDate } from '@/utils/format'
+import { isWithinPublicationWindow } from '@/utils/publication-window'
 import {
   getArchiveStats,
   getAuthors,
+  getBlogPath,
   getPosts,
   getPostsByTag,
   getTagMap,
@@ -27,10 +30,28 @@ const tagMap = await getTagMap()
 const tagStats = await getTagStats()
 const archives = await getArchiveStats()
 const authors = await getAuthors()
+const isPictureTag = tag.data.id === 'picture'
+const galleryPosts = isPictureTag
+  ? filteredPosts.flatMap((post) => {
+      if (!post.data.image || post.data.tags.includes('announcement')) return []
+
+      const publicationStartsAt = post.data.date.toISOString()
+
+      return [
+        {
+          post,
+          image: post.data.image,
+          href: getBlogPath(post),
+          publicationStartsAt,
+          isPublished: isWithinPublicationWindow(publicationStartsAt),
+        },
+      ]
+    })
+  : []
 ---
 
 <BaseLayout
-  title={`タグ: ${tag.data.name}`}
+  title={isPictureTag ? tag.data.name : `タグ: ${tag.data.name}`}
   description={tag.data.description ?? `${tag.data.name}の記事一覧です。`}
   robots="noindex,follow"
   breadcrumbItems={[
@@ -43,7 +64,7 @@ const authors = await getAuthors()
     <div class="blog-shell" style="padding-bottom: 0;">
       <div class="blog-title">
         <div>
-          <h1>タグ: {tag.data.name}</h1>
+          <h1>{isPictureTag ? tag.data.name : `タグ: ${tag.data.name}`}</h1>
           <p class="lead">{tag.data.description}</p>
         </div>
         <a class="chip-link" href="/blog/tag/">タグ一覧へ</a>
@@ -52,15 +73,66 @@ const authors = await getAuthors()
     </div>
   </section>
 
-  <div class="blog-shell">
-    <div class="blog-list">
-      {filteredPosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
-      {
-        filteredPosts.length === 0 && (
-          <p class="empty-state">記事の準備中です。</p>
-        )
-      }
-    </div>
-    <BlogSidebar tags={tagStats} archives={archives} authors={authors} />
+  <div class:list={['blog-shell', { 'blog-shell--gallery': isPictureTag }]}>
+    {
+      isPictureTag ? (
+        <section
+          class="picture-gallery"
+          aria-labelledby="picture-gallery-title"
+        >
+          <h2 id="picture-gallery-title" class="sr-only">
+            絵一覧
+          </h2>
+          {galleryPosts.length > 0 ? (
+            <div class="picture-grid">
+              {galleryPosts.map(
+                ({ post, image, href, publicationStartsAt, isPublished }) => (
+                  <a
+                    class="picture-grid-item"
+                    href={href}
+                    aria-label={`${post.data.title}の詳細を見る`}
+                    data-publication-window="true"
+                    data-publication-starts-at={publicationStartsAt}
+                    data-pagefind-ignore
+                    hidden={!isPublished}
+                  >
+                    <img
+                      src={image}
+                      alt={post.data.title}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <span class="picture-grid-overlay" aria-hidden="true">
+                      <strong>{post.data.title}</strong>
+                      <small>{formatDate(post.data.date)}</small>
+                    </span>
+                  </a>
+                ),
+              )}
+            </div>
+          ) : (
+            <p class="empty-state">絵の準備中です。</p>
+          )}
+        </section>
+      ) : (
+        <>
+          <div class="blog-list">
+            {filteredPosts.map((post) => (
+              <ArticleCard post={post} tagMap={tagMap} />
+            ))}
+            {filteredPosts.length === 0 && (
+              <p class="empty-state">記事の準備中です。</p>
+            )}
+          </div>
+          <BlogSidebar tags={tagStats} archives={archives} authors={authors} />
+        </>
+      )
+    }
   </div>
+
+  <script>
+    import { initPublicationWindowRuntime } from '../../../scripts/publication-window'
+
+    initPublicationWindowRuntime()
+  </script>
 </BaseLayout>
