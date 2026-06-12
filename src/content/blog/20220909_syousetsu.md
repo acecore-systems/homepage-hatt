@@ -2,8 +2,8 @@
 title: 小説書いたり難たり
 slug: syousetsu
 description: 小説を書いたりしている近況の短い記事です。
-date: 2022-09-09T09:10:34+09:00
-lastUpdated: 2023-04-13
+date: '2022-09-09T09:10:34+09:00'
+lastUpdated: '2023-04-13T00:00'
 tags:
   - novel
 author: hatt

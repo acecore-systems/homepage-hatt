@@ -1,0 +1,12 @@
+---
+const { quote, source } = Astro.props as { quote?: string; source?: string }
+---
+
+{
+  quote && (
+    <figure class="rich-block rich-pullquote">
+      <blockquote>{quote}</blockquote>
+      {source && <figcaption>{source}</figcaption>}
+    </figure>
+  )
+}

@@ -1,0 +1,23 @@
+---
+const {
+  title,
+  text,
+  tone = 'cyan',
+} = Astro.props as {
+  title?: string
+  text?: string
+  tone?: 'cyan' | 'ember' | 'mint' | 'pollen'
+}
+---
+
+{
+  text && (
+    <aside class:list={['rich-callout', `rich-tone-${tone}`]}>
+      <span class="i-lucide-info" aria-hidden="true" />
+      <div>
+        {title && <strong>{title}</strong>}
+        <p>{text}</p>
+      </div>
+    </aside>
+  )
+}

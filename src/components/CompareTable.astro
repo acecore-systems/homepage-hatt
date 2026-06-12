@@ -1,0 +1,41 @@
+---
+const {
+  title,
+  columns = [],
+  rows = [],
+} = Astro.props as {
+  title?: string
+  columns?: string[]
+  rows?: { label?: string; cells?: string[] }[]
+}
+---
+
+{
+  columns.length > 0 && rows.length > 0 && (
+    <section class="rich-block rich-table">
+      {title && <h2>{title}</h2>}
+      <div class="rich-table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">項目</th>
+              {columns.map((column) => (
+                <th scope="col">{column}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr>
+                <th scope="row">{row.label}</th>
+                {columns.map((_, index) => (
+                  <td>{row.cells?.[index]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}

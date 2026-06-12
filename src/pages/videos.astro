@@ -1,0 +1,103 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import youtubeFeed from '@/data/external/youtube-videos.json'
+import { externalAttrs } from '@/utils/routes'
+
+const videos = youtubeFeed.videos
+const formatDate = (value: string) =>
+  value
+    ? new Intl.DateTimeFormat('ja-JP', {
+        dateStyle: 'medium',
+        timeZone: 'Asia/Tokyo',
+      }).format(new Date(value))
+    : ''
+---
+
+<BaseLayout
+  title="動画"
+  description="HattのVRChat向け作品に紐づくYouTube動画の一覧です。"
+>
+  <section class="page-hero">
+    <div class="section-inner external-feature">
+      <div>
+        <p class="hero-note">
+          <span class="i-lucide-square-play" aria-hidden="true"></span>
+          YouTube
+        </p>
+        <h1>動画</h1>
+        <p class="lead">
+          VRChat向け作品ページに紐づく紹介動画だけをまとめています。
+        </p>
+        <div
+          class="modeling-stats external-stats video-stats"
+          aria-label="動画一覧"
+        >
+          <div>
+            <span>作品動画</span>
+            <strong>{videos.length}本</strong>
+          </div>
+          <div>
+            <span>投稿元</span>
+            <strong>YouTube</strong>
+          </div>
+        </div>
+        <div class="social-row" style="margin-top: 24px;">
+          <a
+            href={youtubeFeed.channelUrl}
+            {...externalAttrs(youtubeFeed.channelUrl)}
+          >
+            チャンネルへ
+          </a>
+        </div>
+      </div>
+      <div class="external-preview external-preview--videos">
+        <span class="i-lucide-clapperboard" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band" aria-labelledby="work-videos-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="work-videos-title">作品動画</h2>
+        </div>
+        <p>Hattの3D作品ページに紐づく動画です。</p>
+      </div>
+      <div class="external-grid external-grid--videos">
+        {
+          videos.map((video) => (
+            <article class="external-card external-card--video">
+              <a
+                class="external-thumbnail"
+                href={video.url}
+                {...externalAttrs(video.url)}
+                aria-label={`${video.title}をYouTubeで見る`}
+              >
+                <img src={video.thumbnailUrl} alt="" loading="lazy" />
+                <span class="i-lucide-play" aria-hidden="true" />
+              </a>
+              <div>
+                <div class="external-card-meta">
+                  <span>{video.authorName}</span>
+                  {video.publishedAt && (
+                    <span>{formatDate(video.publishedAt)}</span>
+                  )}
+                </div>
+                <h3>{video.title}</h3>
+                <a
+                  class="text-arrow"
+                  href={video.url}
+                  {...externalAttrs(video.url)}
+                >
+                  YouTubeで見る
+                  <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                </a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

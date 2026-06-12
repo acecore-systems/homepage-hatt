@@ -1,0 +1,184 @@
+<div
+  class="search-modal"
+  id="site-search-modal"
+  data-search-modal
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="site-search-title"
+  hidden
+  data-pagefind-ignore
+>
+  <div class="search-modal-backdrop" data-search-close></div>
+  <section class="search-modal-panel">
+    <div class="search-modal-heading">
+      <div>
+        <p>Site search</p>
+        <h2 id="site-search-title">記事を検索</h2>
+      </div>
+      <button
+        class="icon-button"
+        type="button"
+        data-search-close
+        aria-label="検索を閉じる"
+      >
+        <span class="i-lucide-x" aria-hidden="true"></span>
+      </button>
+    </div>
+    <form class="search-modal-form" data-search-modal-form>
+      <label class="sr-only" for="site-search-input">検索キーワード</label>
+      <input
+        id="site-search-input"
+        data-search-modal-input
+        type="search"
+        name="q"
+        placeholder="絵、小説、モデリング..."
+        autocomplete="off"
+      />
+      <button
+        class="primary-button"
+        type="submit"
+        data-hatt-event="search_submit"
+        data-hatt-label="search_modal"
+        data-hatt-location="header"
+      >
+        検索
+        <span class="i-lucide-search" aria-hidden="true"></span>
+      </button>
+    </form>
+    <div
+      class="search-modal-results"
+      data-search-modal-results
+      aria-live="polite"
+    >
+      <p class="empty-state">キーワードを入力してください。</p>
+    </div>
+    <p class="search-modal-footnote">
+      詳細検索ページは <a href="/blog/search/">/blog/search/</a> からも開けます。
+    </p>
+  </section>
+</div>
+
+<script is:inline>
+  const modal = document.querySelector('[data-search-modal]')
+  const form = modal?.querySelector('[data-search-modal-form]')
+  const input = modal?.querySelector('[data-search-modal-input]')
+  const results = modal?.querySelector('[data-search-modal-results]')
+  const closeButtons = modal?.querySelectorAll('[data-search-close]') ?? []
+  const openButtons = document.querySelectorAll('[data-search-open]')
+  let lastFocusedElement = null
+
+  function clearResults() {
+    results?.replaceChildren()
+  }
+
+  function setMessage(message, withBlogLink = false) {
+    clearResults()
+    const paragraph = document.createElement('p')
+    paragraph.className = 'empty-state'
+    paragraph.textContent = message
+
+    if (withBlogLink) {
+      paragraph.append(' ')
+      const link = document.createElement('a')
+      link.href = '/blog/'
+      link.textContent = 'ブログ一覧へ'
+      paragraph.append(link)
+    }
+
+    results?.append(paragraph)
+  }
+
+  function textFromExcerpt(excerpt) {
+    return String(excerpt ?? '')
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  function appendResult(row) {
+    const link = document.createElement('a')
+    link.className = 'search-result'
+    link.href = row.url
+    link.dataset.hattEvent = 'search_result_click'
+    link.dataset.hattLabel = row.meta?.title ?? row.url
+    link.dataset.hattLocation = 'search_modal'
+
+    const title = document.createElement('h3')
+    title.textContent = row.meta?.title ?? '無題の記事'
+
+    const excerpt = document.createElement('p')
+    excerpt.textContent = textFromExcerpt(row.excerpt)
+
+    link.append(title, excerpt)
+    results?.append(link)
+  }
+
+  async function runSearch(query) {
+    setMessage('検索を読み込んでいます...')
+    try {
+      const pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js')
+      const search = await pagefind.search(query)
+      const rows = await Promise.all(
+        search.results.slice(0, 8).map((result) => result.data()),
+      )
+
+      if (rows.length === 0) {
+        setMessage('一致する記事が見つかりませんでした。', true)
+        return
+      }
+
+      clearResults()
+      rows.forEach(appendResult)
+    } catch {
+      setMessage(
+        '検索インデックスはビルド後に有効になります。検索ページもお試しください。',
+        true,
+      )
+    }
+  }
+
+  function openSearchModal() {
+    if (!modal || !input) return
+    lastFocusedElement = document.activeElement
+    modal.hidden = false
+    document.documentElement.classList.add('has-search-modal')
+    window.setTimeout(() => input.focus(), 0)
+  }
+
+  function closeSearchModal() {
+    if (!modal) return
+    modal.hidden = true
+    document.documentElement.classList.remove('has-search-modal')
+    if (lastFocusedElement instanceof HTMLElement) {
+      lastFocusedElement.focus()
+    }
+  }
+
+  openButtons.forEach((button) => {
+    button.addEventListener('click', openSearchModal)
+  })
+
+  closeButtons.forEach((button) => {
+    button.addEventListener('click', closeSearchModal)
+  })
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const query = input?.value?.trim()
+    if (!query) {
+      setMessage('キーワードを入力してください。')
+      return
+    }
+    runSearch(query)
+  })
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal && !modal.hidden) {
+      closeSearchModal()
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault()
+      openSearchModal()
+    }
+  })
+</script>

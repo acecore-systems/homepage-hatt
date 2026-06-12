@@ -1,0 +1,22 @@
+---
+const { title, images = [] } = Astro.props as {
+  title?: string
+  images?: { src: string; alt?: string; caption?: string }[]
+}
+---
+
+{
+  images.length > 0 && (
+    <section class="rich-block rich-gallery">
+      {title && <h2>{title}</h2>}
+      <div>
+        {images.map((image) => (
+          <figure>
+            <img src={image.src} alt={image.alt ?? ''} loading="lazy" />
+            {image.caption && <figcaption>{image.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </section>
+  )
+}

@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Callout from '@/components/Callout.astro'
+import Checklist from '@/components/Checklist.astro'
+import CompareTable from '@/components/CompareTable.astro'
+import Faq from '@/components/Faq.astro'
+import Gallery from '@/components/Gallery.astro'
+import LinkCard from '@/components/LinkCard.astro'
+import PullQuote from '@/components/PullQuote.astro'
+import Timeline from '@/components/Timeline.astro'
+import YouTubeEmbed from '@/components/YouTubeEmbed.astro'
+
+type BlogData = CollectionEntry<'blog'>['data']
+const { data } = Astro.props as { data: BlogData }
+---
+
+<div class="rich-article-blocks">
+  {data.callout && <Callout {...data.callout} />}
+  {data.timeline && <Timeline {...data.timeline} />}
+  {data.compareTable && <CompareTable {...data.compareTable} />}
+  {data.gallery && <Gallery {...data.gallery} />}
+  {data.youtube && <YouTubeEmbed {...data.youtube} />}
+  {data.checklist && <Checklist {...data.checklist} />}
+  {data.linkCards.map((link) => <LinkCard {...link} />)}
+  {data.pullQuote && <PullQuote {...data.pullQuote} />}
+  {data.faq && <Faq {...data.faq} />}
+</div>

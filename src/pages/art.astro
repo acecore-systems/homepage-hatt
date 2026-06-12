@@ -1,0 +1,191 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import artFeed from '@/data/external/art-posts.json'
+import { formatDate } from '@/utils/format'
+import { externalAttrs } from '@/utils/routes'
+
+type ArtFeedItem = {
+  id?: string
+  title: string
+  description?: string
+  date: string
+  image: string
+  alt?: string
+  sourceUrl?: string
+  sourceLabel?: string
+  tags?: string[]
+  order?: number
+  featured?: boolean
+}
+
+const cmsItems = (await getCollection('art'))
+  .map((entry) => ({
+    id: entry.data.id ?? entry.id,
+    title: entry.data.title,
+    description: entry.data.description,
+    date: entry.data.date,
+    image: entry.data.image,
+    alt: entry.data.alt,
+    sourceUrl: entry.data.sourceUrl,
+    sourceLabel: entry.data.sourceLabel,
+    tags: entry.data.tags,
+    order: entry.data.order,
+    featured: entry.data.featured,
+    source: 'cms',
+  }))
+  .sort(
+    (a, b) =>
+      Number(b.featured) - Number(a.featured) ||
+      a.order - b.order ||
+      b.date.getTime() - a.date.getTime(),
+  )
+
+const xItems = (artFeed.items as ArtFeedItem[]).map((item) => ({
+  ...item,
+  date: new Date(item.date),
+  alt: item.alt ?? '',
+  sourceLabel: item.sourceLabel ?? 'X',
+  tags: item.tags ?? [],
+  order: item.order ?? 100,
+  featured: item.featured ?? false,
+  source: 'x-browser',
+}))
+
+const seen = new Set<string>()
+const artItems = [...cmsItems, ...xItems]
+  .filter((item) => {
+    const key = item.sourceUrl || item.image || item.id
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  .sort(
+    (a, b) =>
+      Number(b.featured) - Number(a.featured) ||
+      a.order - b.order ||
+      b.date.getTime() - a.date.getTime(),
+  )
+
+const tagList = [...new Set(artItems.flatMap((item) => item.tags))]
+const sourceLabels = [...new Set(artItems.map((item) => item.sourceLabel))]
+---
+
+<BaseLayout
+  title="絵"
+  description="X投稿やCMSで追加したHattの絵を、画像中心のギャラリーとして並べています。"
+>
+  <section class="section-band">
+    <div class="section-inner external-feature art-feature">
+      <div>
+        <p class="eyebrow">
+          <span class="i-lucide-images" aria-hidden="true"></span>
+          絵
+        </p>
+        <h1>絵のギャラリー</h1>
+        <p class="lead">
+          Xに投稿した絵や、CMSから追加した画像をまとめて見られる場所です。
+        </p>
+        <div
+          class="modeling-stats external-stats art-stats"
+          aria-label="絵の概要"
+        >
+          <div>
+            <span>掲載</span>
+            <strong>{artItems.length}点</strong>
+          </div>
+          <div>
+            <span>投稿元</span>
+            <strong>{sourceLabels.length}件</strong>
+          </div>
+          <div>
+            <span>CMS</span>
+            <strong>{cmsItems.length}点</strong>
+          </div>
+          <div>
+            <span>タグ</span>
+            <strong>{tagList.length}件</strong>
+          </div>
+        </div>
+        <div class="social-row">
+          <a href={artFeed.profileUrl} {...externalAttrs(artFeed.profileUrl)}>
+            Xを見る
+          </a>
+          <a href="/blog/tag/picture/">絵の記事</a>
+        </div>
+      </div>
+      <div class="external-preview art-preview" aria-hidden="true">
+        <span class="i-lucide-brush"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band art-gallery-section" aria-labelledby="art-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="art-title">投稿</h2>
+        </div>
+        <a class="chip-link" href="/blog/">
+          ブログを見る
+          <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+        </a>
+      </div>
+      {
+        artItems.length > 0 ? (
+          <div class="art-grid">
+            {artItems.map((item) => (
+              <article
+                class:list={[
+                  'art-card',
+                  { 'art-card--featured': item.featured },
+                ]}
+              >
+                <a
+                  class="art-card-image"
+                  href={item.sourceUrl || item.image}
+                  {...externalAttrs(item.sourceUrl || item.image)}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.alt || item.title}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </a>
+                <div class="art-card-body">
+                  <div class="art-card-meta">
+                    <span>{item.sourceLabel}</span>
+                    <time datetime={item.date.toISOString()}>
+                      {formatDate(item.date)}
+                    </time>
+                  </div>
+                  <h3>{item.title}</h3>
+                  {item.description && <p>{item.description}</p>}
+                  {item.tags.length > 0 && (
+                    <ul class="tag-list" aria-label="タグ">
+                      {item.tags.map((tag) => (
+                        <li>#{tag}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="art-empty">
+            <span class="i-lucide-image-plus" aria-hidden="true" />
+            <h2>まだ掲載する絵がありません</h2>
+            <p>
+              Xの公開ページから画像投稿を取得できなかったため、CMSで追加した絵がここに並びます。
+            </p>
+            <a href={artFeed.profileUrl} {...externalAttrs(artFeed.profileUrl)}>
+              Xを見る
+            </a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,22 @@
+---
+const { title, items = [] } = Astro.props as {
+  title?: string
+  items?: string[]
+}
+---
+
+{
+  items.length > 0 && (
+    <section class="rich-block rich-checklist">
+      {title && <h2>{title}</h2>}
+      <ul>
+        {items.map((item) => (
+          <li>
+            <span class="i-lucide-check" aria-hidden="true" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

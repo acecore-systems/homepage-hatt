@@ -1,0 +1,35 @@
+{
+  "title": "メカニックカニ",
+  "kind": "オリジナル3Dアバター",
+  "summary": "機械のカニ本体と、子供のミニカニックミニが付属するVRChat向けアバターです。目を掴んで変形できるシェイプキー、スパナの取り出し、ポケット開閉、手に移動して暴れるペットギミックが紹介されています。",
+  "order": 70,
+  "priceLabel": "¥2,000",
+  "boothUrl": "https://vetumheberehama.booth.pm/items/7551795",
+  "youtubeUrl": "https://youtu.be/YmVNKrlxBnk",
+  "xUrl": "https://x.com/borubin",
+  "image": "/uploads/hatt/modeling/mechanic-crab.jpg",
+  "tryOnUrl": "https://vrchat.com/home/launch?worldId=wrld_8c3caca6-8138-4c93-afbe-d5d128b45cab",
+  "features": [
+    "機械のカニ本体と、子供のミニカニックミニが付属します。",
+    "目を掴んで自由に変形できるシェイプキーを備えています。",
+    "スパナの取り出し、ポケット開閉、手に移動して暴れるペットギミックがあります。"
+  ],
+  "specs": [
+    "価格: ¥2,000",
+    "メカニックカニ: △4,462 / ランク Good / マテリアル3",
+    "シェイプキー30",
+    "ペットギミック: △1,380 / マテリアル1"
+  ],
+  "requirements": [
+    "Avatar 3.0 / PhysBone対応",
+    "PC向け",
+    "前提アセット: lilToon / Modular Avatar",
+    "Unity 2022.3.22f1 / VRChat SDK"
+  ],
+  "related": [
+    { "label": "リバーシ", "href": "https://youtu.be/rjd70HD1pow" },
+    { "label": "モク", "href": "https://youtu.be/93fDGtPtEas" },
+    { "label": "モクギミックセット", "href": "https://youtu.be/SOhvYMNOdZI" }
+  ],
+  "featured": true
+}
