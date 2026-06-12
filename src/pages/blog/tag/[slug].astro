@@ -2,7 +2,6 @@
 import ArticleCard from '@/components/ArticleCard.astro'
 import BlogSidebar from '@/components/BlogSidebar.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import { formatDate } from '@/utils/format'
 import { isWithinPublicationWindow } from '@/utils/publication-window'
 import {
   getArchiveStats,
@@ -48,30 +47,44 @@ const galleryPosts = isPictureTag
       ]
     })
   : []
+const getPictureTileClass = (index: number): string | undefined => {
+  if (index % 13 === 0) return 'picture-grid-item--large'
+  if (index % 7 === 2 || index % 10 === 5) return 'picture-grid-item--tall'
+  if (index % 5 === 1 || index % 8 === 4) return 'picture-grid-item--wide'
+
+  return undefined
+}
 ---
 
 <BaseLayout
   title={isPictureTag ? tag.data.name : `タグ: ${tag.data.name}`}
   description={tag.data.description ?? `${tag.data.name}の記事一覧です。`}
   robots="noindex,follow"
+  showAnnouncement={!isPictureTag}
   breadcrumbItems={[
     { name: 'ブログ', item: '/blog/' },
     { name: 'タグ一覧', item: '/blog/tag/' },
     { name: tag.data.name, item: `/blog/tag/${tag.data.slug}/` },
   ]}
 >
-  <section class="blog-hero">
-    <div class="blog-shell" style="padding-bottom: 0;">
-      <div class="blog-title">
-        <div>
-          <h1>{isPictureTag ? tag.data.name : `タグ: ${tag.data.name}`}</h1>
-          <p class="lead">{tag.data.description}</p>
+  {
+    !isPictureTag && (
+      <section class="blog-hero">
+        <div class="blog-shell" style="padding-bottom: 0;">
+          <div class="blog-title">
+            <div>
+              <h1>{`タグ: ${tag.data.name}`}</h1>
+              <p class="lead">{tag.data.description}</p>
+            </div>
+            <a class="chip-link" href="/blog/tag/">
+              タグ一覧へ
+            </a>
+          </div>
+          <div aria-hidden="true" />
         </div>
-        <a class="chip-link" href="/blog/tag/">タグ一覧へ</a>
-      </div>
-      <div aria-hidden="true"></div>
-    </div>
-  </section>
+      </section>
+    )
+  }
 
   <div class:list={['blog-shell', { 'blog-shell--gallery': isPictureTag }]}>
     {
@@ -80,15 +93,21 @@ const galleryPosts = isPictureTag
           class="picture-gallery"
           aria-labelledby="picture-gallery-title"
         >
-          <h2 id="picture-gallery-title" class="sr-only">
-            絵一覧
-          </h2>
+          <h1 id="picture-gallery-title" class="sr-only">
+            {tag.data.name}
+          </h1>
           {galleryPosts.length > 0 ? (
             <div class="picture-grid">
               {galleryPosts.map(
-                ({ post, image, href, publicationStartsAt, isPublished }) => (
+                (
+                  { post, image, href, publicationStartsAt, isPublished },
+                  index,
+                ) => (
                   <a
-                    class="picture-grid-item"
+                    class:list={[
+                      'picture-grid-item',
+                      getPictureTileClass(index),
+                    ]}
                     href={href}
                     aria-label={`${post.data.title}の詳細を見る`}
                     data-publication-window="true"
@@ -102,10 +121,6 @@ const galleryPosts = isPictureTag
                       loading="lazy"
                       decoding="async"
                     />
-                    <span class="picture-grid-overlay" aria-hidden="true">
-                      <strong>{post.data.title}</strong>
-                      <small>{formatDate(post.data.date)}</small>
-                    </span>
                   </a>
                 ),
               )}
