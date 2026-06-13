@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import artFeed from '@/data/external/art-posts.json'
-import { formatDate } from '@/utils/format'
 import { externalAttrs } from '@/utils/routes'
 
 type ArtFeedItem = {
@@ -41,16 +40,49 @@ const cmsItems = (await getCollection('art'))
       b.date.getTime() - a.date.getTime(),
   )
 
-const xItems = (artFeed.items as ArtFeedItem[]).map((item) => ({
-  ...item,
-  date: new Date(item.date),
-  alt: item.alt ?? '',
-  sourceLabel: item.sourceLabel ?? 'X',
-  tags: item.tags ?? [],
-  order: item.order ?? 100,
-  featured: item.featured ?? false,
-  source: 'x-browser',
-}))
+// Keep this gallery to drawings; these X media are 3D/game screenshots or photos.
+const excludedExternalArtItemIds = new Set([
+  'x-2047430961743495178-1',
+  'x-2043665982246514716-1',
+  'x-2043312957912986056-1',
+  'x-2037284530353328329-1',
+  'x-2025983192084414926-1',
+  'x-1979795032501800964-1',
+  'x-1952505081427026382-1',
+  'x-1952134150892425554-1',
+  'x-1922025738011586826-1',
+  'x-1921211655788154892-1',
+  'x-1917781911314825566-1',
+  'x-1917775838315176363-1',
+  'x-1852090504546304470-1',
+  'x-1851751978143203529-1',
+  'x-1821199871547777257-1',
+  'x-1798761858784166263-1',
+  'x-1792931675829092412-1',
+  'x-1784270515580068196-1',
+  'x-1758140988307202474-1',
+  'x-1756739731776487906-1',
+  'x-1752727070348890126-1',
+  'x-1742563710387003639-1',
+  'x-1706708859686162888-1',
+  'x-1637381913416704001-1',
+  'x-1609936986420449280-1',
+  'x-1607057304310145024-1',
+  'x-1583743697576898560-1',
+])
+
+const xItems = (artFeed.items as ArtFeedItem[])
+  .filter((item) => !excludedExternalArtItemIds.has(item.id ?? ''))
+  .map((item) => ({
+    ...item,
+    date: new Date(item.date),
+    alt: item.alt ?? '',
+    sourceLabel: item.sourceLabel ?? 'X',
+    tags: item.tags ?? [],
+    order: item.order ?? 100,
+    featured: item.featured ?? false,
+    source: 'x-browser',
+  }))
 
 const seen = new Set<string>()
 const artItems = [...cmsItems, ...xItems]
@@ -67,84 +99,38 @@ const artItems = [...cmsItems, ...xItems]
       b.date.getTime() - a.date.getTime(),
   )
 
-const tagList = [...new Set(artItems.flatMap((item) => item.tags))]
-const sourceLabels = [...new Set(artItems.map((item) => item.sourceLabel))]
+const getArtTileClass = (
+  item: { featured?: boolean },
+  index: number,
+): string | undefined => {
+  if (item.featured || index % 13 === 0) return 'art-tile--large'
+  if (index % 7 === 2 || index % 10 === 5) return 'art-tile--tall'
+  if (index % 5 === 1 || index % 8 === 4) return 'art-tile--wide'
+
+  return undefined
+}
 ---
 
 <BaseLayout
   title="絵"
   description="X投稿やCMSで追加したHattの絵を、画像中心のギャラリーとして並べています。"
+  showAnnouncement={false}
 >
-  <section class="section-band">
-    <div class="section-inner external-feature art-feature">
-      <div>
-        <p class="eyebrow">
-          <span class="i-lucide-images" aria-hidden="true"></span>
-          絵
-        </p>
-        <h1>絵のギャラリー</h1>
-        <p class="lead">
-          Xに投稿した絵や、CMSから追加した画像をまとめて見られる場所です。
-        </p>
-        <div
-          class="modeling-stats external-stats art-stats"
-          aria-label="絵の概要"
-        >
-          <div>
-            <span>掲載</span>
-            <strong>{artItems.length}点</strong>
-          </div>
-          <div>
-            <span>投稿元</span>
-            <strong>{sourceLabels.length}件</strong>
-          </div>
-          <div>
-            <span>CMS</span>
-            <strong>{cmsItems.length}点</strong>
-          </div>
-          <div>
-            <span>タグ</span>
-            <strong>{tagList.length}件</strong>
-          </div>
-        </div>
-        <div class="social-row">
-          <a href={artFeed.profileUrl} {...externalAttrs(artFeed.profileUrl)}>
-            Xを見る
-          </a>
-          <a href="/blog/tag/picture/">絵の記事</a>
-        </div>
-      </div>
-      <div class="external-preview art-preview" aria-hidden="true">
-        <span class="i-lucide-brush"></span>
-      </div>
-    </div>
-  </section>
-
   <section class="section-band art-gallery-section" aria-labelledby="art-title">
-    <div class="section-inner">
-      <div class="section-heading">
-        <div>
-          <h2 id="art-title">投稿</h2>
-        </div>
-        <a class="chip-link" href="/blog/">
-          ブログを見る
-          <span class="i-lucide-arrow-right" aria-hidden="true"></span>
-        </a>
-      </div>
+    <div class="section-inner art-gallery-inner">
+      <h1 id="art-title" class="sr-only">絵</h1>
       {
         artItems.length > 0 ? (
           <div class="art-grid">
-            {artItems.map((item) => (
-              <article
-                class:list={[
-                  'art-card',
-                  { 'art-card--featured': item.featured },
-                ]}
-              >
+            {artItems.map((item, index) => {
+              const href = item.sourceUrl || item.image
+
+              return (
                 <a
-                  class="art-card-image"
-                  href={item.sourceUrl || item.image}
-                  {...externalAttrs(item.sourceUrl || item.image)}
+                  class:list={['art-tile', getArtTileClass(item, index)]}
+                  href={href}
+                  aria-label={`${item.title}の詳細を見る`}
+                  {...externalAttrs(href)}
                 >
                   <img
                     src={item.image}
@@ -153,25 +139,8 @@ const sourceLabels = [...new Set(artItems.map((item) => item.sourceLabel))]
                     decoding="async"
                   />
                 </a>
-                <div class="art-card-body">
-                  <div class="art-card-meta">
-                    <span>{item.sourceLabel}</span>
-                    <time datetime={item.date.toISOString()}>
-                      {formatDate(item.date)}
-                    </time>
-                  </div>
-                  <h3>{item.title}</h3>
-                  {item.description && <p>{item.description}</p>}
-                  {item.tags.length > 0 && (
-                    <ul class="tag-list" aria-label="タグ">
-                      {item.tags.map((tag) => (
-                        <li>#{tag}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </article>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div class="art-empty">

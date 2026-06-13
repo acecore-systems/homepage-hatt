@@ -1,24 +1,51 @@
 {
   "name": "Hattのホームページ",
   "description": "絵、小説、VRChat向け3Dアバター・ギミック・アクセサリーを制作するHattの個人サイトです。",
-  "icon": "/uploads/hatt/favicon.png",
+  "icon": "/uploads/hatt/アイコン3.png",
   "cover": "/uploads/hatt/site-cover.jpg",
   "adsenseClientId": "ca-pub-3935803464310919",
   "turnstileSiteKey": "0x4AAAAAADgFdX0i7Etno1bL",
   "adsenseSlotId": "3228710511",
   "adsenseInlineSlotId": "4541792182",
   "headerLinks": [
-    { "label": "絵", "href": "/art/" },
-    { "label": "小説", "href": "/novels/" },
-    { "label": "3D作品", "href": "/modeling/" },
-    { "label": "動画", "href": "/videos/" },
-    { "label": "ブログ", "href": "/blog/" },
-    { "label": "Acecore", "href": "https://acecore.net" }
+    {
+      "label": "絵",
+      "href": "/art/"
+    },
+    {
+      "label": "小説",
+      "href": "/novels/"
+    },
+    {
+      "label": "3D作品",
+      "href": "/modeling/"
+    },
+    {
+      "label": "動画",
+      "href": "/videos/"
+    },
+    {
+      "label": "ブログ",
+      "href": "/blog/"
+    },
+    {
+      "label": "Acecore",
+      "href": "https://acecore.net"
+    }
   ],
   "socialLinks": [
-    { "label": "YouTube", "href": "https://www.youtube.com/@hatt9241" },
-    { "label": "X", "href": "https://x.com/borubin" },
-    { "label": "BOOTH", "href": "https://vetumheberehama.booth.pm/" }
+    {
+      "label": "YouTube",
+      "href": "https://www.youtube.com/@hatt9241"
+    },
+    {
+      "label": "X",
+      "href": "https://x.com/borubin"
+    },
+    {
+      "label": "BOOTH",
+      "href": "https://vetumheberehama.booth.pm/"
+    }
   ],
   "homePillars": [
     {

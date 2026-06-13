@@ -24,6 +24,7 @@ type Props = {
   robots?: string
   jsonLd?: JsonLd
   breadcrumbItems?: { name: string; item?: string }[]
+  showAnnouncement?: boolean
 }
 
 const site = await getSiteConfig()
@@ -32,6 +33,7 @@ const title = Astro.props.title ?? site.name
 const description = Astro.props.description ?? site.description
 const pageTitle = title === site.name ? title : `${title} | ${site.name}`
 const pageClass = Astro.props.pageClass ?? ''
+const showAnnouncement = props.showAnnouncement ?? true
 const toAbsolute = (path: string) =>
   /^https?:\/\//.test(path)
     ? path
@@ -183,7 +185,7 @@ const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
   <body class={pageClass}>
     <a class="skip-link" href="#main-content">本文へスキップ</a>
     <Header site={site} />
-    <AnnouncementBanner />
+    {showAnnouncement && <AnnouncementBanner />}
     <SearchModal />
     <main id="main-content">
       <slot />
