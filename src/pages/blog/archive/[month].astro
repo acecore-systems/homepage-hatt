@@ -1,0 +1,61 @@
+---
+import ArticleCard from '@/components/ArticleCard.astro'
+import BlogSidebar from '@/components/BlogSidebar.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import {
+  getArchiveStats,
+  getAuthors,
+  getPosts,
+  getPostsByMonth,
+  getTagMap,
+  getTagStats,
+} from '@/utils/blog'
+
+export async function getStaticPaths() {
+  const archives = await getArchiveStats()
+  return archives.map((archive) => ({
+    params: { month: archive.month },
+  }))
+}
+
+const month = Astro.params.month ?? ''
+const posts = await getPosts()
+const filteredPosts = getPostsByMonth(posts, month)
+const tagMap = await getTagMap()
+const tagStats = await getTagStats()
+const archives = await getArchiveStats()
+const authors = await getAuthors()
+const archive = archives.find((entry) => entry.month === month)
+const archiveLabel = archive?.label ?? month
+---
+
+<BaseLayout
+  title={`${archiveLabel}の記事`}
+  description={`${archiveLabel}に公開されたHattの記事一覧です。`}
+  robots="noindex,follow"
+  breadcrumbItems={[
+    { name: 'ブログ', item: '/blog/' },
+    { name: 'アーカイブ', item: '/blog/archive/' },
+    { name: archiveLabel, item: `/blog/archive/${month}/` },
+  ]}
+>
+  <section class="blog-hero">
+    <div class="blog-shell" style="padding-bottom: 0;">
+      <div class="blog-title">
+        <div>
+          <h1>{archiveLabel}の記事</h1>
+          <p class="lead">{filteredPosts.length}件の記事があります。</p>
+        </div>
+        <a class="chip-link" href="/blog/archive/">アーカイブ一覧へ</a>
+      </div>
+      <div aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <div class="blog-shell">
+    <div class="blog-list">
+      {filteredPosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
+    </div>
+    <BlogSidebar tags={tagStats} archives={archives} authors={authors} />
+  </div>
+</BaseLayout>

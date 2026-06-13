@@ -9,6 +9,7 @@
     "prebuild": "node scripts/write-cms-runtime-config.mjs",
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
+    "sync:external": "node scripts/sync-external-feeds.mjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },

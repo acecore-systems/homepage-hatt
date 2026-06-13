@@ -1,0 +1,23 @@
+---
+const { title, items = [] } = Astro.props as {
+  title?: string
+  items?: { title: string; text?: string; date?: string }[]
+}
+---
+
+{
+  items.length > 0 && (
+    <section class="rich-block rich-timeline">
+      {title && <h2>{title}</h2>}
+      <ol>
+        {items.map((item) => (
+          <li>
+            {item.date && <time>{item.date}</time>}
+            <strong>{item.title}</strong>
+            {item.text && <p>{item.text}</p>}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}

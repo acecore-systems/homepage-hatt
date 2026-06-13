@@ -1,12 +1,21 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import youtubeFeed from '@/data/external/youtube-videos.json'
 import { externalAttrs } from '@/utils/routes'
 
-const channelUrl = 'https://www.youtube.com/@hatt9241'
-const channelId = 'UCzEhXHKDoOrvjFUcIe5q3jA'
-const uploadsPlaylistId = `UU${channelId.slice(2)}`
+const channelUrl = youtubeFeed.channelUrl
+const uploadsChannelId = 'UCzEhXHKDoOrvjFUcIe5q3jA'
+const uploadsPlaylistId = `UU${uploadsChannelId.slice(2)}`
 const uploadsPlaylistUrl = `https://www.youtube.com/playlist?list=${uploadsPlaylistId}`
 const uploadsEmbedUrl = `https://www.youtube-nocookie.com/embed/videoseries?list=${uploadsPlaylistId}`
+const videos = youtubeFeed.videos
+const formatDate = (value: string) =>
+  value
+    ? new Intl.DateTimeFormat('ja-JP', {
+        dateStyle: 'medium',
+        timeZone: 'Asia/Tokyo',
+      }).format(new Date(value))
+    : ''
 
 const videoLinks = [
   {
@@ -38,7 +47,7 @@ const videoLinks = [
 
 <BaseLayout
   title="動画"
-  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショートへの入口をまとめたページです。"
+  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショート、VRChat向け作品動画をまとめたページです。"
   canonicalPath="/videos/"
 >
   <section class="page-hero">
@@ -53,6 +62,19 @@ const videoLinks = [
           HattのYouTubeチャンネルで公開している動画をまとめて見られるページです。
           通常動画だけでなく、ライブ配信アーカイブやショートへの導線もここに集約しています。
         </p>
+        <div
+          class="modeling-stats external-stats video-stats"
+          aria-label="動画一覧"
+        >
+          <div>
+            <span>作品動画</span>
+            <strong>{videos.length}本</strong>
+          </div>
+          <div>
+            <span>投稿元</span>
+            <strong>YouTube</strong>
+          </div>
+        </div>
         <div class="social-row video-hero-actions">
           <a href={uploadsPlaylistUrl} {...externalAttrs(uploadsPlaylistUrl)}>
             全動画プレイリスト
@@ -98,6 +120,51 @@ const videoLinks = [
               <strong>{link.label}</strong>
               <small>{link.text}</small>
             </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band" aria-labelledby="work-videos-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="work-videos-title">作品動画</h2>
+        </div>
+        <p>Hattの3D作品ページに紐づく動画です。</p>
+      </div>
+      <div class="external-grid external-grid--videos">
+        {
+          videos.map((video) => (
+            <article class="external-card external-card--video">
+              <a
+                class="external-thumbnail"
+                href={video.url}
+                {...externalAttrs(video.url)}
+                aria-label={`${video.title}をYouTubeで見る`}
+              >
+                <img src={video.thumbnailUrl} alt="" loading="lazy" />
+                <span class="i-lucide-play" aria-hidden="true" />
+              </a>
+              <div>
+                <div class="external-card-meta">
+                  <span>{video.authorName}</span>
+                  {video.publishedAt && (
+                    <span>{formatDate(video.publishedAt)}</span>
+                  )}
+                </div>
+                <h3>{video.title}</h3>
+                <a
+                  class="text-arrow"
+                  href={video.url}
+                  {...externalAttrs(video.url)}
+                >
+                  YouTubeで見る
+                  <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                </a>
+              </div>
+            </article>
           ))
         }
       </div>

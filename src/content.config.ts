@@ -6,10 +6,84 @@ const linkSchema = z.object({
   label: z.string(),
   href: z.string(),
 })
-const cmsDate = z.preprocess(
-  (value) => parseCmsDateTime(value) ?? value,
-  z.date(),
-)
+const richImageSchema = z.object({
+  src: z.string(),
+  alt: z.string().default(''),
+  caption: z.string().optional(),
+})
+const calloutSchema = z.object({
+  title: z.string().optional(),
+  text: z.string().optional(),
+  tone: z.enum(['cyan', 'ember', 'mint', 'pollen']).default('cyan'),
+})
+const timelineSchema = z.object({
+  title: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        title: z.string(),
+        text: z.string().optional(),
+        date: z.string().optional(),
+      }),
+    )
+    .default([]),
+})
+const compareTableSchema = z.object({
+  title: z.string().optional(),
+  columns: z.array(z.string()).default([]),
+  rows: z
+    .array(
+      z.object({
+        label: z.string().optional(),
+        cells: z.array(z.string()).default([]),
+      }),
+    )
+    .default([]),
+})
+const checklistSchema = z.object({
+  title: z.string().optional(),
+  items: z.array(z.string()).default([]),
+})
+const gallerySchema = z.object({
+  title: z.string().optional(),
+  images: z.array(richImageSchema).default([]),
+})
+const youtubeSchema = z.object({
+  url: z.string().optional(),
+  title: z.string().optional(),
+  caption: z.string().optional(),
+})
+const faqSchema = z.object({
+  title: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+      }),
+    )
+    .default([]),
+})
+const pullQuoteSchema = z.object({
+  quote: z.string().optional(),
+  source: z.string().optional(),
+})
+const CONTENT_DATETIME_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?$/
+
+const cmsDate = z
+  .string()
+  .refine((value) => CONTENT_DATETIME_PATTERN.test(value.trim()), {
+    message:
+      'Content date must include time as YYYY-MM-DDTHH:mm, optionally with timezone',
+  })
+  .transform((value) => {
+    const date = parseCmsDateTime(value)
+    if (!date) {
+      throw new Error(`Invalid date value in content frontmatter: ${value}`)
+    }
+    return date
+  })
 
 const blog = defineCollection({
   loader: glob({
@@ -26,6 +100,17 @@ const blog = defineCollection({
     author: z.string(),
     image: z.string().optional(),
     legacySlugs: z.array(z.string()).default([]),
+    callout: calloutSchema.optional(),
+    timeline: timelineSchema.optional(),
+    compareTable: compareTableSchema.optional(),
+    checklist: checklistSchema.optional(),
+    gallery: gallerySchema.optional(),
+    youtube: youtubeSchema.optional(),
+    faq: faqSchema.optional(),
+    linkCards: z
+      .array(linkSchema.extend({ description: z.string().optional() }))
+      .default([]),
+    pullQuote: pullQuoteSchema.optional(),
   }),
 })
 
@@ -56,6 +141,26 @@ const authors = defineCollection({
   }),
 })
 
+const art = defineCollection({
+  loader: glob({
+    base: './src/content/art',
+    pattern: '**/*.json',
+  }),
+  schema: z.object({
+    id: z.string().optional(),
+    title: z.string(),
+    description: z.string().optional(),
+    date: cmsDate,
+    image: z.string(),
+    alt: z.string().default(''),
+    sourceUrl: z.string().optional(),
+    sourceLabel: z.string().default('X'),
+    tags: z.array(z.string()).default([]),
+    order: z.number().default(100),
+    featured: z.boolean().default(false),
+  }),
+})
+
 const modeling = defineCollection({
   loader: glob({
     base: './src/content/modeling',
@@ -65,11 +170,17 @@ const modeling = defineCollection({
     title: z.string(),
     kind: z.string(),
     summary: z.string(),
+    order: z.number().default(100),
     priceLabel: z.string().optional(),
     boothUrl: z.string().optional(),
     youtubeUrl: z.string().optional(),
     xUrl: z.string().optional(),
+    tryOnUrl: z.string().optional(),
     image: z.string().optional(),
+    features: z.array(z.string()).default([]),
+    specs: z.array(z.string()).default([]),
+    requirements: z.array(z.string()).default([]),
+    related: z.array(linkSchema).default([]),
     featured: z.boolean().default(false),
   }),
 })
@@ -139,6 +250,7 @@ const site = defineCollection({
 
 export const collections = {
   authors,
+  art,
   blog,
   campaigns,
   modeling,

@@ -4,6 +4,8 @@ export type BlogPost = CollectionEntry<'blog'>
 export type TagEntry = CollectionEntry<'tags'>
 export type AuthorEntry = CollectionEntry<'authors'>
 
+export const BLOG_PAGE_SIZE = 6
+
 export function getBlogSlug(post: BlogPost) {
   const configuredSlug = post.data.slug?.trim()
   if (configuredSlug) return configuredSlug
@@ -66,16 +68,20 @@ export async function getTagStats() {
 
 export async function getArchiveStats() {
   const posts = await getPosts()
-  const years = new Map<number, number>()
+  const months = new Map<string, number>()
 
   for (const post of posts) {
-    const year = post.data.date.getFullYear()
-    years.set(year, (years.get(year) ?? 0) + 1)
+    const month = getArchiveMonth(post.data.date)
+    months.set(month, (months.get(month) ?? 0) + 1)
   }
 
-  return [...years.entries()]
-    .map(([year, count]) => ({ year, count }))
-    .sort((a, b) => b.year - a.year)
+  return [...months.entries()]
+    .map(([month, count]) => ({
+      month,
+      label: formatArchiveMonth(month),
+      count,
+    }))
+    .sort((a, b) => b.month.localeCompare(a.month))
 }
 
 export function getPostsByTag(posts: BlogPost[], tagId: string) {
@@ -86,8 +92,34 @@ export function getPostsByAuthor(posts: BlogPost[], authorId: string) {
   return posts.filter((post) => post.data.author === authorId)
 }
 
-export function getPostsByYear(posts: BlogPost[], year: number) {
-  return posts.filter((post) => post.data.date.getFullYear() === year)
+export function getPostsByMonth(posts: BlogPost[], month: string) {
+  return posts.filter((post) => getArchiveMonth(post.data.date) === month)
+}
+
+export function getArchiveMonth(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+export function formatArchiveMonth(month: string) {
+  const [year, monthNumber] = month.split('-')
+  return `${year}年${Number(monthNumber)}月`
+}
+
+export function getBlogPageCount(posts: BlogPost[], pageSize = BLOG_PAGE_SIZE) {
+  return Math.max(1, Math.ceil(posts.length / pageSize))
+}
+
+export function getBlogPagePath(page: number) {
+  return page <= 1 ? '/blog/' : `/blog/page/${page}/`
+}
+
+export function getPaginatedPosts(
+  posts: BlogPost[],
+  page: number,
+  pageSize = BLOG_PAGE_SIZE,
+) {
+  const start = (page - 1) * pageSize
+  return posts.slice(start, start + pageSize)
 }
 
 export function getAdjacentPosts(posts: BlogPost[], current: BlogPost) {

@@ -1,0 +1,37 @@
+{
+  "title": "あかるい友達",
+  "kind": "ギミック",
+  "summary": "暗いワールドの雰囲気を変えられるVRChat向けアバターライトです。手乗り、カンテラ、杖付きカンテラの3タイプを収録し、光量調整、ワールド固定、収納、撫でる反応などの使い方が紹介されています。",
+  "order": 50,
+  "priceLabel": "¥800 / 無料版あり",
+  "boothUrl": "https://vetumheberehama.booth.pm/items/8122132",
+  "youtubeUrl": "https://youtu.be/vle0XAJ9u9I",
+  "xUrl": "https://x.com/borubin",
+  "image": "/uploads/hatt/modeling/bright-friend.jpg",
+  "tryOnUrl": "https://vrchat.com/home/launch?worldId=wrld_8c3caca6-8138-4c93-afbe-d5d128b45cab",
+  "features": [
+    "手乗り、カンテラ、杖付きカンテラの3タイプを収録しています。",
+    "光量調整、ワールド固定、収納、カンテラ扉の開閉に対応しています。",
+    "手乗りタイプは撫でると目を細める反応があります。"
+  ],
+  "specs": [
+    "価格: ¥800 / 無料版あり",
+    "友達 △1,424",
+    "カンテラ △1,208",
+    "杖 △3,083"
+  ],
+  "requirements": [
+    "全アバター対応",
+    "Modular Avatar使用",
+    "前提アセット: Modular Avatar / lilToon",
+    "Unity 2022.3.22f1 / VRChat SDK"
+  ],
+  "related": [
+    { "label": "モクギミックセット", "href": "https://youtu.be/SOhvYMNOdZI" },
+    {
+      "label": "お着換えカーテンヘイロー",
+      "href": "https://youtu.be/1l6-3lmZ2tA"
+    }
+  ],
+  "featured": true
+}

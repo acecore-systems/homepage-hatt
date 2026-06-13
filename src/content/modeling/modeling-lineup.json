@@ -1,9 +1,20 @@
 {
   "title": "アバター・ギミック制作",
   "kind": "ラインアップ",
-  "summary": "YouTubeチャンネル説明欄では、アバター9種・ギミック5種の全14商品がBOOTHで案内されています。",
+  "summary": "YouTubeチャンネルとBOOTHでは、VRChat向けアバター9種・ギミック5種の全14商品を公開しています。商品紹介動画、固定コメント、関連動画で各商品の使い方や購入先を見られます。",
+  "order": 0,
   "boothUrl": "https://vetumheberehama.booth.pm/",
   "youtubeUrl": "https://www.youtube.com/@hatt9241",
   "xUrl": "https://x.com/borubin",
-  "featured": false
+  "features": [
+    "BOOTHの商品ページ、YouTube紹介動画、Xでの発信を作品ごとに見られます。",
+    "商品動画には購入先、関連動画、制作者情報が掲載されています。",
+    "アバター本体、ギミック、アクセサリーを用途別に追加していけるラインアップです。"
+  ],
+  "specs": [
+    "公開規模: アバター9種 / ギミック5種 / 全14商品",
+    "販売先: BOOTHショップ「エースコア」",
+    "動画: YouTubeチャンネル @hatt9241"
+  ],
+  "featured": true
 }
