@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import CampaignNotices from '@/components/CampaignNotices.astro'
+import YouTubeEmbed from '@/components/YouTubeEmbed.astro'
 import { getCollection } from 'astro:content'
 import { getSiteConfig } from '@/utils/blog'
 import { externalAttrs } from '@/utils/routes'
@@ -134,6 +135,14 @@ const items = (await getCollection('modeling')).sort((a, b) => {
                 <h3>{item.data.title}</h3>
               </div>
               <p>{item.data.summary}</p>
+              {item.data.youtubeUrl && (
+                <YouTubeEmbed
+                  url={item.data.youtubeUrl}
+                  title={`${item.data.title}の紹介動画`}
+                  caption={`${item.data.title}の紹介動画`}
+                  embedClass="modeling-video-embed"
+                />
+              )}
               {item.data.priceLabel && (
                 <span class="price-label">{item.data.priceLabel}</span>
               )}

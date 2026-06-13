@@ -506,6 +506,28 @@ main {
   font-weight: 800;
 }
 
+.video-player-card--featured figcaption {
+  display: grid;
+  gap: 7px;
+}
+
+.video-player-card--featured figcaption strong {
+  color: var(--ink-900);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.video-player-card--featured figcaption span {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+}
+
+.video-player-card--featured figcaption a {
+  width: fit-content;
+  color: var(--navy);
+  text-decoration: none;
+}
+
 .modeling-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -777,6 +799,146 @@ main {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
+.video-browser {
+  padding-top: 42px;
+}
+
+.video-browser-heading {
+  align-items: center;
+}
+
+.video-search-form {
+  display: flex;
+  width: min(420px, 100%);
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(21, 26, 36, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0 16px;
+  box-shadow: 0 12px 28px rgba(21, 26, 36, 0.06);
+}
+
+.video-search-form > span {
+  color: var(--ink-500);
+  font-size: 1.1rem;
+}
+
+.video-search-form input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--ink-900);
+  font: inherit;
+  font-weight: 700;
+  outline: 0;
+}
+
+.video-search-count {
+  margin: -14px 0 18px;
+  color: var(--ink-500);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.video-results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.video-result-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(21, 26, 36, 0.1);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 12px;
+  box-shadow: 0 14px 38px rgba(21, 26, 36, 0.06);
+}
+
+.video-result-card.is-active {
+  border-color: rgba(15, 49, 80, 0.42);
+  box-shadow: 0 18px 46px rgba(15, 49, 80, 0.14);
+}
+
+.video-result-button {
+  display: grid;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.video-result-button:focus-visible {
+  outline: 3px solid rgba(159, 216, 227, 0.72);
+  outline-offset: 3px;
+}
+
+.video-result-thumbnail {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--ink-900);
+  color: var(--white);
+}
+
+.video-result-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-result-thumbnail > span {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: rgba(21, 26, 36, 0.72);
+  font-size: 1.3rem;
+}
+
+.video-result-body {
+  display: grid;
+  gap: 6px;
+}
+
+.video-result-body strong {
+  color: var(--ink-900);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.video-result-body small,
+.video-result-body span {
+  color: var(--ink-500);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.video-search-empty {
+  margin: 18px 0 0;
+  border: 1px solid rgba(21, 26, 36, 0.1);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 18px;
+  color: var(--ink-700);
+  font-weight: 800;
+}
+
 .video-link-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1646,6 +1808,34 @@ main {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.modeling-video-embed {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.modeling-video-embed > div {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--radius) - 4px);
+  background: rgba(21, 26, 36, 0.08);
+}
+
+.modeling-video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.modeling-video-embed figcaption {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .modeling-detail-block,
@@ -3021,6 +3211,7 @@ main {
   .article-grid,
   .external-grid,
   .modeling-grid,
+  .video-results-grid,
   .video-link-grid,
   .modeling-info-grid,
   .profile-grid {

@@ -6,6 +6,28 @@ import { externalAttrs } from '@/utils/routes'
 const channelUrl = youtubeFeed.channelUrl
 const uploadsPlaylistUrl = youtubeFeed.uploadsPlaylistUrl
 const uploadsEmbedUrl = youtubeFeed.uploadsEmbedUrl
+const videos = youtubeFeed.videos ?? []
+const selectedVideo = videos[0]
+const formatDate = (value: string) =>
+  value
+    ? new Intl.DateTimeFormat('ja-JP', {
+        dateStyle: 'medium',
+        timeZone: 'Asia/Tokyo',
+      }).format(new Date(value))
+    : ''
+const normalizeText = (value = '') => value.replace(/\s+/g, ' ').trim()
+const summarize = (value = '', length = 120) => {
+  const text = normalizeText(value)
+  return text.length > length ? `${text.slice(0, length)}...` : text
+}
+const formatViews = (value?: number) =>
+  typeof value === 'number' && value > 0
+    ? `${new Intl.NumberFormat('ja-JP').format(value)}回再生`
+    : ''
+const getVideoMeta = (video: (typeof videos)[number]) =>
+  [formatDate(video.publishedAt), formatViews(video.views)]
+    .filter(Boolean)
+    .join(' / ')
 const videoLinks = [
   {
     label: '全公開動画',
@@ -36,7 +58,7 @@ const videoLinks = [
 
 <BaseLayout
   title="動画"
-  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショートをまとめて見られるページです。"
+  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショートをまとめて検索・再生できるページです。"
   canonicalPath="/videos/"
 >
   <section class="page-hero">
@@ -49,7 +71,7 @@ const videoLinks = [
         <h1>動画</h1>
         <p class="lead">
           HattのYouTubeチャンネルで公開している動画をまとめて見られるページです。
-          通常動画、ライブ配信アーカイブ、ショートまで、チャンネル全体をホームページ上で再生できる入口をここに集約しています。
+          通常動画、ライブ配信アーカイブ、ショートまで、チャンネル全体をホームページ上で検索・再生できます。
         </p>
         <div
           class="modeling-stats external-stats video-stats"
@@ -57,11 +79,11 @@ const videoLinks = [
         >
           <div>
             <span>全公開動画</span>
-            <strong>サイト内再生</strong>
+            <strong>{videos.length}本</strong>
           </div>
           <div>
-            <span>ライブ・ショート</span>
-            <strong>導線あり</strong>
+            <span>サイト内再生</span>
+            <strong>検索対応</strong>
           </div>
         </div>
         <div class="social-row video-hero-actions">
@@ -73,19 +95,117 @@ const videoLinks = [
           </a>
         </div>
       </div>
-      <figure class="video-player-card">
+      <figure class="video-player-card video-player-card--featured">
         <div class="video-player-frame">
           <iframe
-            src={uploadsEmbedUrl}
-            title="HattのYouTube全公開動画プレイリスト"
+            data-video-player
+            src={selectedVideo?.embedUrl ?? uploadsEmbedUrl}
+            title={selectedVideo
+              ? `${selectedVideo.title}を再生`
+              : 'HattのYouTube全公開動画プレイリスト'}
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen></iframe>
         </div>
         <figcaption>
-          通常動画、ライブ配信アーカイブ、ショートを含む全公開動画です。
+          <strong data-video-player-title>
+            {selectedVideo?.title ?? '全公開動画プレイリスト'}
+          </strong>
+          <span data-video-player-meta>
+            {
+              selectedVideo
+                ? getVideoMeta(selectedVideo)
+                : '通常動画、ライブ配信アーカイブ、ショートを含む全公開動画です。'
+            }
+          </span>
+          <a
+            data-video-player-link
+            href={selectedVideo?.url ?? uploadsPlaylistUrl}
+            {...externalAttrs(selectedVideo?.url ?? uploadsPlaylistUrl)}
+          >
+            YouTubeで開く
+          </a>
         </figcaption>
       </figure>
+    </div>
+  </section>
+
+  <section
+    class="section-band video-browser"
+    aria-labelledby="video-browser-title"
+    data-video-browser
+  >
+    <div class="section-inner">
+      <div class="section-heading video-browser-heading">
+        <div>
+          <h2 id="video-browser-title">全動画を検索</h2>
+        </div>
+        <form class="video-search-form" data-video-search-form>
+          <label class="sr-only" for="video-search-input">動画を検索</label>
+          <span class="i-lucide-search" aria-hidden="true"></span>
+          <input
+            id="video-search-input"
+            type="search"
+            placeholder="動画を検索"
+            autocomplete="off"
+            data-video-search-input
+          />
+        </form>
+      </div>
+      <p class="video-search-count" aria-live="polite" data-video-search-count>
+        {videos.length}本
+      </p>
+      <div class="video-results-grid" data-video-results>
+        {
+          videos.map((video, index) => {
+            const meta = getVideoMeta(video)
+            const summary = summarize(video.description)
+            const searchText = normalizeText(
+              `${video.title} ${video.description} ${formatDate(video.publishedAt)}`,
+            ).toLowerCase()
+
+            return (
+              <article
+                class={`video-result-card${index === 0 ? ' is-active' : ''}`}
+                data-video-card
+                data-title={video.title}
+                data-meta={meta}
+                data-embed={video.embedUrl}
+                data-url={video.url}
+                data-search={searchText}
+              >
+                <button
+                  class="video-result-button"
+                  type="button"
+                  aria-pressed={index === 0 ? 'true' : 'false'}
+                  data-video-select
+                >
+                  <span class="video-result-thumbnail">
+                    <img src={video.thumbnailUrl} alt="" loading="lazy" />
+                    <span class="i-lucide-play" aria-hidden="true" />
+                  </span>
+                  <span class="video-result-body">
+                    <strong>{video.title}</strong>
+                    {meta && <small>{meta}</small>}
+                    {summary && <span>{summary}</span>}
+                  </span>
+                </button>
+                <a
+                  class="text-arrow"
+                  href={video.url}
+                  {...externalAttrs(video.url)}
+                >
+                  YouTubeで開く
+                  <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                </a>
+              </article>
+            )
+          })
+        }
+      </div>
+      <p class="video-search-empty" data-video-search-empty hidden>
+        一致する動画はありません。
+      </p>
     </div>
   </section>
 
@@ -93,7 +213,7 @@ const videoLinks = [
     <div class="section-inner">
       <div class="section-heading">
         <div>
-          <h2 id="video-links-title">チャンネル内の動画一覧</h2>
+          <h2 id="video-links-title">YouTube側の動画一覧</h2>
         </div>
         <p>ライブ配信やショートもYouTube側の各タブから確認できます。</p>
       </div>
@@ -114,4 +234,77 @@ const videoLinks = [
       </div>
     </div>
   </section>
+
+  <script>
+    const browser = document.querySelector('[data-video-browser]')
+    const cards = Array.from(
+      document.querySelectorAll('[data-video-card]'),
+    ) as HTMLElement[]
+    const player = document.querySelector(
+      '[data-video-player]',
+    ) as HTMLIFrameElement | null
+    const playerTitle = document.querySelector('[data-video-player-title]')
+    const playerMeta = document.querySelector('[data-video-player-meta]')
+    const playerLink = document.querySelector(
+      '[data-video-player-link]',
+    ) as HTMLAnchorElement | null
+    const searchInput = browser?.querySelector(
+      '[data-video-search-input]',
+    ) as HTMLInputElement | null
+    const searchForm = browser?.querySelector('[data-video-search-form]')
+    const count = browser?.querySelector('[data-video-search-count]')
+    const empty = browser?.querySelector(
+      '[data-video-search-empty]',
+    ) as HTMLElement | null
+
+    function selectVideo(card: HTMLElement) {
+      const embed = card.dataset.embed
+      const title = card.dataset.title ?? ''
+      const meta = card.dataset.meta ?? ''
+      const url = card.dataset.url ?? ''
+
+      if (player && embed) {
+        player.src = embed
+        player.title = title ? `${title}を再生` : 'YouTube動画を再生'
+      }
+      if (playerTitle) playerTitle.textContent = title
+      if (playerMeta) playerMeta.textContent = meta
+      if (playerLink && url) playerLink.href = url
+
+      cards.forEach((item) => {
+        const isActive = item === card
+        item.classList.toggle('is-active', isActive)
+        item
+          .querySelector('[data-video-select]')
+          ?.setAttribute('aria-pressed', String(isActive))
+      })
+    }
+
+    function filterVideos() {
+      const query = searchInput?.value.trim().toLowerCase() ?? ''
+      let visible = 0
+
+      cards.forEach((card) => {
+        const matched = !query || (card.dataset.search ?? '').includes(query)
+        card.hidden = !matched
+        if (matched) visible += 1
+      })
+
+      if (count) count.textContent = `${visible}本`
+      if (empty) empty.hidden = visible > 0
+    }
+
+    cards.forEach((card) => {
+      card
+        .querySelector('[data-video-select]')
+        ?.addEventListener('click', () => selectVideo(card))
+    })
+
+    searchForm?.addEventListener('submit', (event) => {
+      event.preventDefault()
+      const firstVisible = cards.find((card) => !card.hidden)
+      if (firstVisible) selectVideo(firstVisible)
+    })
+    searchInput?.addEventListener('input', filterVideos)
+  </script>
 </BaseLayout>
