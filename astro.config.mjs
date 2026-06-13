@@ -19,6 +19,7 @@ export default defineConfig({
           /\/blog\/archive\//,
           /\/blog\/author\//,
           /\/blog\/search\//,
+          /\/course-admin\//,
         ].some((pattern) => pattern.test(page)),
       serialize(item) {
         if (item.url === 'https://hatt.acecore.net/') {

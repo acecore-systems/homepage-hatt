@@ -1,0 +1,25 @@
+{
+  "id": "/course-admin/",
+  "name": "Hatt Course Admin",
+  "short_name": "Course Admin",
+  "description": "モデル制作講座の無料体験申し込みを確認する管理アプリです。",
+  "start_url": "/course-admin/",
+  "scope": "/course-admin/",
+  "display": "standalone",
+  "background_color": "#f7f9f3",
+  "theme_color": "#151a24",
+  "icons": [
+    {
+      "src": "/uploads/hatt/course-admin-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/uploads/hatt/course-admin-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
