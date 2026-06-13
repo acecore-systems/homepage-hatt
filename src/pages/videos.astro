@@ -4,11 +4,9 @@ import youtubeFeed from '@/data/external/youtube-videos.json'
 import { externalAttrs } from '@/utils/routes'
 
 const channelUrl = youtubeFeed.channelUrl
-const uploadsChannelId = 'UCzEhXHKDoOrvjFUcIe5q3jA'
-const uploadsPlaylistId = `UU${uploadsChannelId.slice(2)}`
-const uploadsPlaylistUrl = `https://www.youtube.com/playlist?list=${uploadsPlaylistId}`
-const uploadsEmbedUrl = `https://www.youtube-nocookie.com/embed/videoseries?list=${uploadsPlaylistId}`
-const videos = youtubeFeed.videos
+const uploadsPlaylistUrl = youtubeFeed.uploadsPlaylistUrl
+const uploadsEmbedUrl = youtubeFeed.uploadsEmbedUrl
+const workVideos = youtubeFeed.videos
 const formatDate = (value: string) =>
   value
     ? new Intl.DateTimeFormat('ja-JP', {
@@ -60,19 +58,19 @@ const videoLinks = [
         <h1>動画</h1>
         <p class="lead">
           HattのYouTubeチャンネルで公開している動画をまとめて見られるページです。
-          通常動画だけでなく、ライブ配信アーカイブやショートへの導線もここに集約しています。
+          通常動画、ライブ配信アーカイブ、ショート、作品紹介動画まで、ホームページ上で再生できる入口をここに集約しています。
         </p>
         <div
           class="modeling-stats external-stats video-stats"
           aria-label="動画一覧"
         >
           <div>
-            <span>作品動画</span>
-            <strong>{videos.length}本</strong>
+            <span>全公開動画</span>
+            <strong>サイト内再生</strong>
           </div>
           <div>
-            <span>投稿元</span>
-            <strong>YouTube</strong>
+            <span>作品動画</span>
+            <strong>{workVideos.length}本</strong>
           </div>
         </div>
         <div class="social-row video-hero-actions">
@@ -94,7 +92,7 @@ const videoLinks = [
             allowfullscreen></iframe>
         </div>
         <figcaption>
-          YouTubeの公開アップロード一覧を表示しています。新しい公開動画はYouTube側のプレイリストに追加されます。
+          通常動画、ライブ配信アーカイブ、ショートを含む全公開動画です。
         </figcaption>
       </figure>
     </div>
@@ -130,13 +128,15 @@ const videoLinks = [
     <div class="section-inner">
       <div class="section-heading">
         <div>
-          <h2 id="work-videos-title">作品動画</h2>
+          <h2 id="work-videos-title">作品に紐づく動画</h2>
         </div>
-        <p>Hattの3D作品ページに紐づく動画です。</p>
+        <p>
+          全動画の中から、3D作品ページに紐づく紹介動画だけを補助的に並べています。
+        </p>
       </div>
       <div class="external-grid external-grid--videos">
         {
-          videos.map((video) => (
+          workVideos.map((video) => (
             <article class="external-card external-card--video">
               <a
                 class="external-thumbnail"

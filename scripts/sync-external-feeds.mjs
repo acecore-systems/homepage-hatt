@@ -5,7 +5,8 @@ const root = process.cwd()
 const outDir = path.join(root, 'src', 'data', 'external')
 const narouUserId = '2047731'
 const narouAuthorUrl = `https://mypage.syosetu.com/${narouUserId}/`
-const youtubeChannelId = 'UCRd3wlD5zemJ7Q9C1SZoEDw'
+const youtubeChannelId = 'UCzEhXHKDoOrvjFUcIe5q3jA'
+const youtubeUploadsPlaylistId = `UU${youtubeChannelId.slice(2)}`
 const youtubeChannelUrl = 'https://www.youtube.com/@hatt9241'
 
 async function fetchText(url) {
@@ -148,6 +149,9 @@ async function syncYoutubeVideos() {
     source: 'modeling-oembed',
     channelId: youtubeChannelId,
     channelUrl: youtubeChannelUrl,
+    uploadsPlaylistId: youtubeUploadsPlaylistId,
+    uploadsPlaylistUrl: `https://www.youtube.com/playlist?list=${youtubeUploadsPlaylistId}`,
+    uploadsEmbedUrl: `https://www.youtube-nocookie.com/embed/videoseries?list=${youtubeUploadsPlaylistId}`,
     syncedAt: new Date().toISOString(),
     videos,
   }

@@ -2397,6 +2397,44 @@ main {
   line-height: 1.1;
 }
 
+.home-video {
+  padding: 52px 0 24px;
+}
+
+.home-video-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(420px, 1fr);
+  gap: 34px;
+  align-items: center;
+}
+
+.home-video-copy {
+  display: grid;
+  gap: 18px;
+}
+
+.home-video-copy .hero-note,
+.home-video-copy p,
+.home-video-copy h2 {
+  margin: 0;
+}
+
+.home-video-copy h2 {
+  color: #07172a;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  line-height: 1.2;
+}
+
+.home-video-copy p {
+  color: var(--ink-700);
+  font-weight: 600;
+  line-height: 1.9;
+}
+
+.home-video-player {
+  width: 100%;
+}
+
 .home-latest {
   padding: 44px 0 54px;
 }
@@ -3037,6 +3075,7 @@ main {
   }
 
   .home-hero-top,
+  .home-video-layout,
   .home-latest-layout,
   .campaign-banner-inner,
   .campaign-notice .section-inner,
