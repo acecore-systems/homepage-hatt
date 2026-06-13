@@ -1,0 +1,27 @@
+{
+  "id": "main",
+  "enabled": true,
+  "checkoutEnabled": true,
+  "currency": "JPY",
+  "stripeTaxEnabled": true,
+  "allowedCountries": ["JP"],
+  "shippingProfiles": [
+    {
+      "id": "jp-standard",
+      "label": "日本国内配送",
+      "description": "物理商品の標準配送です。",
+      "amountJpy": 370,
+      "freeAboveJpy": 10000,
+      "countries": ["JP"]
+    }
+  ],
+  "businessName": "",
+  "sellerName": "",
+  "sellerAddress": "",
+  "sellerPhone": "",
+  "sellerEmail": "",
+  "contactUrl": "",
+  "returnsPolicy": "",
+  "privacyPolicy": "",
+  "terms": ""
+}

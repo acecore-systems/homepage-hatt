@@ -11,6 +11,7 @@
     { "label": "絵", "href": "/art/" },
     { "label": "小説", "href": "/novels/" },
     { "label": "3D作品", "href": "/modeling/" },
+    { "label": "ショップ", "href": "/shop/" },
     { "label": "動画", "href": "/videos/" },
     { "label": "ブログ", "href": "/blog/" },
     { "label": "Acecore", "href": "https://acecore.net" }

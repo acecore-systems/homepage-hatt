@@ -8,3 +8,4 @@ public/pagefind
 .wrangler
 test-results
 playwright-report
+functions/api/shop/_catalog.generated.ts

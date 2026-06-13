@@ -1,0 +1,63 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getShopSettings } from '@/lib/shop/content'
+
+const settings = await getShopSettings()
+const rows = [
+  ['事業者名', settings.businessName],
+  ['販売責任者', settings.sellerName],
+  ['所在地', settings.sellerAddress],
+  ['電話番号', settings.sellerPhone],
+  ['メールアドレス', settings.sellerEmail],
+  ['問い合わせURL', settings.contactUrl],
+]
+---
+
+<BaseLayout
+  title="表記・ポリシー"
+  description="ショップの特定商取引法に基づく表記、返品・キャンセル、プライバシー、利用条件です。"
+  canonicalPath="/shop/legal/"
+>
+  <section class="page-hero">
+    <div class="section-inner narrow-page">
+      <p class="hero-note">
+        <span class="i-lucide-file-text" aria-hidden="true"></span>
+        Shop policy
+      </p>
+      <h1>表記・ポリシー</h1>
+      <p class="lead">
+        ショップの販売者情報、返品・キャンセル、プライバシー、利用条件を掲載します。
+      </p>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="section-inner narrow-page shop-legal">
+      <section>
+        <h2>販売者情報</h2>
+        <dl>
+          {
+            rows.map(([label, value]) => (
+              <div>
+                <dt>{label}</dt>
+                <dd>{value || '未設定'}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+      <section>
+        <h2>返品・キャンセル</h2>
+        <p>{settings.returnsPolicy || '未設定'}</p>
+      </section>
+      <section>
+        <h2>プライバシーポリシー</h2>
+        <p>{settings.privacyPolicy || '未設定'}</p>
+      </section>
+      <section>
+        <h2>利用条件</h2>
+        <p>{settings.terms || '未設定'}</p>
+      </section>
+    </div>
+  </section>
+</BaseLayout>
