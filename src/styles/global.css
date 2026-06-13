@@ -1796,7 +1796,7 @@ main {
   gap: 12px;
 }
 
-.modeling-card-image {
+.modeling-card-media {
   overflow: hidden;
   aspect-ratio: 16 / 9;
   margin: -4px -4px 2px;
@@ -1810,32 +1810,21 @@ main {
   object-fit: cover;
 }
 
-.modeling-video-embed {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.modeling-video-embed > div {
+.modeling-card-video {
   position: relative;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  border-radius: calc(var(--radius) - 4px);
   background: rgba(21, 26, 36, 0.08);
 }
 
-.modeling-video-embed iframe {
+.modeling-card-video > div,
+.modeling-card-video iframe {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  border: 0;
 }
 
-.modeling-video-embed figcaption {
-  color: var(--ink-500);
-  font-size: 0.82rem;
-  font-weight: 800;
+.modeling-card-video iframe {
+  border: 0;
 }
 
 .modeling-detail-block,

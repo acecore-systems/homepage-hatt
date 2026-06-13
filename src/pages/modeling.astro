@@ -15,6 +15,19 @@ const items = (await getCollection('modeling')).sort((a, b) => {
     )
   return a.data.featured ? -1 : 1
 })
+
+function getYouTubeVideoId(value?: string) {
+  if (!value) return undefined
+  try {
+    const parsed = new URL(value)
+    if (parsed.hostname.includes('youtu.be')) return parsed.pathname.slice(1)
+    if (parsed.searchParams.get('v')) return parsed.searchParams.get('v')
+    const embedMatch = parsed.pathname.match(/\/embed\/([^/]+)/)
+    return embedMatch?.[1]
+  } catch {
+    return undefined
+  }
+}
 ---
 
 <BaseLayout
@@ -119,113 +132,119 @@ const items = (await getCollection('modeling')).sort((a, b) => {
       </div>
       <div class="modeling-grid">
         {
-          items.map((item) => (
-            <article class="modeling-card">
-              {item.data.image && (
-                <div class="modeling-card-image">
-                  <img
-                    src={item.data.image}
-                    alt={`${item.data.title}の紹介画像`}
-                    loading="lazy"
+          items.map((item) => {
+            const playableYoutubeUrl = getYouTubeVideoId(item.data.youtubeUrl)
+              ? item.data.youtubeUrl
+              : undefined
+
+            return (
+              <article class="modeling-card">
+                {playableYoutubeUrl ? (
+                  <YouTubeEmbed
+                    url={playableYoutubeUrl}
+                    title={`${item.data.title}の紹介動画`}
+                    embedClass="modeling-card-media modeling-card-video"
                   />
-                </div>
-              )}
-              <div>
-                <span class="price-label">{item.data.kind}</span>
-                <h3>{item.data.title}</h3>
-              </div>
-              <p>{item.data.summary}</p>
-              {item.data.youtubeUrl && (
-                <YouTubeEmbed
-                  url={item.data.youtubeUrl}
-                  title={`${item.data.title}の紹介動画`}
-                  caption={`${item.data.title}の紹介動画`}
-                  embedClass="modeling-video-embed"
-                />
-              )}
-              {item.data.priceLabel && (
-                <span class="price-label">{item.data.priceLabel}</span>
-              )}
-              {item.data.features.length > 0 && (
-                <div class="modeling-detail-block">
-                  <h4>主な特徴</h4>
-                  <ul>
-                    {item.data.features.map((feature) => (
-                      <li>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {(item.data.specs.length > 0 ||
-                item.data.requirements.length > 0) && (
-                <div class="modeling-meta-grid">
-                  {item.data.specs.length > 0 && (
-                    <div>
-                      <h4>商品情報</h4>
-                      <ul>
-                        {item.data.specs.map((spec) => (
-                          <li>{spec}</li>
-                        ))}
-                      </ul>
+                ) : (
+                  item.data.image && (
+                    <div class="modeling-card-media modeling-card-image">
+                      <img
+                        src={item.data.image}
+                        alt={`${item.data.title}の紹介画像`}
+                        loading="lazy"
+                      />
                     </div>
-                  )}
-                  {item.data.requirements.length > 0 && (
-                    <div>
-                      <h4>対応・前提</h4>
-                      <ul>
-                        {item.data.requirements.map((requirement) => (
-                          <li>{requirement}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  )
+                )}
+                <div>
+                  <span class="price-label">{item.data.kind}</span>
+                  <h3>{item.data.title}</h3>
                 </div>
-              )}
-              {item.data.related.length > 0 && (
-                <div class="modeling-related">
-                  <h4>関連リンク</h4>
-                  <div>
-                    {item.data.related.map((link) => (
-                      <a href={link.href} {...externalAttrs(link.href)}>
-                        {link.label}
-                      </a>
-                    ))}
+                <p>{item.data.summary}</p>
+                {item.data.priceLabel && (
+                  <span class="price-label">{item.data.priceLabel}</span>
+                )}
+                {item.data.features.length > 0 && (
+                  <div class="modeling-detail-block">
+                    <h4>主な特徴</h4>
+                    <ul>
+                      {item.data.features.map((feature) => (
+                        <li>{feature}</li>
+                      ))}
+                    </ul>
                   </div>
+                )}
+                {(item.data.specs.length > 0 ||
+                  item.data.requirements.length > 0) && (
+                  <div class="modeling-meta-grid">
+                    {item.data.specs.length > 0 && (
+                      <div>
+                        <h4>商品情報</h4>
+                        <ul>
+                          {item.data.specs.map((spec) => (
+                            <li>{spec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {item.data.requirements.length > 0 && (
+                      <div>
+                        <h4>対応・前提</h4>
+                        <ul>
+                          {item.data.requirements.map((requirement) => (
+                            <li>{requirement}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {item.data.related.length > 0 && (
+                  <div class="modeling-related">
+                    <h4>関連リンク</h4>
+                    <div>
+                      {item.data.related.map((link) => (
+                        <a href={link.href} {...externalAttrs(link.href)}>
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div class="social-row">
+                  {item.data.boothUrl && (
+                    <a
+                      href={item.data.boothUrl}
+                      {...externalAttrs(item.data.boothUrl)}
+                    >
+                      BOOTH
+                    </a>
+                  )}
+                  {item.data.youtubeUrl && (
+                    <a
+                      href={item.data.youtubeUrl}
+                      {...externalAttrs(item.data.youtubeUrl)}
+                    >
+                      YouTube
+                    </a>
+                  )}
+                  {item.data.tryOnUrl && (
+                    <a
+                      href={item.data.tryOnUrl}
+                      {...externalAttrs(item.data.tryOnUrl)}
+                    >
+                      試着ワールド
+                    </a>
+                  )}
+                  {item.data.xUrl && (
+                    <a href={item.data.xUrl} {...externalAttrs(item.data.xUrl)}>
+                      X
+                    </a>
+                  )}
                 </div>
-              )}
-              <div class="social-row">
-                {item.data.boothUrl && (
-                  <a
-                    href={item.data.boothUrl}
-                    {...externalAttrs(item.data.boothUrl)}
-                  >
-                    BOOTH
-                  </a>
-                )}
-                {item.data.youtubeUrl && (
-                  <a
-                    href={item.data.youtubeUrl}
-                    {...externalAttrs(item.data.youtubeUrl)}
-                  >
-                    YouTube
-                  </a>
-                )}
-                {item.data.tryOnUrl && (
-                  <a
-                    href={item.data.tryOnUrl}
-                    {...externalAttrs(item.data.tryOnUrl)}
-                  >
-                    試着ワールド
-                  </a>
-                )}
-                {item.data.xUrl && (
-                  <a href={item.data.xUrl} {...externalAttrs(item.data.xUrl)}>
-                    X
-                  </a>
-                )}
-              </div>
-            </article>
-          ))
+              </article>
+            )
+          })
         }
       </div>
     </div>
