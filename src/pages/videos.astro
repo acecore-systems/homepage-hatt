@@ -16,6 +16,8 @@ const formatDate = (value: string) =>
       }).format(new Date(value))
     : ''
 const normalizeText = (value = '') => value.replace(/\s+/g, ' ').trim()
+const normalizeSearchText = (value = '') =>
+  normalizeText(value).normalize('NFKC').toLocaleLowerCase('ja-JP')
 const summarize = (value = '', length = 120) => {
   const text = normalizeText(value)
   return text.length > length ? `${text.slice(0, length)}...` : text
@@ -150,6 +152,15 @@ const videoLinks = [
             autocomplete="off"
             data-video-search-input
           />
+          <button
+            class="video-search-clear"
+            type="button"
+            aria-label="検索をクリア"
+            data-video-search-clear
+            hidden
+          >
+            <span class="i-lucide-x" aria-hidden="true"></span>
+          </button>
         </form>
       </div>
       <p class="video-search-count" aria-live="polite" data-video-search-count>
@@ -157,48 +168,43 @@ const videoLinks = [
       </p>
       <div class="video-results-grid" data-video-results>
         {
-          videos.map((video, index) => {
+          videos.map((video) => {
             const meta = getVideoMeta(video)
             const summary = summarize(video.description)
-            const searchText = normalizeText(
-              `${video.title} ${video.description} ${formatDate(video.publishedAt)}`,
-            ).toLowerCase()
+            const searchText = normalizeSearchText(
+              [
+                video.title,
+                video.description,
+                formatDate(video.publishedAt),
+                video.publishedAt,
+                video.videoId,
+                video.url,
+              ].join(' '),
+            )
 
             return (
-              <article
-                class={`video-result-card${index === 0 ? ' is-active' : ''}`}
+              <a
+                class="video-result-card"
+                href={video.url}
+                {...externalAttrs(video.url)}
                 data-video-card
-                data-title={video.title}
-                data-meta={meta}
-                data-embed={video.embedUrl}
                 data-url={video.url}
                 data-search={searchText}
               >
-                <button
-                  class="video-result-button"
-                  type="button"
-                  aria-pressed={index === 0 ? 'true' : 'false'}
-                  data-video-select
-                >
-                  <span class="video-result-thumbnail">
-                    <img src={video.thumbnailUrl} alt="" loading="lazy" />
-                    <span class="i-lucide-play" aria-hidden="true" />
-                  </span>
-                  <span class="video-result-body">
-                    <strong>{video.title}</strong>
-                    {meta && <small>{meta}</small>}
-                    {summary && <span>{summary}</span>}
-                  </span>
-                </button>
-                <a
-                  class="text-arrow"
-                  href={video.url}
-                  {...externalAttrs(video.url)}
-                >
+                <span class="video-result-thumbnail">
+                  <img src={video.thumbnailUrl} alt="" loading="lazy" />
+                  <span class="i-lucide-play" aria-hidden="true" />
+                </span>
+                <span class="video-result-body">
+                  <strong>{video.title}</strong>
+                  {meta && <small>{meta}</small>}
+                  {summary && <span>{summary}</span>}
+                </span>
+                <span class="video-result-action">
                   YouTubeで開く
                   <span class="i-lucide-arrow-up-right" aria-hidden="true" />
-                </a>
-              </article>
+                </span>
+              </a>
             )
           })
         }
@@ -240,71 +246,68 @@ const videoLinks = [
     const cards = Array.from(
       document.querySelectorAll('[data-video-card]'),
     ) as HTMLElement[]
-    const player = document.querySelector(
-      '[data-video-player]',
-    ) as HTMLIFrameElement | null
-    const playerTitle = document.querySelector('[data-video-player-title]')
-    const playerMeta = document.querySelector('[data-video-player-meta]')
-    const playerLink = document.querySelector(
-      '[data-video-player-link]',
-    ) as HTMLAnchorElement | null
     const searchInput = browser?.querySelector(
       '[data-video-search-input]',
     ) as HTMLInputElement | null
+    const searchClear = browser?.querySelector(
+      '[data-video-search-clear]',
+    ) as HTMLButtonElement | null
     const searchForm = browser?.querySelector('[data-video-search-form]')
     const count = browser?.querySelector('[data-video-search-count]')
     const empty = browser?.querySelector(
       '[data-video-search-empty]',
     ) as HTMLElement | null
 
-    function selectVideo(card: HTMLElement) {
-      const embed = card.dataset.embed
-      const title = card.dataset.title ?? ''
-      const meta = card.dataset.meta ?? ''
-      const url = card.dataset.url ?? ''
+    function normalizeSearchValue(value = '') {
+      return value
+        .normalize('NFKC')
+        .toLocaleLowerCase('ja-JP')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }
 
-      if (player && embed) {
-        player.src = embed
-        player.title = title ? `${title}を再生` : 'YouTube動画を再生'
-      }
-      if (playerTitle) playerTitle.textContent = title
-      if (playerMeta) playerMeta.textContent = meta
-      if (playerLink && url) playerLink.href = url
+    function matchesSearch(card: HTMLElement, tokens: string[]) {
+      if (tokens.length === 0) return true
 
-      cards.forEach((item) => {
-        const isActive = item === card
-        item.classList.toggle('is-active', isActive)
-        item
-          .querySelector('[data-video-select]')
-          ?.setAttribute('aria-pressed', String(isActive))
+      const searchText = normalizeSearchValue(card.dataset.search ?? '')
+      const compactSearchText = searchText.replace(/\s/g, '')
+
+      return tokens.every((token) => {
+        const compactToken = token.replace(/\s/g, '')
+        return (
+          searchText.includes(token) ||
+          (compactToken !== '' && compactSearchText.includes(compactToken))
+        )
       })
     }
 
     function filterVideos() {
-      const query = searchInput?.value.trim().toLowerCase() ?? ''
+      const query = normalizeSearchValue(searchInput?.value ?? '')
+      const tokens = query.split(' ').filter(Boolean)
       let visible = 0
 
       cards.forEach((card) => {
-        const matched = !query || (card.dataset.search ?? '').includes(query)
+        const matched = matchesSearch(card, tokens)
         card.hidden = !matched
         if (matched) visible += 1
       })
 
       if (count) count.textContent = `${visible}本`
       if (empty) empty.hidden = visible > 0
+      if (searchClear) searchClear.hidden = query.length === 0
     }
-
-    cards.forEach((card) => {
-      card
-        .querySelector('[data-video-select]')
-        ?.addEventListener('click', () => selectVideo(card))
-    })
 
     searchForm?.addEventListener('submit', (event) => {
       event.preventDefault()
-      const firstVisible = cards.find((card) => !card.hidden)
-      if (firstVisible) selectVideo(firstVisible)
     })
     searchInput?.addEventListener('input', filterVideos)
+    searchInput?.addEventListener('search', filterVideos)
+    searchClear?.addEventListener('click', () => {
+      if (!searchInput) return
+      searchInput.value = ''
+      filterVideos()
+      searchInput.focus()
+    })
+    filterVideos()
   </script>
 </BaseLayout>

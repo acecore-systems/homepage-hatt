@@ -836,6 +836,29 @@ main {
   outline: 0;
 }
 
+.video-search-clear {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(21, 26, 36, 0.08);
+  color: var(--ink-700);
+  cursor: pointer;
+}
+
+.video-search-clear:hover,
+.video-search-clear:focus-visible {
+  background: rgba(21, 26, 36, 0.14);
+  color: var(--ink-900);
+}
+
+.video-search-clear[hidden] {
+  display: none;
+}
+
 .video-search-count {
   margin: -14px 0 18px;
   color: var(--ink-500);
@@ -856,27 +879,23 @@ main {
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.86);
   padding: 12px;
-  box-shadow: 0 14px 38px rgba(21, 26, 36, 0.06);
-}
-
-.video-result-card.is-active {
-  border-color: rgba(15, 49, 80, 0.42);
-  box-shadow: 0 18px 46px rgba(15, 49, 80, 0.14);
-}
-
-.video-result-button {
-  display: grid;
-  gap: 12px;
-  border: 0;
-  background: transparent;
-  padding: 0;
   color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 14px 38px rgba(21, 26, 36, 0.06);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
-.video-result-button:focus-visible {
+.video-result-card:hover,
+.video-result-card:focus-visible {
+  border-color: rgba(15, 49, 80, 0.34);
+  box-shadow: 0 18px 46px rgba(15, 49, 80, 0.12);
+  transform: translateY(-2px);
+}
+
+.video-result-card:focus-visible {
   outline: 3px solid rgba(159, 216, 227, 0.72);
   outline-offset: 3px;
 }
@@ -927,6 +946,16 @@ main {
   font-size: 0.84rem;
   font-weight: 700;
   line-height: 1.55;
+}
+
+.video-result-action {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  color: var(--navy);
+  font-size: 0.88rem;
+  font-weight: 800;
 }
 
 .video-search-empty {
