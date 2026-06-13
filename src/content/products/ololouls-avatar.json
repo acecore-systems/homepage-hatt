@@ -1,0 +1,28 @@
+{
+  "slug": "ololouls-avatar",
+  "title": "母の概念のオリジナル3Dモデル【オロロウルス】",
+  "category": "modeling",
+  "summary": "母という概念を形にしたVRChat向けアバター、オロロウルスです。",
+  "description": "アイルック、Avatar 3.0、Visemesに対応したVRChat向けアバターです。大きな体と内側の空間が特徴です。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/ololouls-avatar.jpg",
+      "alt": "オロロウルスの紹介画像"
+    }
+  ],
+  "priceJpy": 1000,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/ololouls-avatar.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/7759821",
+  "features": [
+    "中でくつろげる内側の空間を持つデフォルメ人外アバターです。",
+    "アイルック、Avatar 3.0、Visemesに対応しています。",
+    "大きな体と目線の高さが変わる動きが特徴です。"
+  ],
+  "order": 100,
+  "featured": true
+}

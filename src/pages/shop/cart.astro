@@ -1,0 +1,253 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { canCheckout } from '@/lib/shop/types'
+import { getShopSettings } from '@/lib/shop/content'
+
+const settings = await getShopSettings()
+const checkoutReady = canCheckout(settings)
+---
+
+<BaseLayout
+  title="カート"
+  description="ショップのカート内容を確認して決済へ進みます。"
+  canonicalPath="/shop/cart/"
+>
+  <section class="page-hero">
+    <div class="section-inner page-title">
+      <div>
+        <p class="hero-note">
+          <span class="i-lucide-shopping-cart" aria-hidden="true"></span>
+          Cart
+        </p>
+        <h1>カート</h1>
+        <p class="lead">
+          商品、数量、受け渡し方法を確認してからStripe Checkoutへ進みます。
+        </p>
+      </div>
+      <a class="secondary-button" href="/shop/">商品を追加する</a>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="section-inner shop-cart-shell" data-shop-cart-page>
+      {
+        !checkoutReady && (
+          <p class="shop-alert">
+            決済は準備中です。商品情報は確認できますが、購入手続きはまだ利用できません。
+          </p>
+        )
+      }
+      <div class="shop-cart-list" data-shop-cart-list aria-live="polite">
+        <p class="empty-state">カートを読み込んでいます。</p>
+      </div>
+      <aside class="shop-cart-summary">
+        <h2>注文内容</h2>
+        <dl>
+          <div>
+            <dt>小計</dt>
+            <dd data-shop-cart-subtotal>¥0</dd>
+          </div>
+          <div>
+            <dt>送料</dt>
+            <dd>Stripe Checkoutで確定</dd>
+          </div>
+        </dl>
+        <p>価格、在庫、送料、税額は決済直前にサーバー側で再確認されます。</p>
+        <button
+          class="primary-button"
+          type="button"
+          data-shop-checkout
+          disabled={!checkoutReady}
+          data-hatt-event="shop_checkout_start"
+          data-hatt-label="cart"
+          data-hatt-location="shop_cart"
+        >
+          決済へ進む
+          <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+        </button>
+        <p class="shop-cart-status" data-shop-cart-status></p>
+      </aside>
+    </div>
+  </section>
+
+  <script is:inline>
+    ;(() => {
+      const SHOP_CART_KEY = 'hattShopCart:v1'
+      const checkoutReady = Boolean(
+        document.querySelector('[data-shop-checkout]') &&
+        !document.querySelector('[data-shop-checkout]').disabled,
+      )
+      const list = document.querySelector('[data-shop-cart-list]')
+      const subtotal = document.querySelector('[data-shop-cart-subtotal]')
+      const checkoutButton = document.querySelector('[data-shop-checkout]')
+      const status = document.querySelector('[data-shop-cart-status]')
+      let catalog = []
+
+      function formatJpy(amount) {
+        return new Intl.NumberFormat('ja-JP', {
+          style: 'currency',
+          currency: 'JPY',
+          maximumFractionDigits: 0,
+        }).format(amount)
+      }
+
+      function readCart() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(SHOP_CART_KEY) || '[]')
+          return Array.isArray(parsed) ? parsed : []
+        } catch {
+          return []
+        }
+      }
+
+      function writeCart(items) {
+        localStorage.setItem(SHOP_CART_KEY, JSON.stringify(items))
+        window.dispatchEvent(new CustomEvent('hatt-shop:cart-change'))
+      }
+
+      function setStatus(message) {
+        if (status) status.textContent = message || ''
+      }
+
+      function getProduct(productId) {
+        return catalog.find((product) => product.slug === productId)
+      }
+
+      function normalizeCart(cart) {
+        return cart
+          .map((item) => ({
+            productId: String(item.productId || ''),
+            quantity: Math.max(1, Math.floor(Number(item.quantity || 1))),
+          }))
+          .filter((item) => {
+            const product = getProduct(item.productId)
+            return product && product.priceJpy > 0
+          })
+      }
+
+      function renderCart() {
+        const cart = normalizeCart(readCart())
+        writeCart(cart)
+        list.replaceChildren()
+
+        if (cart.length === 0) {
+          const empty = document.createElement('p')
+          empty.className = 'empty-state'
+          empty.textContent = 'カートは空です。'
+          list.append(empty)
+          subtotal.textContent = formatJpy(0)
+          checkoutButton.disabled = true
+          return
+        }
+
+        let subtotalAmount = 0
+        cart.forEach((item) => {
+          const product = getProduct(item.productId)
+          subtotalAmount += product.priceJpy * item.quantity
+
+          const row = document.createElement('article')
+          row.className = 'shop-cart-item'
+
+          const image = document.createElement('img')
+          image.src = product.images?.[0]?.src || '/uploads/hatt/favicon.png'
+          image.alt = product.images?.[0]?.alt || `${product.title}の画像`
+
+          const body = document.createElement('div')
+          const title = document.createElement('h2')
+          title.textContent = product.title
+          const detail = document.createElement('p')
+          detail.textContent = `${formatJpy(product.priceJpy)} / ${product.fulfillmentType}`
+
+          const controls = document.createElement('div')
+          controls.className = 'shop-cart-controls'
+          const minus = document.createElement('button')
+          minus.type = 'button'
+          minus.textContent = '-'
+          minus.setAttribute('aria-label', `${product.title}を1点減らす`)
+          const quantity = document.createElement('span')
+          quantity.textContent = String(item.quantity)
+          const plus = document.createElement('button')
+          plus.type = 'button'
+          plus.textContent = '+'
+          plus.setAttribute('aria-label', `${product.title}を1点増やす`)
+          const remove = document.createElement('button')
+          remove.type = 'button'
+          remove.textContent = '削除'
+
+          minus.addEventListener('click', () =>
+            updateQuantity(product.slug, -1),
+          )
+          plus.addEventListener('click', () => updateQuantity(product.slug, 1))
+          remove.addEventListener('click', () => removeItem(product.slug))
+          controls.append(minus, quantity, plus, remove)
+          body.append(title, detail, controls)
+
+          const lineTotal = document.createElement('strong')
+          lineTotal.textContent = formatJpy(product.priceJpy * item.quantity)
+          row.append(image, body, lineTotal)
+          list.append(row)
+        })
+
+        subtotal.textContent = formatJpy(subtotalAmount)
+        checkoutButton.disabled = !checkoutReady
+      }
+
+      function updateQuantity(productId, delta) {
+        const cart = readCart()
+        const item = cart.find((row) => row.productId === productId)
+        const product = getProduct(productId)
+        if (!item || !product) return
+
+        item.quantity = Math.min(
+          product.maxQuantity || 1,
+          Math.max(1, Number(item.quantity || 1) + delta),
+        )
+        writeCart(cart)
+        renderCart()
+      }
+
+      function removeItem(productId) {
+        writeCart(readCart().filter((item) => item.productId !== productId))
+        renderCart()
+      }
+
+      async function loadCatalog() {
+        const response = await fetch('/shop/catalog.json', {
+          headers: { Accept: 'application/json' },
+        })
+        const payload = await response.json()
+        catalog = payload.products || []
+        renderCart()
+      }
+
+      async function checkout() {
+        setStatus('決済を準備しています...')
+        checkoutButton.disabled = true
+        try {
+          const response = await fetch('/api/shop/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: readCart() }),
+          })
+          const payload = await response.json()
+          if (!response.ok || !payload.url) {
+            throw new Error(payload.message || '決済を開始できませんでした。')
+          }
+          window.location.href = payload.url
+        } catch (error) {
+          setStatus(error instanceof Error ? error.message : String(error))
+          checkoutButton.disabled = !checkoutReady
+        }
+      }
+
+      checkoutButton?.addEventListener('click', checkout)
+      loadCatalog().catch(() => {
+        list.replaceChildren()
+        const error = document.createElement('p')
+        error.className = 'empty-state'
+        error.textContent = '商品情報を読み込めませんでした。'
+        list.append(error)
+      })
+    })()
+  </script>
+</BaseLayout>

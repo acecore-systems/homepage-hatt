@@ -10,6 +10,18 @@
       "database_id": "ac7dc82b-e1d1-4816-951d-3e27880008ed",
       "migrations_dir": "migrations",
     },
+    {
+      "binding": "SHOP_DB",
+      "database_name": "homepage-hatt-shop-preview",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations/shop",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "SHOP_FILES",
+      "bucket_name": "homepage-hatt-shop-files-preview",
+    },
   ],
   "vars": {
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
@@ -23,6 +35,18 @@
           "database_id": "ac7dc82b-e1d1-4816-951d-3e27880008ed",
           "migrations_dir": "migrations",
         },
+        {
+          "binding": "SHOP_DB",
+          "database_name": "homepage-hatt-shop-preview",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations/shop",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "SHOP_FILES",
+          "bucket_name": "homepage-hatt-shop-files-preview",
+        },
       ],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
@@ -35,6 +59,18 @@
           "database_name": "homepage-hatt-comments-production",
           "database_id": "ac7dc82b-e1d1-4816-951d-3e27880008ed",
           "migrations_dir": "migrations",
+        },
+        {
+          "binding": "SHOP_DB",
+          "database_name": "homepage-hatt-shop-production",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations/shop",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "SHOP_FILES",
+          "bucket_name": "homepage-hatt-shop-files-production",
         },
       ],
       "vars": {

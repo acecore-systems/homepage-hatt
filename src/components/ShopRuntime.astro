@@ -1,0 +1,67 @@
+<script is:inline>
+  ;(() => {
+    const SHOP_CART_KEY = 'hattShopCart:v1'
+
+    function readShopCart() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(SHOP_CART_KEY) || '[]')
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+
+    function writeShopCart(items) {
+      localStorage.setItem(SHOP_CART_KEY, JSON.stringify(items))
+      window.dispatchEvent(new CustomEvent('hatt-shop:cart-change'))
+    }
+
+    function updateShopCartCount() {
+      const count = readShopCart().reduce(
+        (sum, item) => sum + Math.max(0, Number(item.quantity || 0)),
+        0,
+      )
+      document.querySelectorAll('[data-shop-cart-count]').forEach((element) => {
+        element.textContent = String(count)
+        element.hidden = count === 0
+      })
+    }
+
+    function addToShopCart(productId, quantity = 1) {
+      const cart = readShopCart()
+      const existing = cart.find((item) => item.productId === productId)
+
+      if (existing) {
+        existing.quantity = Math.max(
+          1,
+          Number(existing.quantity || 0) + quantity,
+        )
+      } else {
+        cart.push({ productId, quantity })
+      }
+
+      writeShopCart(cart)
+      updateShopCartCount()
+    }
+
+    document.addEventListener('click', (event) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+
+      const button = target.closest('[data-shop-add]')
+      if (!button) return
+
+      const productId = button.getAttribute('data-shop-add')
+      if (!productId) return
+
+      addToShopCart(productId)
+      button.dispatchEvent(
+        new CustomEvent('hatt-shop:item-added', { bubbles: true }),
+      )
+    })
+
+    window.addEventListener('storage', updateShopCartCount)
+    window.addEventListener('hatt-shop:cart-change', updateShopCartCount)
+    updateShopCartCount()
+  })()
+</script>

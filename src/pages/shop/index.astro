@@ -1,0 +1,148 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import {
+  CATEGORY_LABELS,
+  FULFILLMENT_LABELS,
+  canCheckout,
+  formatJpy,
+} from '@/lib/shop/types'
+import { getShopProducts, getShopSettings } from '@/lib/shop/content'
+import { externalAttrs } from '@/utils/routes'
+
+const [products, settings] = await Promise.all([
+  getShopProducts(),
+  getShopSettings(),
+])
+const checkoutReady = canCheckout(settings)
+const categories = [...new Set(products.map((product) => product.category))]
+---
+
+<BaseLayout
+  title="ショップ"
+  description="Hattの絵・小説・3D作品・グッズをまとめたショップです。"
+  canonicalPath="/shop/"
+>
+  <section class="page-hero shop-hero">
+    <div class="section-inner shop-hero-grid">
+      <div>
+        <p class="hero-note">
+          <span class="i-lucide-shopping-bag" aria-hidden="true"></span>
+          Hatt shop
+        </p>
+        <h1>ショップ</h1>
+        <p class="lead">
+          絵、小説、VRChat向け3D作品、グッズをまとめて見られるショップです。
+          カートに入れたあと、Stripe Checkoutで決済します。
+        </p>
+        {
+          !checkoutReady && (
+            <p class="shop-alert">
+              決済は準備中です。商品情報は確認できますが、購入手続きはまだ利用できません。
+            </p>
+          )
+        }
+      </div>
+      <div class="shop-hero-panel" aria-label="ショップのカテゴリ">
+        {
+          categories.map((category) => (
+            <a href="#shop-products">
+              <span class="i-lucide-tag" aria-hidden="true" />
+              {CATEGORY_LABELS[category]}
+            </a>
+          ))
+        }
+        <a href="/shop/legal/">
+          <span class="i-lucide-file-text" aria-hidden="true"></span>
+          表記・ポリシー
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2>商品一覧</h2>
+        </div>
+        <a class="chip-link" href="/shop/cart/">
+          カートを見る
+          <span class="i-lucide-shopping-cart" aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div class="shop-product-grid" id="shop-products">
+        {
+          products.map((product) => (
+            <article class="shop-product-card" data-pagefind-ignore>
+              <a class="shop-product-image" href={`/shop/${product.slug}/`}>
+                {product.images[0] ? (
+                  <img
+                    src={product.images[0].src}
+                    alt={product.images[0].alt || `${product.title}の画像`}
+                    loading="eager"
+                  />
+                ) : (
+                  <span class="i-lucide-image" aria-hidden="true" />
+                )}
+              </a>
+              <div class="shop-product-body">
+                <div class="shop-product-meta">
+                  <span>{CATEGORY_LABELS[product.category]}</span>
+                  <span>{FULFILLMENT_LABELS[product.fulfillmentType]}</span>
+                </div>
+                <h3>
+                  <a href={`/shop/${product.slug}/`}>{product.title}</a>
+                </h3>
+                <p>{product.summary}</p>
+                <div class="shop-product-foot">
+                  <strong>{formatJpy(product.priceJpy)}</strong>
+                  {product.priceJpy > 0 ? (
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-shop-add={product.slug}
+                      disabled={
+                        !checkoutReady || product.status !== 'published'
+                      }
+                      data-hatt-event="shop_add_to_cart"
+                      data-hatt-label={product.slug}
+                      data-hatt-location="shop_index"
+                    >
+                      カートに入れる
+                      <span class="i-lucide-plus" aria-hidden="true" />
+                    </button>
+                  ) : (
+                    <a
+                      class="secondary-button"
+                      href={product.externalUrl || `/shop/${product.slug}/`}
+                      {...(product.externalUrl
+                        ? externalAttrs(product.externalUrl)
+                        : {})}
+                    >
+                      無料配布
+                      <span
+                        class="i-lucide-arrow-up-right"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  )}
+                </div>
+                {product.externalUrl && (
+                  <a
+                    class="shop-external-link"
+                    href={product.externalUrl}
+                    {...externalAttrs(product.externalUrl)}
+                  >
+                    BOOTHでも見る
+                    <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

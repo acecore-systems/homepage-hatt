@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/write-cms-runtime-config.mjs",
+    "predev": "node scripts/write-cms-runtime-config.mjs && node scripts/write-shop-runtime-catalog.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/write-cms-runtime-config.mjs",
+    "prebuild": "node scripts/write-cms-runtime-config.mjs && node scripts/write-shop-runtime-catalog.mjs",
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "sync:external": "node scripts/sync-external-feeds.mjs",

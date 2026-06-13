@@ -13,6 +13,7 @@ const iconByLabel: Record<string, string> = {
   絵: 'i-lucide-images',
   小説: 'i-lucide-book-open',
   '3D作品': 'i-lucide-box',
+  ショップ: 'i-lucide-shopping-bag',
   動画: 'i-lucide-square-play',
   Acecore: 'i-lucide-arrow-up-right',
   ブログ: 'i-lucide-newspaper',
@@ -67,6 +68,18 @@ const iconByLabel: Record<string, string> = {
           )
         })
       }
+      <a
+        class="nav-link nav-cart-link"
+        href="/shop/cart/"
+        data-hatt-event="nav_click"
+        data-hatt-label="カート"
+        data-hatt-location="header"
+        aria-label="カート"
+      >
+        <span class="i-lucide-shopping-cart" aria-hidden="true"></span>
+        <span>カート</span>
+        <strong data-shop-cart-count hidden>0</strong>
+      </a>
     </div>
   </nav>
 </header>

@@ -14,6 +14,7 @@
 | ホスティング | Cloudflare Pages                  |
 | 広告         | Google AdSense                    |
 | コメント     | Cloudflare Pages Functions + D1   |
+| ショップ     | Stripe Checkout + D1 + R2         |
 
 ## 開発
 
@@ -56,6 +57,33 @@ npm run build
 - `種別: トップ告知バナー` はサイト上部に表示されます。
 - `種別: ページ内キャンペーン通知` は選択した表示位置に表示されます。
 - `表示する`、`表示開始日時`、`表示終了日時` で公開期間を制御します。日時は日本時間として扱われ、デプロイ済みのページ上でも訪問者の表示時刻で自動的に切り替わります。
+
+## ショップ
+
+`/shop/` で絵・小説・3D作品・グッズを横断する商品カタログを表示します。BOOTH で公開中のエースコア商品は `products` に移し、サイト側のカートから Stripe Checkout に進む構成です。カートはブラウザの `localStorage` に `productId` と `quantity` だけを保存し、価格・在庫・受け渡し方法は `/api/shop/checkout` でサーバー側再検証します。
+
+CMS では以下を編集できます。
+
+- 商品: `src/content/products/*.json`
+- ショップ設定: `src/content/shop-settings/main.json`
+
+決済は `shop-settings/main.json` の `checkoutEnabled` が `true` で、販売者情報・返品・プライバシー・利用条件が埋まっている場合だけ開始できます。無料配布品は一覧に表示しますが、Stripe Checkout の対象外です。
+
+Cloudflare Pages 側で以下を設定してください。
+
+- D1 binding: `SHOP_DB`
+- R2 binding: `SHOP_FILES`
+- Secret: `STRIPE_SECRET_KEY`
+- Secret: `STRIPE_WEBHOOK_SECRET`
+- Secret: `SHOP_ADMIN_PASSWORD_HASH`
+- Secret: `SHOP_ADMIN_SESSION_SECRET`
+- Secret: `SHOP_DOWNLOAD_TOKEN_SECRET`
+
+ショップ用 D1 schema は `migrations/shop/0001_create_shop.sql` です。コメント用 D1 とは migration directory を分けています。
+
+デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
+
+管理画面は `/shop/admin/` です。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新できます。
 
 ## ブログコメント
 
