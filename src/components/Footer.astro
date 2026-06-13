@@ -12,9 +12,18 @@ const { site } = Astro.props as { site: Site }
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <div>
-      <p class="footer-title">{site.name}</p>
-      <p class="footer-description">{site.description}</p>
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">
+        <span class="i-lucide-feather"></span>
+      </span>
+      <div>
+        <p class="footer-title">{site.name}</p>
+        <p class="footer-subtitle">hatt homepage</p>
+      </div>
+    </div>
+    <div class="footer-description">
+      <p>イラストや小説の制作記録をのんびり更新中。</p>
+      <small>© 2025 Hatt</small>
     </div>
     <div class="footer-links">
       {
