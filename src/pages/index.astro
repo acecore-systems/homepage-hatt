@@ -28,9 +28,6 @@ const novelStats = {
   serial: novelWorks.filter((work) => work.type === 'serial').length,
   short: novelWorks.filter((work) => work.type === 'short').length,
 }
-const workVideoCount = youtubeFeed.videos.filter((video) =>
-  video.source.includes('modeling'),
-).length
 const uploadsPlaylistUrl = youtubeFeed.uploadsPlaylistUrl
 const uploadsEmbedUrl = youtubeFeed.uploadsEmbedUrl
 const youtubeHomeLinks = [

@@ -608,10 +608,6 @@ main {
   gap: 18px;
 }
 
-.external-grid--videos {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .art-gallery-section {
   padding: 10px 0 52px;
 }
@@ -721,17 +717,6 @@ main {
   box-shadow: 0 14px 38px rgba(21, 26, 36, 0.06);
 }
 
-.external-card--video {
-  padding: 0;
-  overflow: hidden;
-}
-
-.external-card--video > div {
-  display: grid;
-  gap: 12px;
-  padding: 18px;
-}
-
 .external-card h3 {
   margin: 0;
   font-size: 1.18rem;
@@ -783,33 +768,6 @@ main {
   margin: 0;
   color: var(--ink-900);
   font-weight: 800;
-}
-
-.external-thumbnail {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background: var(--ink-900);
-  color: var(--white);
-}
-
-.external-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.external-thumbnail span {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  display: grid;
-  width: 50px;
-  height: 50px;
-  place-items: center;
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  background: rgba(21, 26, 36, 0.74);
-  font-size: 1.45rem;
 }
 
 .article-grid,
@@ -3062,7 +3020,6 @@ main {
   .pillars-grid,
   .article-grid,
   .external-grid,
-  .external-grid--videos,
   .modeling-grid,
   .video-link-grid,
   .modeling-info-grid,

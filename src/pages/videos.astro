@@ -6,15 +6,6 @@ import { externalAttrs } from '@/utils/routes'
 const channelUrl = youtubeFeed.channelUrl
 const uploadsPlaylistUrl = youtubeFeed.uploadsPlaylistUrl
 const uploadsEmbedUrl = youtubeFeed.uploadsEmbedUrl
-const workVideos = youtubeFeed.videos
-const formatDate = (value: string) =>
-  value
-    ? new Intl.DateTimeFormat('ja-JP', {
-        dateStyle: 'medium',
-        timeZone: 'Asia/Tokyo',
-      }).format(new Date(value))
-    : ''
-
 const videoLinks = [
   {
     label: '全公開動画',
@@ -45,7 +36,7 @@ const videoLinks = [
 
 <BaseLayout
   title="動画"
-  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショート、VRChat向け作品動画をまとめたページです。"
+  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショートをまとめて見られるページです。"
   canonicalPath="/videos/"
 >
   <section class="page-hero">
@@ -58,7 +49,7 @@ const videoLinks = [
         <h1>動画</h1>
         <p class="lead">
           HattのYouTubeチャンネルで公開している動画をまとめて見られるページです。
-          通常動画、ライブ配信アーカイブ、ショート、作品紹介動画まで、ホームページ上で再生できる入口をここに集約しています。
+          通常動画、ライブ配信アーカイブ、ショートまで、チャンネル全体をホームページ上で再生できる入口をここに集約しています。
         </p>
         <div
           class="modeling-stats external-stats video-stats"
@@ -69,8 +60,8 @@ const videoLinks = [
             <strong>サイト内再生</strong>
           </div>
           <div>
-            <span>作品動画</span>
-            <strong>{workVideos.length}本</strong>
+            <span>ライブ・ショート</span>
+            <strong>導線あり</strong>
           </div>
         </div>
         <div class="social-row video-hero-actions">
@@ -118,53 +109,6 @@ const videoLinks = [
               <strong>{link.label}</strong>
               <small>{link.text}</small>
             </a>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <section class="section-band" aria-labelledby="work-videos-title">
-    <div class="section-inner">
-      <div class="section-heading">
-        <div>
-          <h2 id="work-videos-title">作品に紐づく動画</h2>
-        </div>
-        <p>
-          全動画の中から、3D作品ページに紐づく紹介動画だけを補助的に並べています。
-        </p>
-      </div>
-      <div class="external-grid external-grid--videos">
-        {
-          workVideos.map((video) => (
-            <article class="external-card external-card--video">
-              <a
-                class="external-thumbnail"
-                href={video.url}
-                {...externalAttrs(video.url)}
-                aria-label={`${video.title}をYouTubeで見る`}
-              >
-                <img src={video.thumbnailUrl} alt="" loading="lazy" />
-                <span class="i-lucide-play" aria-hidden="true" />
-              </a>
-              <div>
-                <div class="external-card-meta">
-                  <span>{video.authorName}</span>
-                  {video.publishedAt && (
-                    <span>{formatDate(video.publishedAt)}</span>
-                  )}
-                </div>
-                <h3>{video.title}</h3>
-                <a
-                  class="text-arrow"
-                  href={video.url}
-                  {...externalAttrs(video.url)}
-                >
-                  YouTubeで見る
-                  <span class="i-lucide-arrow-up-right" aria-hidden="true" />
-                </a>
-              </div>
-            </article>
           ))
         }
       </div>
