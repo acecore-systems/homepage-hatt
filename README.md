@@ -71,3 +71,21 @@ Cloudflare Pages 側で以下を設定してください。
 D1 schema は `migrations/0001_create_blog_comments.sql` です。D1 database を作成後、同ファイルを適用してください。
 
 Turnstile の公開 Site Key は CMS の「サイト設定」から `turnstileSiteKey` に設定します。
+
+## モデル制作講座の無料体験申し込み
+
+`/modeling-course/` から無料体験申し込みを受け付け、`/course-admin/` のPWA管理画面で確認できます。
+
+Cloudflare Pages 側で以下を設定してください。
+
+- D1 binding: `COMMENTS_DB`
+- Secret: `TURNSTILE_SECRET_KEY`
+- Secret: `COMMENT_HASH_SALT`
+- Secret: `COURSE_ADMIN_PASSCODE`
+- Secret: `COURSE_VAPID_PRIVATE_KEY`
+- Variable: `COURSE_VAPID_PUBLIC_KEY`
+- Variable: `COURSE_VAPID_SUBJECT=https://hatt.acecore.net/`
+
+D1 schema は `migrations/0002_create_course_trial_signups.sql` です。既存D1 databaseに適用してください。
+
+Web Push通知にはVAPID key pairが必要です。公開鍵を `COURSE_VAPID_PUBLIC_KEY`、秘密鍵を `COURSE_VAPID_PRIVATE_KEY` に設定します。通知本文には個人情報を入れず、詳細は管理PWAから取得します。

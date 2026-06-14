@@ -49,6 +49,11 @@ const novelLinks = [
     : []),
 ]
 const modelingLinks = [
+  {
+    label: '無料体験',
+    href: '/modeling-course/',
+    icon: 'i-lucide-graduation-cap',
+  },
   { label: '作品一覧', href: '/modeling/', icon: 'i-lucide-box' },
   { label: '動画一覧', href: '/videos/', icon: 'i-lucide-square-play' },
   {
@@ -210,6 +215,33 @@ const modelingLinks = [
             </article>
           ))
         }
+      </div>
+    </div>
+  </section>
+
+  <section class="home-course-strip" aria-labelledby="home-course-title">
+    <div class="section-inner home-course-strip-inner">
+      <div class="home-course-strip-copy">
+        <span class="i-lucide-graduation-cap" aria-hidden="true"></span>
+        <div>
+          <p>VRChatモデル制作・Blender基礎・Unity導入</p>
+          <h2 id="home-course-title">モデル制作の無料体験を受付中</h2>
+        </div>
+      </div>
+      <p>
+        30分のオンライン相談で、作りたいものと最初に詰まりやすい工程を整理します。
+      </p>
+      <div class="home-course-strip-actions">
+        <a
+          class="primary-button"
+          href="/modeling-course/"
+          data-hatt-event="cta_click"
+          data-hatt-label="home_course_trial"
+          data-hatt-location="home_course_strip"
+        >
+          無料体験を見る
+          <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+        </a>
       </div>
     </div>
   </section>

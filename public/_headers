@@ -26,6 +26,22 @@
 /sitemap-*.xml
   Cache-Control: public, max-age=3600
 
+/course-admin
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: public, max-age=0, must-revalidate
+
+/course-admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: public, max-age=0, must-revalidate
+
+/course-admin.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+  Cache-Control: public, max-age=0, must-revalidate
+
+/notify-service-worker.js
+  Cache-Control: public, max-age=0, must-revalidate
+  Service-Worker-Allowed: /
+
 /admin/*
   ! Content-Security-Policy
   ! Cross-Origin-Opener-Policy
