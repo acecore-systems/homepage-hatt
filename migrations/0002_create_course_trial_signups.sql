@@ -30,3 +30,13 @@ CREATE TABLE IF NOT EXISTS course_push_subscriptions (
 
 CREATE INDEX IF NOT EXISTS idx_course_push_subscriptions_active
   ON course_push_subscriptions (disabled_at, last_seen_at);
+
+CREATE TABLE IF NOT EXISTS course_admin_auth_attempts (
+  attempt_key TEXT PRIMARY KEY,
+  failed_count INTEGER NOT NULL DEFAULT 0,
+  reset_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_course_admin_auth_attempts_reset
+  ON course_admin_auth_attempts (reset_at);

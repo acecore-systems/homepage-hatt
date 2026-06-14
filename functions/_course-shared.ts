@@ -47,6 +47,11 @@ type PushSubscriptionRow = {
   subscription_json: string
 }
 
+type AdminAuthAttemptRow = {
+  failed_count: number
+  reset_at: string
+}
+
 const SITEVERIFY_ENDPOINT =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify'
 const DEFAULT_ALLOWED_HOSTNAMES = [
@@ -58,6 +63,8 @@ const DEFAULT_ALLOWED_HOSTNAMES = [
 ]
 const WEB_PUSH_TTL_SECONDS = 10 * 60
 const ADMIN_PASSCODE_HEADER = 'X-Course-Admin-Passcode'
+const ADMIN_AUTH_RATE_WINDOW_MS = 15 * 60 * 1000
+const ADMIN_AUTH_RATE_MAX_FAILURES = 8
 
 export function jsonResponse(
   body: unknown,
@@ -199,11 +206,17 @@ export function getClientIp(request: Request): string | null {
   )
 }
 
+export function hasRequiredHashSalt(request: Request, env: Env): boolean {
+  return Boolean(getHashSalt(request, env))
+}
+
 export async function getClientHashes(
   request: Request,
   env: Env,
 ): Promise<{ clientHash: string; userAgentHash: string }> {
-  const salt = env.COMMENT_HASH_SALT || 'hatt-course-local'
+  const salt = getHashSalt(request, env)
+  if (!salt) throw new Error('COMMENT_HASH_SALT is not configured')
+
   const userAgent = request.headers.get('User-Agent') || ''
   const clientIp = getClientIp(request)
 
@@ -244,8 +257,58 @@ export async function verifyAdminRequest(
     }
   }
 
+  if (!hasRequiredHashSalt(request, env)) {
+    return {
+      ok: false,
+      response: jsonResponse(
+        { ok: false, message: '管理機能を一時的に利用できません。' },
+        503,
+      ),
+    }
+  }
+
+  if (!env.COMMENTS_DB) {
+    return {
+      ok: false,
+      response: jsonResponse(
+        { ok: false, message: '管理機能を一時的に利用できません。' },
+        503,
+      ),
+    }
+  }
+
+  let rateLimit: { allowed: boolean; retryAfterSeconds?: number }
+  try {
+    rateLimit = await checkAdminAuthRateLimit(request, env)
+  } catch (error) {
+    console.error('Course admin rate limit check failed:', error)
+    return {
+      ok: false,
+      response: jsonResponse(
+        { ok: false, message: '管理機能を一時的に利用できません。' },
+        503,
+      ),
+    }
+  }
+
+  if (!rateLimit.allowed) {
+    return {
+      ok: false,
+      response: jsonResponse(
+        {
+          ok: false,
+          message:
+            '短時間に試行できる回数を超えました。少し待ってからお試しください。',
+        },
+        429,
+        { 'Retry-After': String(rateLimit.retryAfterSeconds || 15 * 60) },
+      ),
+    }
+  }
+
   const valid = await timingSafeEqual(actualPasscode, expectedPasscode)
   if (!valid) {
+    await recordAdminAuthFailure(request, env)
     return {
       ok: false,
       response: jsonResponse(
@@ -254,6 +317,8 @@ export async function verifyAdminRequest(
       ),
     }
   }
+
+  await clearAdminAuthFailures(request, env)
 
   return { ok: true }
 }
@@ -465,6 +530,122 @@ function getAdminPasscode(request: Request): string {
   if (bearerMatch) return bearerMatch[1].trim()
 
   return request.headers.get(ADMIN_PASSCODE_HEADER)?.trim() || ''
+}
+
+function getHashSalt(request: Request, env: Env): string | null {
+  const salt = env.COMMENT_HASH_SALT?.trim()
+  if (salt) return salt
+
+  return isLocalRequestHost(request) ? 'hatt-course-local' : null
+}
+
+async function checkAdminAuthRateLimit(
+  request: Request,
+  env: Env,
+): Promise<{ allowed: boolean; retryAfterSeconds?: number }> {
+  if (!env.COMMENTS_DB) return { allowed: false, retryAfterSeconds: 60 }
+
+  const key = await getAdminAuthAttemptKey(request, env)
+  const now = Date.now()
+  const row = await env.COMMENTS_DB.prepare(
+    `SELECT failed_count, reset_at
+     FROM course_admin_auth_attempts
+     WHERE attempt_key = ?`,
+  )
+    .bind(key)
+    .first<AdminAuthAttemptRow>()
+
+  if (!row) return { allowed: true }
+
+  const resetAt = new Date(row.reset_at).getTime()
+  if (!Number.isFinite(resetAt) || resetAt <= now) {
+    await env.COMMENTS_DB.prepare(
+      `DELETE FROM course_admin_auth_attempts
+       WHERE attempt_key = ?`,
+    )
+      .bind(key)
+      .run()
+    return { allowed: true }
+  }
+
+  if (Number(row.failed_count || 0) >= ADMIN_AUTH_RATE_MAX_FAILURES) {
+    return {
+      allowed: false,
+      retryAfterSeconds: Math.max(1, Math.ceil((resetAt - now) / 1000)),
+    }
+  }
+
+  return { allowed: true }
+}
+
+async function recordAdminAuthFailure(
+  request: Request,
+  env: Env,
+): Promise<void> {
+  if (!env.COMMENTS_DB) return
+
+  const key = await getAdminAuthAttemptKey(request, env)
+  const now = new Date()
+  const existing = await env.COMMENTS_DB.prepare(
+    `SELECT failed_count, reset_at
+     FROM course_admin_auth_attempts
+     WHERE attempt_key = ?`,
+  )
+    .bind(key)
+    .first<AdminAuthAttemptRow>()
+
+  const existingResetAt = existing ? new Date(existing.reset_at).getTime() : 0
+  const shouldContinueWindow =
+    Number.isFinite(existingResetAt) && existingResetAt > now.getTime()
+  const failedCount = shouldContinueWindow
+    ? Number(existing?.failed_count || 0) + 1
+    : 1
+  const resetAt = shouldContinueWindow
+    ? existing?.reset_at ||
+      new Date(now.getTime() + ADMIN_AUTH_RATE_WINDOW_MS).toISOString()
+    : new Date(now.getTime() + ADMIN_AUTH_RATE_WINDOW_MS).toISOString()
+
+  await env.COMMENTS_DB.prepare(
+    `INSERT INTO course_admin_auth_attempts (
+       attempt_key, failed_count, reset_at, updated_at
+     ) VALUES (?, ?, ?, ?)
+     ON CONFLICT(attempt_key) DO UPDATE SET
+       failed_count = excluded.failed_count,
+       reset_at = excluded.reset_at,
+       updated_at = excluded.updated_at`,
+  )
+    .bind(key, failedCount, resetAt, now.toISOString())
+    .run()
+}
+
+async function clearAdminAuthFailures(
+  request: Request,
+  env: Env,
+): Promise<void> {
+  if (!env.COMMENTS_DB) return
+
+  const key = await getAdminAuthAttemptKey(request, env)
+  await env.COMMENTS_DB.prepare(
+    `DELETE FROM course_admin_auth_attempts
+     WHERE attempt_key = ?`,
+  )
+    .bind(key)
+    .run()
+}
+
+async function getAdminAuthAttemptKey(
+  request: Request,
+  env: Env,
+): Promise<string> {
+  const salt = getHashSalt(request, env)
+  if (!salt) throw new Error('COMMENT_HASH_SALT is not configured')
+
+  const userAgent = request.headers.get('User-Agent') || ''
+  const clientIp = getClientIp(request)
+
+  return sha256Hex(
+    `${salt}:course-admin-auth:${clientIp || 'unknown'}:${userAgent}`,
+  )
 }
 
 function isAllowedVerifiedHostname(hostname: string, env: Env): boolean {

@@ -1,6 +1,7 @@
 import {
   countMeaningfulCharacters,
   getClientHashes,
+  hasRequiredHashSalt,
   isAllowedRequestOrigin,
   jsonResponse,
   normalizeText,
@@ -48,6 +49,13 @@ export const onRequestPost = async (
   }
 
   if (!context.env.COMMENTS_DB) {
+    return jsonResponse(
+      { ok: false, message: '申し込み機能を一時的に利用できません。' },
+      503,
+    )
+  }
+
+  if (!hasRequiredHashSalt(context.request, context.env)) {
     return jsonResponse(
       { ok: false, message: '申し込み機能を一時的に利用できません。' },
       503,

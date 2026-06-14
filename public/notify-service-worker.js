@@ -1,25 +1,17 @@
 self.addEventListener('push', (event) => {
-  let payload = {
+  const notification = {
     title: '無料体験申し込み',
     body: '新しい無料体験申し込みがあります。',
     url: '/course-admin/',
   }
 
-  if (event.data) {
-    try {
-      payload = { ...payload, ...event.data.json() }
-    } catch {
-      payload.body = event.data.text() || payload.body
-    }
-  }
-
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
+    self.registration.showNotification(notification.title, {
+      body: notification.body,
       icon: '/uploads/hatt/course-admin-icon-192.png',
       badge: '/uploads/hatt/course-admin-icon-192.png',
       tag: 'course-trial-signup',
-      data: { url: payload.url },
+      data: { url: notification.url },
     }),
   )
 })
