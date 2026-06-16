@@ -27,10 +27,12 @@
   Cache-Control: public, max-age=3600
 
 /course-admin
+  ! X-Robots-Tag
   X-Robots-Tag: noindex, nofollow
   Cache-Control: public, max-age=0, must-revalidate
 
 /course-admin/*
+  ! X-Robots-Tag
   X-Robots-Tag: noindex, nofollow
   Cache-Control: public, max-age=0, must-revalidate
 
