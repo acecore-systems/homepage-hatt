@@ -11,9 +11,9 @@
       "migrations_dir": "migrations",
     },
   ],
-  "send_email": [{ "name": "COURSE_SIGNUP_EMAIL" }],
   "vars": {
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+    "CLOUDFLARE_ACCOUNT_ID": "",
     "COURSE_SIGNUP_EMAIL_FROM": "",
     "COURSE_SIGNUP_EMAIL_TO": "",
   },
@@ -27,9 +27,9 @@
           "migrations_dir": "migrations",
         },
       ],
-      "send_email": [{ "name": "COURSE_SIGNUP_EMAIL" }],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+        "CLOUDFLARE_ACCOUNT_ID": "",
         "COURSE_SIGNUP_EMAIL_FROM": "",
         "COURSE_SIGNUP_EMAIL_TO": "",
       },
@@ -43,9 +43,9 @@
           "migrations_dir": "migrations",
         },
       ],
-      "send_email": [{ "name": "COURSE_SIGNUP_EMAIL" }],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+        "CLOUDFLARE_ACCOUNT_ID": "",
         "COURSE_SIGNUP_EMAIL_FROM": "",
         "COURSE_SIGNUP_EMAIL_TO": "",
       },

@@ -79,8 +79,9 @@ Turnstile の公開 Site Key は CMS の「サイト設定」から `turnstileSi
 Cloudflare Pages 側で以下を設定してください。
 
 - Email Sending domain: 送信元ドメインをCloudflare Email Serviceにonboard
-- Send Email binding: `COURSE_SIGNUP_EMAIL`
 - Secret: `TURNSTILE_SECRET_KEY`
+- Secret: `CLOUDFLARE_EMAIL_API_TOKEN`
+- Variable: `CLOUDFLARE_ACCOUNT_ID=<account_id>`
 - Variable: `COURSE_SIGNUP_EMAIL_FROM=Hattのホームページ <noreply@hatt.acecore.net>`
 - Variable: `COURSE_SIGNUP_EMAIL_TO=recipient@example.com`
 

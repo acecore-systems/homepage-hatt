@@ -3,7 +3,8 @@ export type Env = {
   COMMENT_ALLOWED_HOSTNAMES?: string
   COURSE_SIGNUP_EMAIL_TO?: string
   COURSE_SIGNUP_EMAIL_FROM?: string
-  COURSE_SIGNUP_EMAIL?: SendEmailBinding
+  CLOUDFLARE_ACCOUNT_ID?: string
+  CLOUDFLARE_EMAIL_API_TOKEN?: string
 }
 
 export type PagesContext = {
@@ -26,26 +27,29 @@ type TurnstileResponse = {
   hostname?: string
 }
 
-type SendEmailBinding = {
-  send(message: EmailMessageBuilder): Promise<EmailSendResult>
-}
-
-type EmailAddress = string | { email: string; name?: string }
+type EmailAddress = string | { address: string; name?: string }
 
 type EmailMessageBuilder = {
   to: EmailAddress | EmailAddress[]
   from: EmailAddress
   subject: string
   text: string
-  replyTo?: EmailAddress
+  reply_to?: string
 }
 
-type EmailSendResult = {
-  messageId: string
+type CloudflareEmailResponse = {
+  success?: boolean
+  errors?: Array<{ code?: number; message?: string }>
+  result?: {
+    delivered?: string[]
+    queued?: string[]
+    permanent_bounces?: string[]
+  }
 }
 
 const SITEVERIFY_ENDPOINT =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4'
 const DEFAULT_ALLOWED_HOSTNAMES = [
   'hatt.acecore.net',
   'www.hatt.acecore.net',
@@ -167,10 +171,12 @@ export async function sendCourseSignupEmail(
   env: Env,
   signup: CourseSignup,
 ): Promise<string> {
+  const accountId = env.CLOUDFLARE_ACCOUNT_ID?.trim()
+  const apiToken = env.CLOUDFLARE_EMAIL_API_TOKEN?.trim()
   const from = parseEmailAddress(env.COURSE_SIGNUP_EMAIL_FROM)
   const to = parseEmailAddresses(env.COURSE_SIGNUP_EMAIL_TO)
 
-  if (!env.COURSE_SIGNUP_EMAIL || !from || to.length === 0) {
+  if (!accountId || !apiToken || !from || to.length === 0) {
     throw new Error('Course signup email is not configured')
   }
 
@@ -181,11 +187,37 @@ export async function sendCourseSignupEmail(
     text: buildCourseSignupEmailText(request, signup),
   }
   const replyTo = extractReplyTo(signup.contact)
-  if (replyTo) message.replyTo = replyTo
+  if (replyTo) message.reply_to = replyTo
 
-  const result = await env.COURSE_SIGNUP_EMAIL.send(message)
+  const response = await fetch(
+    `${CLOUDFLARE_API_BASE}/accounts/${encodeURIComponent(accountId)}/email/sending/send`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    },
+  )
+  const result = (await response
+    .json()
+    .catch(() => ({}))) as CloudflareEmailResponse
 
-  return result.messageId || ''
+  if (!response.ok || !result.success) {
+    const messageText =
+      result.errors
+        ?.map((error) => error.message || error.code)
+        .filter(Boolean)
+        .join(', ') ||
+      `Cloudflare Email Sending failed with HTTP ${response.status}`
+    throw new Error(messageText)
+  }
+
+  return [
+    ...(result.result?.delivered ?? []),
+    ...(result.result?.queued ?? []),
+  ].join(',')
 }
 
 export function toPublicSignup(signup: CourseSignup) {
@@ -239,7 +271,7 @@ function parseEmailAddress(value: string | undefined): EmailAddress | null {
   const name = match[1].trim().replace(/^["']|["']$/g, '')
   const email = match[2].trim()
 
-  return name ? { email, name } : email
+  return name ? { address: email, name } : email
 }
 
 function extractReplyTo(contact: string): string | undefined {
