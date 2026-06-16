@@ -1,9 +1,9 @@
 export type Env = {
   TURNSTILE_SECRET_KEY?: string
   COMMENT_ALLOWED_HOSTNAMES?: string
-  RESEND_API_KEY?: string
   COURSE_SIGNUP_EMAIL_TO?: string
   COURSE_SIGNUP_EMAIL_FROM?: string
+  COURSE_SIGNUP_EMAIL?: SendEmailBinding
 }
 
 export type PagesContext = {
@@ -26,15 +26,26 @@ type TurnstileResponse = {
   hostname?: string
 }
 
-type ResendResponse = {
-  id?: string
-  message?: string
-  name?: string
+type SendEmailBinding = {
+  send(message: EmailMessageBuilder): Promise<EmailSendResult>
+}
+
+type EmailAddress = string | { email: string; name?: string }
+
+type EmailMessageBuilder = {
+  to: EmailAddress | EmailAddress[]
+  from: EmailAddress
+  subject: string
+  text: string
+  replyTo?: EmailAddress
+}
+
+type EmailSendResult = {
+  messageId: string
 }
 
 const SITEVERIFY_ENDPOINT =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify'
-const RESEND_EMAILS_ENDPOINT = 'https://api.resend.com/emails'
 const DEFAULT_ALLOWED_HOSTNAMES = [
   'hatt.acecore.net',
   'www.hatt.acecore.net',
@@ -156,40 +167,25 @@ export async function sendCourseSignupEmail(
   env: Env,
   signup: CourseSignup,
 ): Promise<string> {
-  const apiKey = env.RESEND_API_KEY?.trim()
-  const from = env.COURSE_SIGNUP_EMAIL_FROM?.trim()
-  const to = splitEmails(env.COURSE_SIGNUP_EMAIL_TO)
+  const from = parseEmailAddress(env.COURSE_SIGNUP_EMAIL_FROM)
+  const to = parseEmailAddresses(env.COURSE_SIGNUP_EMAIL_TO)
 
-  if (!apiKey || !from || to.length === 0) {
+  if (!env.COURSE_SIGNUP_EMAIL || !from || to.length === 0) {
     throw new Error('Course signup email is not configured')
   }
 
-  const response = await fetch(RESEND_EMAILS_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'Idempotency-Key': signup.id,
-    },
-    body: JSON.stringify({
-      from,
-      to,
-      subject: `【Hatt講座】無料体験申し込み: ${signup.name}`,
-      text: buildCourseSignupEmailText(request, signup),
-      reply_to: extractReplyTo(signup.contact),
-    }),
-  })
-  const result = (await response.json().catch(() => ({}))) as ResendResponse
-
-  if (!response.ok) {
-    throw new Error(
-      result.message ||
-        result.name ||
-        `Course signup email failed with HTTP ${response.status}`,
-    )
+  const message: EmailMessageBuilder = {
+    from,
+    to,
+    subject: `【Hatt講座】無料体験申し込み: ${signup.name}`,
+    text: buildCourseSignupEmailText(request, signup),
   }
+  const replyTo = extractReplyTo(signup.contact)
+  if (replyTo) message.replyTo = replyTo
 
-  return result.id || ''
+  const result = await env.COURSE_SIGNUP_EMAIL.send(message)
+
+  return result.messageId || ''
 }
 
 export function toPublicSignup(signup: CourseSignup) {
@@ -226,11 +222,24 @@ function buildCourseSignupEmailText(
   ].join('\n')
 }
 
-function splitEmails(value: string | undefined): string[] {
+function parseEmailAddresses(value: string | undefined): EmailAddress[] {
   return String(value || '')
     .split(',')
-    .map((email) => email.trim())
-    .filter(Boolean)
+    .map((email) => parseEmailAddress(email))
+    .filter((email): email is EmailAddress => Boolean(email))
+}
+
+function parseEmailAddress(value: string | undefined): EmailAddress | null {
+  const normalized = String(value || '').trim()
+  if (!normalized) return null
+
+  const match = normalized.match(/^(.+?)\s*<([^<>]+)>$/)
+  if (!match) return normalized
+
+  const name = match[1].trim().replace(/^["']|["']$/g, '')
+  const email = match[2].trim()
+
+  return name ? { email, name } : email
 }
 
 function extractReplyTo(contact: string): string | undefined {
