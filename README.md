@@ -82,6 +82,6 @@ Cloudflare Pages 側で以下を設定してください。
 - Service binding: `COURSE_EMAIL_SERVICE` -> `homepage-hatt-course-email`
 - Secret: `TURNSTILE_SECRET_KEY`
 - Variable: `COURSE_SIGNUP_EMAIL_FROM=Hattのホームページ <noreply@hatt.acecore.net>`
-- Variable: `COURSE_SIGNUP_EMAIL_TO=info@acecore.net`
+- Variable: `COURSE_SIGNUP_EMAIL_TO=borubin@outlook.jp`
 
 メールの本文には名前、連絡先、相談内容、希望日時が入ります。連絡先がメールアドレスの場合は返信先としても設定します。
