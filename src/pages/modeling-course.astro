@@ -189,6 +189,7 @@ const courseJsonLd = {
               id="course-goal"
               name="goal"
               rows="5"
+              minlength="10"
               maxlength="800"
               placeholder="例: VRChat用の小物をBlenderで作りたい、Unity導入で詰まっている"
               required></textarea>
@@ -249,6 +250,7 @@ const courseJsonLd = {
       const submit = form.querySelector('[data-course-submit]')
       const feedback = form.querySelector('[data-course-feedback]')
       const turnstileEl = form.querySelector('[data-course-turnstile]')
+      const minGoalLength = 10
       const isLocal = ['localhost', '127.0.0.1'].includes(
         window.location.hostname,
       )
@@ -357,11 +359,16 @@ const courseJsonLd = {
         if (
           !name ||
           contact.length < 3 ||
-          meaningfulGoalLength < 8 ||
+          meaningfulGoalLength < minGoalLength ||
           !preferredTime ||
           !consent
         ) {
-          setFeedback('必須項目を入力してください。', 'error')
+          setFeedback(
+            meaningfulGoalLength > 0 && meaningfulGoalLength < minGoalLength
+              ? '作りたいもの・相談したいことは10文字以上で入力してください。'
+              : '必須項目を入力してください。',
+            'error',
+          )
           return
         }
 
