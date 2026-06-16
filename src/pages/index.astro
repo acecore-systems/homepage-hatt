@@ -28,9 +28,14 @@ const novelStats = {
   serial: novelWorks.filter((work) => work.type === 'serial').length,
   short: novelWorks.filter((work) => work.type === 'short').length,
 }
-const modelingVideoCount = youtubeFeed.videos.filter((video) =>
-  video.source.includes('modeling'),
-).length
+const uploadsPlaylistUrl = youtubeFeed.uploadsPlaylistUrl
+const uploadsEmbedUrl = youtubeFeed.uploadsEmbedUrl
+const youtubeHomeLinks = [
+  { label: '全動画を見る', href: '/videos/' },
+  { label: 'YouTubeで開く', href: uploadsPlaylistUrl },
+  { label: 'ライブ', href: `${youtubeFeed.channelUrl}/streams` },
+  { label: 'ショート', href: `${youtubeFeed.channelUrl}/shorts` },
+]
 const novelLinks = [
   { label: '作品一覧', href: '/novels/', icon: 'i-lucide-library' },
   {
@@ -189,7 +194,7 @@ const modelingLinks = [
                       </div>
                       <div>
                         <span>動画</span>
-                        <strong>{modelingVideoCount}本</strong>
+                        <strong>全公開</strong>
                       </div>
                     </div>
                   </>
@@ -215,6 +220,43 @@ const modelingLinks = [
   </section>
 
   <CampaignNotices placement="home-after-hero" />
+
+  <section class="home-video" aria-labelledby="home-video-title">
+    <div class="section-inner home-video-layout">
+      <div class="home-video-copy">
+        <p class="hero-note">
+          <span class="i-lucide-youtube" aria-hidden="true"></span>
+          YouTube
+        </p>
+        <h2 id="home-video-title">動画もここで見られます</h2>
+        <p>
+          作品紹介だけでなく、制作ログ、朗読、ライブ配信アーカイブ、ショートまで、Hattのチャンネル全体をホームページ上で再生できます。
+        </p>
+        <div class="social-row">
+          {
+            youtubeHomeLinks.map((link) => (
+              <a href={link.href} {...externalAttrs(link.href)}>
+                {link.label}
+              </a>
+            ))
+          }
+        </div>
+      </div>
+      <figure class="video-player-card home-video-player">
+        <div class="video-player-frame">
+          <iframe
+            src={uploadsEmbedUrl}
+            title="HattのYouTube全公開動画プレイリスト"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+        <figcaption>
+          全公開動画プレイリストです。YouTube側に新しい公開動画が追加されると、この枠から再生できます。
+        </figcaption>
+      </figure>
+    </div>
+  </section>
 
   <section class="home-latest" aria-labelledby="latest-title">
     <div class="section-inner">

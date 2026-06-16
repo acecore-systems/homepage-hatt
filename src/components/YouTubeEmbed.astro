@@ -3,10 +3,12 @@ const {
   url,
   title = 'YouTube動画',
   caption,
+  embedClass = 'rich-block rich-youtube',
 } = Astro.props as {
   url?: string
   title?: string
   caption?: string
+  embedClass?: string
 }
 
 function getVideoId(value?: string) {
@@ -27,7 +29,7 @@ const videoId = getVideoId(url)
 
 {
   videoId && (
-    <figure class="rich-block rich-youtube">
+    <figure class={embedClass}>
       <div>
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${videoId}`}
