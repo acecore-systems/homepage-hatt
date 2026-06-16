@@ -1363,8 +1363,7 @@ main {
 }
 
 .course-form input,
-.course-form textarea,
-.course-admin-auth input {
+.course-form textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid rgba(21, 26, 36, 0.16);
@@ -1397,209 +1396,6 @@ main {
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.6;
-}
-
-.course-admin-page {
-  background: #f7f9f3;
-}
-
-.course-admin-shell {
-  padding: 52px 0 72px;
-}
-
-.course-admin-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 340px);
-  align-items: end;
-  gap: 20px;
-  margin-bottom: 22px;
-}
-
-.course-admin-hero h1 {
-  margin: 0;
-  color: var(--ink-900);
-  font-size: clamp(2rem, 4vw, 3.3rem);
-  line-height: 1.08;
-}
-
-.course-admin-hero p:not(.section-kicker) {
-  max-width: 620px;
-  margin: 12px 0 0;
-  color: var(--ink-700);
-  font-weight: 600;
-}
-
-.course-admin-status {
-  border: 1px solid rgba(21, 26, 36, 0.12);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.82);
-  padding: 14px 16px;
-  color: var(--ink-700);
-  font-size: 0.92rem;
-  font-weight: 800;
-}
-
-.course-admin-status--success,
-.course-admin-help--success {
-  border-color: rgba(46, 116, 79, 0.24);
-  background: rgba(46, 116, 79, 0.08);
-  color: #235d3e;
-}
-
-.course-admin-status--error,
-.course-admin-help--error {
-  border-color: rgba(217, 92, 74, 0.24);
-  background: rgba(217, 92, 74, 0.08);
-  color: var(--ink-800);
-}
-
-.course-admin-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.course-admin-panel {
-  border: 1px solid rgba(21, 26, 36, 0.12);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.88);
-  padding: clamp(18px, 3vw, 24px);
-}
-
-.course-admin-panel h2 {
-  margin: 0 0 14px;
-  color: var(--ink-900);
-  font-size: 1.25rem;
-  line-height: 1.3;
-}
-
-.course-admin-auth label {
-  display: block;
-  margin-bottom: 7px;
-  color: var(--ink-700);
-  font-size: 0.9rem;
-  font-weight: 900;
-}
-
-.course-admin-auth div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-}
-
-.course-admin-auth + .secondary-button {
-  margin-top: 12px;
-}
-
-.course-admin-actions,
-.course-admin-list-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.course-admin-actions {
-  justify-content: flex-start;
-}
-
-.course-admin-help,
-.course-admin-panel > p {
-  margin: 14px 0 0;
-  border-radius: var(--radius);
-  color: var(--ink-700);
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.course-admin-help--success,
-.course-admin-help--error {
-  border: 1px solid;
-  padding: 12px;
-}
-
-.course-admin-list-head {
-  margin-bottom: 16px;
-}
-
-.course-admin-list-head h2 {
-  margin-bottom: 4px;
-}
-
-.course-admin-list-head p {
-  margin: 0;
-  color: var(--ink-500);
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.course-admin-list {
-  display: grid;
-  gap: 12px;
-}
-
-.course-admin-empty,
-.course-admin-signup {
-  border: 1px solid rgba(21, 26, 36, 0.1);
-  border-radius: var(--radius);
-  background: #fff;
-  padding: 16px;
-}
-
-.course-admin-empty {
-  margin: 0;
-  color: var(--ink-500);
-  font-weight: 800;
-}
-
-.course-admin-signup-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-}
-
-.course-admin-signup h3 {
-  margin: 0;
-  color: var(--ink-900);
-  font-size: 1.08rem;
-}
-
-.course-admin-signup time,
-.course-admin-signup-head span {
-  color: var(--ink-500);
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.course-admin-signup-head span {
-  border: 1px solid rgba(21, 26, 36, 0.1);
-  border-radius: 999px;
-  padding: 3px 8px;
-}
-
-.course-admin-contact,
-.course-admin-preferred,
-.course-admin-goal {
-  margin: 10px 0 0;
-  white-space: pre-wrap;
-}
-
-.course-admin-contact {
-  color: var(--ink-900);
-  font-weight: 900;
-}
-
-.course-admin-preferred {
-  color: var(--ink-700);
-  font-weight: 800;
-}
-
-.course-admin-goal {
-  color: var(--ink-700);
-  line-height: 1.7;
 }
 
 .article-card {
@@ -3765,8 +3561,6 @@ main {
   .course-hero-grid,
   .course-flow-grid,
   .course-form-grid,
-  .course-admin-hero,
-  .course-admin-grid,
   .video-hero,
   .blog-title,
   .page-title,
@@ -3892,13 +3686,10 @@ main {
     height: 260px;
   }
 
-  .course-flow li,
-  .course-admin-auth div {
+  .course-flow li {
     grid-template-columns: 1fr;
   }
 
-  .course-admin-actions,
-  .course-admin-list-head,
   .home-course-strip-actions {
     align-items: stretch;
     flex-direction: column;

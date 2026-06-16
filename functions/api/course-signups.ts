@@ -1,16 +1,14 @@
 import {
   countMeaningfulCharacters,
-  getClientHashes,
-  hasRequiredHashSalt,
   isAllowedRequestOrigin,
   jsonResponse,
   normalizeText,
-  notifyCourseAdmins,
   optionsResponse,
   readJsonPayload,
+  sendCourseSignupEmail,
   toPublicSignup,
   verifyTurnstile,
-  type CourseSignupRow,
+  type CourseSignup,
   type PagesContext,
 } from '../_course-shared'
 
@@ -35,9 +33,6 @@ type SignupValidation =
     }
   | { ok: false; message: string }
 
-const SIGNUP_RATE_WINDOW_MS = 60 * 60 * 1000
-const SIGNUP_RATE_MAX_REQUESTS = 3
-
 export const onRequestPost = async (
   context: PagesContext,
 ): Promise<Response> => {
@@ -45,20 +40,6 @@ export const onRequestPost = async (
     return jsonResponse(
       { ok: false, message: '申し込みを送信できませんでした。' },
       403,
-    )
-  }
-
-  if (!context.env.COMMENTS_DB) {
-    return jsonResponse(
-      { ok: false, message: '申し込み機能を一時的に利用できません。' },
-      503,
-    )
-  }
-
-  if (!hasRequiredHashSalt(context.request, context.env)) {
-    return jsonResponse(
-      { ok: false, message: '申し込み機能を一時的に利用できません。' },
-      503,
     )
   }
 
@@ -85,79 +66,28 @@ export const onRequestPost = async (
     )
   }
 
-  const now = new Date()
-  const { clientHash, userAgentHash } = await getClientHashes(
-    context.request,
-    context.env,
-  )
+  const signup: CourseSignup = {
+    id: crypto.randomUUID(),
+    name: validation.name,
+    contact: validation.contact,
+    goal: validation.goal,
+    preferredTime: validation.preferredTime,
+    createdAt: new Date().toISOString(),
+  }
 
   try {
-    const recent = await context.env.COMMENTS_DB.prepare(
-      `SELECT COUNT(*) AS count
-       FROM course_trial_signups
-       WHERE client_hash = ? AND created_at >= ?`,
-    )
-      .bind(
-        clientHash,
-        new Date(now.getTime() - SIGNUP_RATE_WINDOW_MS).toISOString(),
-      )
-      .first<{ count: number }>()
-
-    if (Number(recent?.count || 0) >= SIGNUP_RATE_MAX_REQUESTS) {
-      return jsonResponse(
-        {
-          ok: false,
-          message:
-            '短時間に送信できる回数を超えました。少し待ってからお試しください。',
-        },
-        429,
-        { 'Retry-After': String(60 * 60) },
-      )
-    }
-
-    const row: CourseSignupRow = {
-      id: crypto.randomUUID(),
-      name: validation.name,
-      contact: validation.contact,
-      goal: validation.goal,
-      preferred_time: validation.preferredTime,
-      status: 'new',
-      created_at: now.toISOString(),
-      updated_at: now.toISOString(),
-    }
-
-    await context.env.COMMENTS_DB.prepare(
-      `INSERT INTO course_trial_signups (
-         id, name, contact, goal, preferred_time, status,
-         client_hash, user_agent_hash, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-      .bind(
-        row.id,
-        row.name,
-        row.contact,
-        row.goal,
-        row.preferred_time,
-        row.status,
-        clientHash,
-        userAgentHash,
-        row.created_at,
-        row.updated_at,
-      )
-      .run()
-
-    context.waitUntil(notifyCourseAdmins(context.env, row.id))
+    await sendCourseSignupEmail(context.request, context.env, signup)
 
     return jsonResponse(
       {
         ok: true,
         message: '無料体験の申し込みを受け付けました。',
-        signup: toPublicSignup(row),
+        signup: toPublicSignup(signup),
       },
       201,
     )
   } catch (error) {
-    console.error('Failed to create course signup:', error)
+    console.error('Failed to send course signup email:', error)
     return jsonResponse(
       { ok: false, message: '申し込みを送信できませんでした。' },
       500,

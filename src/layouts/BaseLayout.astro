@@ -24,8 +24,6 @@ type Props = {
   robots?: string
   jsonLd?: JsonLd
   breadcrumbItems?: { name: string; item?: string }[]
-  manifestPath?: string
-  themeColor?: string
   showAnnouncement?: boolean
 }
 
@@ -115,8 +113,6 @@ const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
       href={rssUrl}
     />
     <link rel="icon" type="image/png" href={site.icon} />
-    {props.manifestPath && <link rel="manifest" href={props.manifestPath} />}
-    {props.themeColor && <meta name="theme-color" content={props.themeColor} />}
     <meta property="og:type" content={props.ogType ?? 'website'} />
     <meta property="og:locale" content="ja_JP" />
     <meta property="og:url" content={canonical} />

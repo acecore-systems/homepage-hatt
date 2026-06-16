@@ -13,8 +13,8 @@
   ],
   "vars": {
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
-    "COURSE_VAPID_PUBLIC_KEY": "",
-    "COURSE_VAPID_SUBJECT": "https://hatt.acecore.net/",
+    "COURSE_SIGNUP_EMAIL_FROM": "",
+    "COURSE_SIGNUP_EMAIL_TO": "",
   },
   "env": {
     "preview": {
@@ -28,8 +28,8 @@
       ],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
-        "COURSE_VAPID_PUBLIC_KEY": "",
-        "COURSE_VAPID_SUBJECT": "https://hatt.acecore.net/",
+        "COURSE_SIGNUP_EMAIL_FROM": "",
+        "COURSE_SIGNUP_EMAIL_TO": "",
       },
     },
     "production": {
@@ -43,8 +43,8 @@
       ],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
-        "COURSE_VAPID_PUBLIC_KEY": "",
-        "COURSE_VAPID_SUBJECT": "https://hatt.acecore.net/",
+        "COURSE_SIGNUP_EMAIL_FROM": "",
+        "COURSE_SIGNUP_EMAIL_TO": "",
       },
     },
   },
