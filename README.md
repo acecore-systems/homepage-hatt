@@ -71,3 +71,17 @@ Cloudflare Pages 側で以下を設定してください。
 D1 schema は `migrations/0001_create_blog_comments.sql` です。D1 database を作成後、同ファイルを適用してください。
 
 Turnstile の公開 Site Key は CMS の「サイト設定」から `turnstileSiteKey` に設定します。
+
+## モデル制作講座の無料体験申し込み
+
+`/modeling-course/` から無料体験申し込みを受け付け、Cloudflare Email Sendingで通知メールを送信します。
+
+Cloudflare Pages 側で以下を設定してください。
+
+- Email Sending domain: 送信元ドメインをCloudflare Email Serviceにonboard
+- Service binding: `COURSE_EMAIL_SERVICE` -> `homepage-hatt-course-email`
+- Secret: `TURNSTILE_SECRET_KEY`
+- Variable: `COURSE_SIGNUP_EMAIL_FROM=Hattのホームページ <noreply@hatt.acecore.net>`
+- Variable: `COURSE_SIGNUP_EMAIL_TO=borubin@outlook.jp`
+
+メールの本文には名前、連絡先、相談内容、希望日時が入ります。連絡先がメールアドレスの場合は返信先としても設定します。
