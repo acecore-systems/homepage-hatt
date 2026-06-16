@@ -33,6 +33,8 @@ type SignupValidation =
     }
   | { ok: false; message: string }
 
+const MIN_GOAL_MEANINGFUL_LENGTH = 10
+
 export const onRequestPost = async (
   context: PagesContext,
 ): Promise<Response> => {
@@ -129,7 +131,7 @@ function validateSignupPayload(
   if (
     countMeaningfulCharacters(name) < 1 ||
     countMeaningfulCharacters(contact) < 3 ||
-    countMeaningfulCharacters(goal) < 8 ||
+    countMeaningfulCharacters(goal) < MIN_GOAL_MEANINGFUL_LENGTH ||
     countMeaningfulCharacters(preferredTime) < 2 ||
     turnstileToken.length > 2048
   ) {
