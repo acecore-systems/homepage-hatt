@@ -888,6 +888,10 @@ main {
     transform 160ms ease;
 }
 
+.video-result-card[hidden] {
+  display: none;
+}
+
 .video-result-card:hover,
 .video-result-card:focus-visible {
   border-color: rgba(15, 49, 80, 0.34);

@@ -18,6 +18,14 @@ const formatDate = (value: string) =>
 const normalizeText = (value = '') => value.replace(/\s+/g, ' ').trim()
 const normalizeSearchText = (value = '') =>
   normalizeText(value).normalize('NFKC').toLocaleLowerCase('ja-JP')
+const getSearchableDescription = (value = '') => {
+  const noiseHeading = value.match(
+    /\n\s*▼\s*(?:関連動画|Hattの他の動画もどうぞ|おすすめ動画|ショップ|制作者情報|リンク)(?:\n|$|（|「)/,
+  )
+  const noiseHeadingIndex = noiseHeading?.index ?? -1
+
+  return noiseHeadingIndex >= 0 ? value.slice(0, noiseHeadingIndex) : value
+}
 const summarize = (value = '', length = 120) => {
   const text = normalizeText(value)
   return text.length > length ? `${text.slice(0, length)}...` : text
@@ -171,10 +179,13 @@ const videoLinks = [
           videos.map((video) => {
             const meta = getVideoMeta(video)
             const summary = summarize(video.description)
+            const searchableDescription = getSearchableDescription(
+              video.description,
+            )
             const searchText = normalizeSearchText(
               [
                 video.title,
-                video.description,
+                searchableDescription,
                 formatDate(video.publishedAt),
                 video.publishedAt,
                 video.videoId,
