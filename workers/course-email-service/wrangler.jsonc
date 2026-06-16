@@ -1,0 +1,8 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "homepage-hatt-course-email",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-16",
+  "workers_dev": false,
+  "send_email": [{ "name": "EMAIL" }],
+}

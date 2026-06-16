@@ -79,10 +79,9 @@ Turnstile の公開 Site Key は CMS の「サイト設定」から `turnstileSi
 Cloudflare Pages 側で以下を設定してください。
 
 - Email Sending domain: 送信元ドメインをCloudflare Email Serviceにonboard
+- Service binding: `COURSE_EMAIL_SERVICE` -> `homepage-hatt-course-email`
 - Secret: `TURNSTILE_SECRET_KEY`
-- Secret: `CLOUDFLARE_EMAIL_API_TOKEN`
-- Variable: `CLOUDFLARE_ACCOUNT_ID=<account_id>`
 - Variable: `COURSE_SIGNUP_EMAIL_FROM=Hattのホームページ <noreply@hatt.acecore.net>`
-- Variable: `COURSE_SIGNUP_EMAIL_TO=recipient@example.com`
+- Variable: `COURSE_SIGNUP_EMAIL_TO=info@acecore.net`
 
 メールの本文には名前、連絡先、相談内容、希望日時が入ります。連絡先がメールアドレスの場合は返信先としても設定します。

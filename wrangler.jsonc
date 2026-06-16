@@ -13,7 +13,6 @@
   ],
   "vars": {
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
-    "CLOUDFLARE_ACCOUNT_ID": "",
     "COURSE_SIGNUP_EMAIL_FROM": "",
     "COURSE_SIGNUP_EMAIL_TO": "",
   },
@@ -29,7 +28,6 @@
       ],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
-        "CLOUDFLARE_ACCOUNT_ID": "",
         "COURSE_SIGNUP_EMAIL_FROM": "",
         "COURSE_SIGNUP_EMAIL_TO": "",
       },
@@ -45,7 +43,6 @@
       ],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
-        "CLOUDFLARE_ACCOUNT_ID": "",
         "COURSE_SIGNUP_EMAIL_FROM": "",
         "COURSE_SIGNUP_EMAIL_TO": "",
       },
