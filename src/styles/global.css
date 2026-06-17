@@ -196,10 +196,9 @@ main {
   flex: 1 1 auto;
   justify-content: flex-end;
   flex-wrap: nowrap;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 8px 2px;
-  scrollbar-width: thin;
+  gap: clamp(8px, 1.2vw, 16px);
+  overflow-x: clip;
+  padding: 8px 0;
 }
 
 .nav-links a,
@@ -219,8 +218,12 @@ main {
 
 .nav-links a,
 .nav-search-button {
-  padding: 6px 10px;
-  font-size: 0.84rem;
+  min-height: 34px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 0.88rem;
 }
 
 .nav-link {
@@ -230,8 +233,13 @@ main {
   gap: 8px;
 }
 
+.nav-link-icon,
+.nav-label--compact {
+  display: none;
+}
+
 .nav-icon-link {
-  min-width: 38px;
+  min-width: 32px;
   justify-content: center;
 }
 
@@ -4142,10 +4150,11 @@ button:disabled {
 
   .nav-links {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: space-between;
     flex-wrap: nowrap;
-    gap: 6px;
-    padding-bottom: 6px;
+    gap: 2px;
+    overflow-x: clip;
+    padding: 4px 0 2px;
   }
 
   .hero {
@@ -4208,7 +4217,10 @@ button:disabled {
 
   .nav-links a,
   .nav-search-button {
-    padding: 6px 9px;
+    min-height: 28px;
+    padding: 4px 0;
+    font-size: 0.72rem;
+    line-height: 1;
   }
 
   .ad-unit .adsbygoogle {
@@ -4345,24 +4357,34 @@ button:disabled {
 
   .home-page .nav-links {
     width: 100%;
-    justify-content: flex-start;
-    gap: 6px;
+    justify-content: space-between;
+    gap: 2px;
   }
 
   .home-page .nav-links a,
   .home-page .nav-search-button {
-    padding: 6px 9px;
-    font-size: 0.82rem;
+    min-height: 28px;
+    padding: 4px 0;
+    font-size: 0.72rem;
+    line-height: 1;
   }
 
-  .home-page .nav-link > span:first-child {
-    font-size: 1.08rem;
+  .nav-label--full {
+    display: none;
+  }
+
+  .nav-label--compact {
+    display: inline;
   }
 
   .home-page .nav-search-button {
-    width: 36px;
-    height: 36px;
-    min-height: 36px;
+    width: 26px;
+    height: 28px;
+    min-height: 28px;
+  }
+
+  .nav-icon-link {
+    min-width: 26px;
   }
 
   .announcement-banner-inner {

@@ -21,6 +21,13 @@ const iconByLabel: Record<string, string> = {
   モデリング: 'i-lucide-box',
   プロフィール: 'i-lucide-user-round',
 }
+
+const compactLabelByLabel: Record<string, string> = {
+  '3D作品': '3D',
+  ショップ: 'Shop',
+  ブログ: 'Blog',
+  Acecore: 'Ace',
+}
 ---
 
 <header class="site-header">
@@ -50,21 +57,29 @@ const iconByLabel: Record<string, string> = {
       {
         site.headerLinks.map((link) => {
           const isExternal = link.href.startsWith('http')
+          const compactLabel = compactLabelByLabel[link.label] ?? link.label
 
           return (
             <a
               class:list={['nav-link', { 'nav-link--external': isExternal }]}
               href={link.href}
               {...externalAttrs(link.href)}
+              aria-label={link.label}
               data-hatt-event="nav_click"
               data-hatt-label={link.label}
               data-hatt-location="header"
             >
               <span
-                class={iconByLabel[link.label] ?? 'i-lucide-arrow-right'}
+                class:list={[
+                  'nav-link-icon',
+                  iconByLabel[link.label] ?? 'i-lucide-arrow-right',
+                ]}
                 aria-hidden="true"
               />
-              <span>{link.label}</span>
+              <span class="nav-label nav-label--full">{link.label}</span>
+              <span class="nav-label nav-label--compact" aria-hidden="true">
+                {compactLabel}
+              </span>
             </a>
           )
         })
