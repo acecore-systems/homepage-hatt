@@ -71,15 +71,15 @@ CMS では以下を編集できます。
 
 Cloudflare Pages 側で以下を設定してください。
 
-- D1 binding: `SHOP_DB`
-- R2 binding: `SHOP_FILES`
+- D1 binding: `SHOP_DB` (`homepage-hatt-shop`)
+- R2 binding: `SHOP_FILES` (`homepage-hatt-shop-files`)
 - Secret: `STRIPE_SECRET_KEY`
 - Secret: `STRIPE_WEBHOOK_SECRET`
 - Secret: `SHOP_ADMIN_PASSWORD_HASH`
 - Secret: `SHOP_ADMIN_SESSION_SECRET`
 - Secret: `SHOP_DOWNLOAD_TOKEN_SECRET`
 
-ショップ用 D1 schema は `migrations/shop/0001_create_shop.sql` です。コメント用 D1 とは migration directory を分けています。
+ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` です。コメント用 D1 とは migration directory を分けています。
 
 デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
 

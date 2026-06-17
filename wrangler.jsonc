@@ -12,15 +12,15 @@
     },
     {
       "binding": "SHOP_DB",
-      "database_name": "homepage-hatt-shop-preview",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_name": "homepage-hatt-shop",
+      "database_id": "a79e27cc-a53c-47de-b464-7cab1218438e",
       "migrations_dir": "migrations/shop",
     },
   ],
   "r2_buckets": [
     {
       "binding": "SHOP_FILES",
-      "bucket_name": "homepage-hatt-shop-files-preview",
+      "bucket_name": "homepage-hatt-shop-files",
     },
   ],
   "vars": {
@@ -45,15 +45,15 @@
         },
         {
           "binding": "SHOP_DB",
-          "database_name": "homepage-hatt-shop-preview",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_name": "homepage-hatt-shop",
+          "database_id": "a79e27cc-a53c-47de-b464-7cab1218438e",
           "migrations_dir": "migrations/shop",
         },
       ],
       "r2_buckets": [
         {
           "binding": "SHOP_FILES",
-          "bucket_name": "homepage-hatt-shop-files-preview",
+          "bucket_name": "homepage-hatt-shop-files",
         },
       ],
       "vars": {
@@ -78,15 +78,15 @@
         },
         {
           "binding": "SHOP_DB",
-          "database_name": "homepage-hatt-shop-production",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_name": "homepage-hatt-shop",
+          "database_id": "a79e27cc-a53c-47de-b464-7cab1218438e",
           "migrations_dir": "migrations/shop",
         },
       ],
       "r2_buckets": [
         {
           "binding": "SHOP_FILES",
-          "bucket_name": "homepage-hatt-shop-files-production",
+          "bucket_name": "homepage-hatt-shop-files",
         },
       ],
       "vars": {
