@@ -25,7 +25,15 @@
   ],
   "vars": {
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+    "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
+    "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
   },
+  "services": [
+    {
+      "binding": "COURSE_EMAIL_SERVICE",
+      "service": "homepage-hatt-course-email",
+    },
+  ],
   "env": {
     "preview": {
       "d1_databases": [
@@ -50,7 +58,15 @@
       ],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+        "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
+        "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
       },
+      "services": [
+        {
+          "binding": "COURSE_EMAIL_SERVICE",
+          "service": "homepage-hatt-course-email",
+        },
+      ],
     },
     "production": {
       "d1_databases": [
@@ -75,7 +91,15 @@
       ],
       "vars": {
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
+        "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
+        "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
       },
+      "services": [
+        {
+          "binding": "COURSE_EMAIL_SERVICE",
+          "service": "homepage-hatt-course-email",
+        },
+      ],
     },
   },
 }

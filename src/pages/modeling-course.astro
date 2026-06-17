@@ -1,0 +1,429 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getSiteConfig } from '@/utils/blog'
+
+const site = await getSiteConfig()
+const sitekey = site.turnstileSiteKey?.trim() ?? ''
+const courseJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Course',
+  name: 'モデル制作講座 無料体験',
+  description:
+    'VRChat向けモデル制作、Blender基礎、UnityやVRChat SDK導入を個別に相談できる30分の無料体験です。',
+  provider: {
+    '@type': 'Person',
+    name: 'Hatt',
+    url: 'https://hatt.acecore.net/',
+  },
+}
+---
+
+<BaseLayout
+  title="モデル制作講座 無料体験"
+  description="VRChat向けモデル制作、Blender基礎、UnityやVRChat SDK導入を相談できる30分の無料体験申し込みページです。"
+  image="/uploads/hatt/modeling-preview.jpg"
+  jsonLd={courseJsonLd}
+  breadcrumbItems={[
+    { name: 'モデル制作講座 無料体験', item: '/modeling-course/' },
+  ]}
+>
+  <section class="course-hero">
+    <div class="section-inner course-hero-grid">
+      <div class="course-hero-copy">
+        <p class="hero-note">
+          <span class="i-lucide-cuboid" aria-hidden="true"></span>
+          モデル制作講座 / 30分無料体験
+        </p>
+        <h1>作りたいモデルを、最初の形にする相談から。</h1>
+        <p class="lead">
+          VRChat向けアバター・小物・ギミック制作、Blender基礎、UnityやVRChat
+          SDK導入まで、今の状況に合わせて個別に相談できます。
+        </p>
+        <div class="button-row">
+          <a
+            class="primary-button"
+            href="#trial-form"
+            data-hatt-event="course_trial_cta_click"
+            data-hatt-label="hero"
+            data-hatt-location="modeling_course"
+          >
+            無料体験を申し込む
+            <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+          </a>
+          <a class="secondary-button" href="/modeling/">
+            作品を見る
+            <span class="i-lucide-box" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+
+      <div class="course-hero-panel">
+        <img src="/uploads/hatt/modeling-preview.jpg" alt="" />
+        <div>
+          <span>Trial</span>
+          <strong>30分オンライン相談</strong>
+          <p>作りたいもの、つまずいている工程、必要な学習順を整理します。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band course-overview" aria-labelledby="course-title">
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="course-title">相談できること</h2>
+        </div>
+        <p>
+          作品づくりの入口から公開前の確認まで、制作目的に合わせて範囲を決めます。
+        </p>
+      </div>
+
+      <div class="course-track-grid">
+        <article class="course-track">
+          <span class="i-lucide-user-round-cog" aria-hidden="true"></span>
+          <h3>VRChatモデル制作</h3>
+          <p>
+            アバター、小物、アクセサリー、表情や着替えなど、VRChatで使うモデル制作の進め方を相談できます。
+          </p>
+        </article>
+        <article class="course-track">
+          <span class="i-lucide-blend" aria-hidden="true"></span>
+          <h3>Blender基礎</h3>
+          <p>
+            モデリング、UV、テクスチャ、書き出しなど、制作で詰まりやすい基礎を作りたいもの起点で整理します。
+          </p>
+        </article>
+        <article class="course-track">
+          <span class="i-lucide-settings-2" aria-hidden="true"></span>
+          <h3>Unity / SDK導入</h3>
+          <p>
+            Unity、VRChat SDK、Modular
+            Avatar、lilToonなど、導入前に必要な環境や確認項目を扱います。
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band course-flow" aria-labelledby="trial-flow-title">
+    <div class="section-inner course-flow-grid">
+      <div>
+        <p class="section-kicker">Free Trial</p>
+        <h2 id="trial-flow-title">無料体験でやること</h2>
+      </div>
+      <ol>
+        <li>
+          <span>01</span>
+          <div>
+            <h3>作りたいものを聞く</h3>
+            <p>アバター、小物、ギミック、BOOTH公開など、ゴールを確認します。</p>
+          </div>
+        </li>
+        <li>
+          <span>02</span>
+          <div>
+            <h3>今の状態を整理する</h3>
+            <p>
+              BlenderやUnityの経験、使っている環境、詰まっている工程を見ます。
+            </p>
+          </div>
+        </li>
+        <li>
+          <span>03</span>
+          <div>
+            <h3>次にやることを決める</h3>
+            <p>制作順、必要な準備、講座で扱う範囲を30分で具体化します。</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section
+    id="trial-form"
+    class="section-band course-form-band"
+    aria-labelledby="trial-form-title"
+  >
+    <div class="section-inner course-form-grid">
+      <div class="course-form-copy">
+        <p class="section-kicker">Apply</p>
+        <h2 id="trial-form-title">無料体験申し込み</h2>
+        <p>必要な内容だけ送ってください。確認後、日程調整の連絡をします。</p>
+        <ul>
+          <li>30分のオンライン相談</li>
+          <li>VRChatモデル制作 / Blender基礎 / Unity導入に対応</li>
+          <li>作りたいものがまだ曖昧でも申し込みできます</li>
+        </ul>
+      </div>
+
+      <form class="course-form" data-course-form data-course-sitekey={sitekey}>
+        <div class="course-form-fields">
+          <div>
+            <label for="course-name">名前</label>
+            <input
+              id="course-name"
+              name="name"
+              type="text"
+              maxlength="40"
+              autocomplete="name"
+              placeholder="表示名でもOK"
+              required
+            />
+          </div>
+          <div>
+            <label for="course-contact">連絡先</label>
+            <input
+              id="course-contact"
+              name="contact"
+              type="text"
+              maxlength="140"
+              autocomplete="email"
+              placeholder="メール / Discord / X など"
+              required
+            />
+          </div>
+          <div class="course-form-wide">
+            <label for="course-goal">作りたいもの・相談したいこと</label>
+            <textarea
+              id="course-goal"
+              name="goal"
+              rows="5"
+              minlength="10"
+              maxlength="800"
+              placeholder="例: VRChat用の小物をBlenderで作りたい、Unity導入で詰まっている"
+              required></textarea>
+          </div>
+          <div class="course-form-wide">
+            <label for="course-preferred-time">希望日時</label>
+            <textarea
+              id="course-preferred-time"
+              name="preferredTime"
+              rows="3"
+              maxlength="160"
+              placeholder="例: 平日夜、土日午後、具体的な候補日など"
+              required></textarea>
+          </div>
+        </div>
+
+        <label class="course-consent">
+          <input name="consent" type="checkbox" value="yes" required />
+          <span>入力内容を無料体験の日程調整と連絡に使うことに同意します。</span
+          >
+        </label>
+
+        <input
+          type="text"
+          name="website"
+          value=""
+          autocomplete="off"
+          tabindex="-1"
+          aria-hidden="true"
+          hidden
+        />
+
+        <div
+          class="comments-turnstile"
+          data-course-turnstile
+          data-theme="light"
+        >
+        </div>
+
+        <div class="comments-actions">
+          <button type="submit" class="primary-button" data-course-submit>
+            申し込む
+            <span class="i-lucide-send" aria-hidden="true"></span>
+          </button>
+          <p>送信後、確認でき次第こちらから連絡します。</p>
+        </div>
+        <p class="comments-feedback" data-course-feedback role="alert"></p>
+      </form>
+    </div>
+  </section>
+
+  <script is:inline>
+    ;(() => {
+      const form = document.querySelector('[data-course-form]')
+      if (!form) return
+
+      const sitekey = form.dataset.courseSitekey || ''
+      const submit = form.querySelector('[data-course-submit]')
+      const feedback = form.querySelector('[data-course-feedback]')
+      const turnstileEl = form.querySelector('[data-course-turnstile]')
+      const minGoalLength = 10
+      const isLocal = ['localhost', '127.0.0.1'].includes(
+        window.location.hostname,
+      )
+
+      function setFeedback(text, type) {
+        if (!feedback) return
+        feedback.textContent = text
+        feedback.className = text
+          ? type === 'success'
+            ? 'comments-feedback comments-feedback--success'
+            : 'comments-feedback comments-feedback--error'
+          : 'comments-feedback'
+      }
+
+      function renderTurnstile() {
+        if (
+          !turnstileEl ||
+          !sitekey ||
+          typeof window.turnstile === 'undefined' ||
+          turnstileEl.dataset.widgetId
+        ) {
+          return
+        }
+
+        const widgetId = window.turnstile.render(turnstileEl, {
+          sitekey,
+          language: 'ja',
+          theme: turnstileEl.dataset.theme || 'light',
+        })
+        turnstileEl.dataset.widgetId = String(widgetId)
+      }
+
+      function loadTurnstile() {
+        if (!sitekey || isLocal) return
+        if (typeof window.turnstile !== 'undefined') {
+          renderTurnstile()
+          return
+        }
+
+        const existingScript = document.querySelector(
+          'script[data-turnstile-script]',
+        )
+        if (existingScript) {
+          waitForTurnstile(renderTurnstile)
+          return
+        }
+
+        const script = document.createElement('script')
+        script.src =
+          'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+        script.async = true
+        script.defer = true
+        script.dataset.turnstileScript = 'true'
+        script.addEventListener('load', renderTurnstile)
+        document.head.append(script)
+      }
+
+      function waitForTurnstile(callback) {
+        let attempts = 0
+        const timer = window.setInterval(() => {
+          attempts += 1
+          if (typeof window.turnstile !== 'undefined') {
+            window.clearInterval(timer)
+            callback()
+          } else if (attempts > 30) {
+            window.clearInterval(timer)
+          }
+        }, 100)
+      }
+
+      function getTurnstileToken() {
+        if (isLocal) return 'local-dev'
+
+        const widgetId = turnstileEl?.dataset.widgetId
+        if (typeof window.turnstile !== 'undefined' && widgetId) {
+          return window.turnstile.getResponse(widgetId)
+        }
+
+        return String(
+          form.querySelector('[name="cf-turnstile-response"]')?.value || '',
+        )
+      }
+
+      function resetTurnstile() {
+        const widgetId = turnstileEl?.dataset.widgetId
+        if (typeof window.turnstile !== 'undefined' && widgetId) {
+          window.turnstile.reset(widgetId)
+        }
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        setFeedback('')
+
+        const formData = new FormData(form)
+        const name = String(formData.get('name') || '').trim()
+        const contact = String(formData.get('contact') || '').trim()
+        const goal = String(formData.get('goal') || '').trim()
+        const preferredTime = String(formData.get('preferredTime') || '').trim()
+        const consent = formData.get('consent') === 'yes'
+        const website = String(formData.get('website') || '').trim()
+        const meaningfulGoalLength = Array.from(
+          goal.replace(/[^\p{L}\p{N}]/gu, ''),
+        ).length
+
+        if (
+          !name ||
+          contact.length < 3 ||
+          meaningfulGoalLength < minGoalLength ||
+          !preferredTime ||
+          !consent
+        ) {
+          setFeedback(
+            meaningfulGoalLength > 0 && meaningfulGoalLength < minGoalLength
+              ? '作りたいもの・相談したいことは10文字以上で入力してください。'
+              : '必須項目を入力してください。',
+            'error',
+          )
+          return
+        }
+
+        const turnstileToken = getTurnstileToken()
+        if (!turnstileToken) {
+          setFeedback('送信前の確認を完了してください。', 'error')
+          return
+        }
+
+        if (submit) submit.disabled = true
+        setFeedback('送信しています。')
+
+        try {
+          const response = await fetch('/api/course-signups', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name,
+              contact,
+              goal,
+              preferredTime,
+              consent,
+              website,
+              turnstileToken,
+            }),
+          })
+          const data = await response.json().catch(() => ({}))
+
+          if (!response.ok || !data.ok) {
+            throw new Error(data.message || '申し込みを送信できませんでした。')
+          }
+
+          form.reset()
+          resetTurnstile()
+          setFeedback('無料体験の申し込みを受け付けました。', 'success')
+          window.hattTrackEvent?.('course_trial_submit', {
+            location: 'modeling_course',
+          })
+        } catch (error) {
+          setFeedback(
+            error instanceof Error
+              ? error.message
+              : '申し込みを送信できませんでした。',
+            'error',
+          )
+          resetTurnstile()
+        } finally {
+          if (submit) submit.disabled = false
+        }
+      })
+
+      loadTurnstile()
+    })()
+  </script>
+</BaseLayout>

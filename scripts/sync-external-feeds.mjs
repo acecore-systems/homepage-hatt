@@ -1,12 +1,24 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { XMLParser } from 'fast-xml-parser'
 
 const root = process.cwd()
 const outDir = path.join(root, 'src', 'data', 'external')
 const narouUserId = '2047731'
 const narouAuthorUrl = `https://mypage.syosetu.com/${narouUserId}/`
-const youtubeChannelId = 'UCRd3wlD5zemJ7Q9C1SZoEDw'
+const youtubeChannelId = 'UCzEhXHKDoOrvjFUcIe5q3jA'
+const youtubeUploadsPlaylistId = `UU${youtubeChannelId.slice(2)}`
 const youtubeChannelUrl = 'https://www.youtube.com/@hatt9241'
+const youtubeFeedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeChannelId}`
+const youtubeXmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+})
+
+function asArray(value) {
+  if (!value) return []
+  return Array.isArray(value) ? value : [value]
+}
 
 async function fetchText(url) {
   const response = await fetch(url, {
@@ -20,13 +32,6 @@ async function fetchText(url) {
   }
 
   return response.text()
-}
-
-function getVideoId(url = '') {
-  const match = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/,
-  )
-  return match?.[1]
 }
 
 function formatNarouDate(value) {
@@ -72,82 +77,49 @@ async function syncNovels() {
   }
 }
 
-function addVideoRef(refs, seenIds, url, titleHint) {
-  const videoId = getVideoId(url)
-  if (!videoId || seenIds.has(videoId)) return
-
-  seenIds.add(videoId)
-  refs.push({ videoId, titleHint })
-}
-
-async function readModelingVideoRefs() {
-  const dir = path.join(root, 'src', 'content', 'modeling')
-  const entries = await fs.readdir(dir, { withFileTypes: true })
-  const refs = []
-  const seenIds = new Set()
-
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.json')) continue
-
-    const content = await fs.readFile(path.join(dir, entry.name), 'utf8')
-    const data = JSON.parse(content)
-
-    addVideoRef(refs, seenIds, data.youtubeUrl, data.title)
-
-    for (const link of data.related ?? []) {
-      addVideoRef(refs, seenIds, link.href, link.label)
-    }
-  }
-
-  return refs
-}
-
-async function fetchOEmbed({ videoId, titleHint }) {
-  const url = new URL('https://www.youtube.com/oembed')
-  url.search = new URLSearchParams({
-    format: 'json',
-    url: `https://www.youtube.com/watch?v=${videoId}`,
-  })
-
-  let data
-  try {
-    data = JSON.parse(await fetchText(url))
-  } catch {
-    data = {
-      title: titleHint ?? `YouTube動画 ${videoId}`,
-      author_name: 'Hatt',
-      author_url: youtubeChannelUrl,
-      thumbnail_url: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-    }
-  }
-
-  return {
-    videoId,
-    title: data.title,
-    url: `https://www.youtube.com/watch?v=${videoId}`,
-    authorName: data.author_name,
-    authorUrl: data.author_url,
-    thumbnailUrl: data.thumbnail_url,
-    publishedAt: '',
-    source: 'modeling',
-  }
-}
-
 async function syncYoutubeVideos() {
-  const modelingVideoRefs = await readModelingVideoRefs()
-  const modelingVideos = await Promise.all(modelingVideoRefs.map(fetchOEmbed))
+  const raw = await fetchText(youtubeFeedUrl)
+  const feed = youtubeXmlParser.parse(raw).feed ?? {}
+  const entries = asArray(feed.entry)
+  const videos = entries
+    .map((entry) => {
+      const videoId = entry['yt:videoId']
+      const mediaGroup = entry['media:group'] ?? {}
+      const title = entry.title ?? mediaGroup['media:title'] ?? ''
+      const url =
+        entry.link?.['@_href'] ?? `https://www.youtube.com/watch?v=${videoId}`
+      const description = mediaGroup['media:description'] ?? ''
+      const views = Number(
+        mediaGroup['media:community']?.['media:statistics']?.['@_views'] ?? 0,
+      )
 
-  const videos = modelingVideos.sort((a, b) => {
-    if (!a.publishedAt && !b.publishedAt) return a.title.localeCompare(b.title)
-    if (!a.publishedAt) return 1
-    if (!b.publishedAt) return -1
-    return b.publishedAt.localeCompare(a.publishedAt)
-  })
+      return {
+        videoId,
+        title,
+        url,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}`,
+        thumbnailUrl:
+          mediaGroup['media:thumbnail']?.['@_url'] ??
+          `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        authorName: entry.author?.name ?? 'Hatt',
+        authorUrl: entry.author?.uri ?? youtubeChannelUrl,
+        publishedAt: entry.published ?? '',
+        updatedAt: entry.updated ?? '',
+        description,
+        views,
+      }
+    })
+    .filter((video) => video.videoId && video.title)
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
 
   return {
-    source: 'modeling-oembed',
+    source: 'youtube-rss',
     channelId: youtubeChannelId,
     channelUrl: youtubeChannelUrl,
+    feedUrl: youtubeFeedUrl,
+    uploadsPlaylistId: youtubeUploadsPlaylistId,
+    uploadsPlaylistUrl: `https://www.youtube.com/playlist?list=${youtubeUploadsPlaylistId}`,
+    uploadsEmbedUrl: `https://www.youtube-nocookie.com/embed/videoseries?list=${youtubeUploadsPlaylistId}`,
     syncedAt: new Date().toISOString(),
     videos,
   }
