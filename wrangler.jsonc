@@ -6,7 +6,7 @@
   "d1_databases": [
     {
       "binding": "COMMENTS_DB",
-      "database_name": "homepage-hatt-comments-production",
+      "database_name": "homepage-hatt-comments",
       "database_id": "ac7dc82b-e1d1-4816-951d-3e27880008ed",
       "migrations_dir": "migrations",
     },
@@ -27,7 +27,7 @@
       "d1_databases": [
         {
           "binding": "COMMENTS_DB",
-          "database_name": "homepage-hatt-comments-production",
+          "database_name": "homepage-hatt-comments",
           "database_id": "ac7dc82b-e1d1-4816-951d-3e27880008ed",
           "migrations_dir": "migrations",
         },
@@ -48,7 +48,7 @@
       "d1_databases": [
         {
           "binding": "COMMENTS_DB",
-          "database_name": "homepage-hatt-comments-production",
+          "database_name": "homepage-hatt-comments",
           "database_id": "ac7dc82b-e1d1-4816-951d-3e27880008ed",
           "migrations_dir": "migrations",
         },
