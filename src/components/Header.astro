@@ -21,14 +21,6 @@ const iconByLabel: Record<string, string> = {
   モデリング: 'i-lucide-box',
   プロフィール: 'i-lucide-user-round',
 }
-
-const primaryNavLabels = new Set(['絵', '小説', '3D作品', 'ショップ'])
-const primaryLinks = site.headerLinks.filter((link) =>
-  primaryNavLabels.has(link.label),
-)
-const secondaryLinks = site.headerLinks.filter(
-  (link) => !primaryNavLabels.has(link.label),
-)
 ---
 
 <header class="site-header">
@@ -56,7 +48,7 @@ const secondaryLinks = site.headerLinks.filter(
         <span class="i-lucide-search" aria-hidden="true"></span>
       </button>
       {
-        primaryLinks.map((link) => {
+        site.headerLinks.map((link) => {
           const isExternal = link.href.startsWith('http')
 
           return (
@@ -76,47 +68,6 @@ const secondaryLinks = site.headerLinks.filter(
             </a>
           )
         })
-      }
-      {
-        secondaryLinks.length > 0 && (
-          <details class="nav-more">
-            <summary
-              class="nav-link nav-more-trigger"
-              data-hatt-event="nav_more_open"
-              data-hatt-label="その他"
-              data-hatt-location="header"
-              aria-label="その他のナビゲーション"
-            >
-              <span class="i-lucide-ellipsis" aria-hidden="true" />
-              <span>その他</span>
-            </summary>
-            <div class="nav-more-menu">
-              {secondaryLinks.map((link) => {
-                const isExternal = link.href.startsWith('http')
-
-                return (
-                  <a
-                    class:list={[
-                      'nav-link',
-                      { 'nav-link--external': isExternal },
-                    ]}
-                    href={link.href}
-                    {...externalAttrs(link.href)}
-                    data-hatt-event="nav_click"
-                    data-hatt-label={link.label}
-                    data-hatt-location="header_more"
-                  >
-                    <span
-                      class={iconByLabel[link.label] ?? 'i-lucide-arrow-right'}
-                      aria-hidden="true"
-                    />
-                    <span>{link.label}</span>
-                  </a>
-                )
-              })}
-            </div>
-          </details>
-        )
       }
       <a
         class="nav-link nav-cart-link nav-icon-link"
