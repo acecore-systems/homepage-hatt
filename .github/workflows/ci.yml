@@ -1,4 +1,4 @@
-name: Build and Format
+name: CI
 
 on:
   pull_request:
@@ -7,12 +7,14 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   build:
+    name: Build and Format
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
 
       - name: Install dependencies
@@ -31,5 +33,8 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
-      - name: Build
+      - name: Validate CMS content
+        run: npm run validate:content
+
+      - name: Build site
         run: npm run build

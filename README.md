@@ -29,6 +29,7 @@ npm run dev
 
 ```bash
 npm run build
+npm run validate:content
 ```
 
 `npm run build` は `astro build && pagefind --site dist` を実行します。
@@ -46,9 +47,10 @@ npm run build
 
 - 本番 CMS の publication branch は `main` です。`cms-content` のような恒久的な別本流 branch は使いません。
 - `publish_mode: editorial_workflow` により、CMS の保存は短命な CMS branch と PR として作成されます。
-- CMS 由来の PR は通常の PR と同じく review し、`.github/workflows/ci.yml` の `npm run format:check` と `npm run build` を通してから `main` に merge します。
+- CMS 由来の PR は通常の PR と同じく review し、`.github/workflows/ci.yml` の `npm run format:check`、`npm run validate:content`、`npm run build` を通してから `main` に merge します。
 - Cloudflare Pages の production deploy 元は GitHub 連携の `main` にします。
 - 詳細は `docs/cms-write-workflow.md` を参照してください。
+- 旧 remote `cms-content` branch は未反映差分がないことを確認して削除済みです。
 
 ## キャンペーン通知
 
