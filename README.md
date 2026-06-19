@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-`npm run dev` の前に `/admin/runtime-config.js` が生成され、Sveltia CMS の編集対象 branch が実行環境に合わせて切り替わります。
+`npm run dev` の前に `/admin/runtime-config.js` が生成され、Sveltia CMS の編集対象 branch は通常 `main` になります。検証用に変えたい場合は `CMS_BACKEND_BRANCH` で明示します。
 
 ## ビルド
 
@@ -43,11 +43,11 @@ npm run build
 
 ### 本番 CMS の保存と PR 反映
 
-- 本番 CMS の保存先は `cms-content` ブランチです。`main` は protected branch のため、CMS から直接 commit しません。
-- `cms-content` に保存されると `.github/workflows/cms-content-pr.yml` が `main` 向けの「CMS編集内容を反映」PRを作成します。既に open PR がある場合は二重作成しません。
-- 初回セットアップやブランチ再作成が必要な場合は、`main` の最新状態から `git fetch origin main`、`git push origin origin/main:refs/heads/cms-content` で `cms-content` を用意します。
-- CMS PR を merge した後は、CMS の次回保存で workflow が動くように `cms-content` ブランチも merge 後の `main` へ fast-forward してください。
-- GitHub Actions の `GITHUB_TOKEN` で PR 作成が許可されていない環境では、Repository settings の Actions 権限を見直すか、PR 作成権限を持つ `CMS_PR_TOKEN` secret を設定します。
+- 本番 CMS の publication branch は `main` です。`cms-content` のような恒久的な別本流 branch は使いません。
+- `publish_mode: editorial_workflow` により、CMS の保存は短命な CMS branch と PR として作成されます。
+- CMS 由来の PR は通常の PR と同じく review し、`.github/workflows/ci.yml` の `npm run format:check` と `npm run build` を通してから `main` に merge します。
+- Cloudflare Pages の production deploy 元は GitHub 連携の `main` にします。
+- 詳細は `docs/cms-write-workflow.md` を参照してください。
 
 ## キャンペーン通知
 
