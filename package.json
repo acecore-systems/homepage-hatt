@@ -11,7 +11,8 @@
     "preview": "astro preview",
     "sync:external": "node scripts/sync-external-feeds.mjs",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "validate:content": "node scripts/validate-content.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
