@@ -1,12 +1,4 @@
 {
-  "id": "x-2030643457921052762-1",
-  "title": "Xの絵投稿 2026.03.08",
-  "date": "2026-03-08",
-  "image": "https://pbs.twimg.com/media/HC5LYJaasAAvVPA?format=png&name=large",
-  "alt": "HattのXに投稿された絵",
   "sourceUrl": "https://x.com/borubin/status/2030643457921052762",
-  "sourceLabel": "X",
-  "tags": ["X", "絵"],
-  "order": 99,
-  "featured": false
+  "image": "https://pbs.twimg.com/media/HC5LYJaasAAvVPA?format=png&name=large"
 }

@@ -284,7 +284,7 @@ collections:
   - name: art
     label: 絵
     label_singular: 絵
-    description: X投稿URLだけ、または手元の画像を、絵ギャラリーとして編集します。
+    description: URLと画像だけで絵ギャラリーを編集します。
     icon: image
     folder: src/content/art
     format: json
@@ -294,67 +294,16 @@ collections:
     preview_path: art/
     summary: '{{sourceUrl}}'
     thumbnail: image
-    sortable_fields: [date, sourceUrl, title, order, featured]
+    sortable_fields: [sourceUrl]
     fields:
       - name: sourceUrl
-        label: X投稿URL
+        label: URL
         widget: string
-        hint: X/Twitterの投稿URLだけで追加できます。画像を直接登録する場合も、元投稿や関連ページがあれば入れます。
-      - name: id
-        label: ID
-        widget: string
-        required: false
-        hint: 半角英数字、ハイフン、アンダースコアで入力します。
-        pattern:
-          - '^[a-z0-9][a-z0-9_-]*$'
-          - 半角英数字で始まるIDを入力してください。
-      - name: title
-        label: タイトル
-        widget: string
-        required: false
-      - name: description
-        label: 説明
-        widget: text
-        required: false
-      - name: date
-        label: 投稿日
-        widget: datetime
-        type: date
-        format: YYYY-MM-DD
-        default: '{{now}}'
-        required: false
+        hint: クリック先のURLです。X投稿以外のURLでも使えます。
       - name: image
         label: 画像
         widget: image
-        required: false
-        hint: 空欄の場合はX投稿URLの埋め込みで表示します。
-      - name: alt
-        label: 代替テキスト
-        widget: string
-        required: false
-      - name: sourceLabel
-        label: 投稿元ラベル
-        widget: string
-        default: X
-        required: false
-      - name: tags
-        label: タグ
-        widget: list
-        required: false
-        field:
-          name: tag
-          label: タグ
-          widget: string
-      - name: order
-        label: 表示順
-        widget: number
-        value_type: int
-        default: 100
-        required: false
-      - name: featured
-        label: 注目表示
-        widget: boolean
-        default: false
+        hint: ギャラリーに表示する画像です。
 
   - name: modeling
     label: モデリング

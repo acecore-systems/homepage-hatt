@@ -13,26 +13,6 @@ const excludedIdsPath = path.join(
 )
 const outDir = path.join(root, 'src', 'content', 'art')
 
-function sortObject(value) {
-  return Object.fromEntries(
-    Object.entries(value).filter(([, entryValue]) => {
-      if (entryValue === undefined || entryValue === null) return false
-      if (typeof entryValue === 'string' && entryValue.length === 0) {
-        return false
-      }
-      if (Array.isArray(entryValue) && entryValue.length === 0) return false
-
-      return true
-    }),
-  )
-}
-
-function toCmsDate(value) {
-  if (typeof value !== 'string' || value.length < 10) return undefined
-
-  return value.slice(0, 10)
-}
-
 const [artFeed, excludedIds] = await Promise.all([
   fs.readFile(artFeedPath, 'utf8').then(JSON.parse),
   fs.readFile(excludedIdsPath, 'utf8').then(JSON.parse),
@@ -56,19 +36,10 @@ for (const item of artFeed.items ?? []) {
   }
 
   const filePath = path.join(outDir, `${item.id}.json`)
-  const content = sortObject({
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    date: toCmsDate(item.date),
-    image: item.image,
-    alt: item.alt,
+  const content = {
     sourceUrl: item.sourceUrl,
-    sourceLabel: item.sourceLabel ?? 'X',
-    tags: item.tags,
-    order: item.order,
-    featured: item.featured,
-  })
+    image: item.image,
+  }
 
   try {
     await fs.writeFile(filePath, `${JSON.stringify(content, null, 2)}\n`, {

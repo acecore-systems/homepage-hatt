@@ -1,140 +1,58 @@
 ---
 import { getCollection } from 'astro:content'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import excludedArtIds from '@/data/external/art-excluded-ids.json'
-import artFeed from '@/data/external/art-posts.json'
 import { externalAttrs } from '@/utils/routes'
 
-type ArtFeedItem = {
-  id?: string
-  title?: string
-  description?: string
-  date?: string
-  image?: string
-  alt?: string
-  sourceUrl?: string
-  sourceLabel?: string
-  tags?: string[]
-  order?: number
-  featured?: boolean
+const profileUrl = 'https://x.com/borubin'
+
+type ArtItem = {
+  id: string
+  sourceUrl: string
+  image: string
+  title: string
+  rank?: string
 }
 
-const externalArtItems = artFeed.items as ArtFeedItem[]
-const externalArtBySourceUrl = new Map(
-  externalArtItems.flatMap((item) =>
-    item.sourceUrl ? [[item.sourceUrl, item] as const] : [],
-  ),
-)
-const fallbackDate = new Date(0)
-const isXPostUrl = (url: string | undefined) =>
-  /^https?:\/\/(?:x\.com|twitter\.com)\/[^/]+\/status\/\d+/i.test(url ?? '')
-const formatArtDate = (date: Date | undefined) =>
-  date && date.getTime() > 0
-    ? new Intl.DateTimeFormat('ja-JP', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).format(date)
-    : undefined
-const getFallbackTitle = (item: {
-  id?: string
-  date?: Date
-  sourceUrl?: string
-}) => {
-  const dateLabel = formatArtDate(item.date)
-  if (isXPostUrl(item.sourceUrl)) {
-    return dateLabel ? `Xの絵投稿 ${dateLabel}` : 'Xの絵投稿'
+const getStatusId = (value: string) =>
+  value.match(/(?:status\/|^x-)(\d{12,})/)?.[1]
+
+const compareRank = (a: ArtItem, b: ArtItem) => {
+  if (a.rank && b.rank) {
+    return a.rank.length === b.rank.length
+      ? b.rank.localeCompare(a.rank)
+      : b.rank.length - a.rank.length
   }
+  if (a.rank) return -1
+  if (b.rank) return 1
 
-  return dateLabel ? `絵投稿 ${dateLabel}` : (item.id ?? '絵投稿')
+  return b.id.localeCompare(a.id)
 }
 
-const cmsItems = (await getCollection('art'))
-  .map((entry) => {
-    const id = entry.data.id ?? entry.id
-    const sourceUrl = entry.data.sourceUrl?.trim() || undefined
-    const externalItem = sourceUrl
-      ? externalArtBySourceUrl.get(sourceUrl)
-      : undefined
-    const date =
-      entry.data.date ??
-      (externalItem?.date ? new Date(externalItem.date) : fallbackDate)
-    const image = entry.data.image?.trim() || externalItem?.image || undefined
-    const item = {
-      id,
-      title: entry.data.title?.trim() || externalItem?.title || undefined,
-      description: entry.data.description || externalItem?.description,
-      date,
-      image,
-      alt: entry.data.alt || externalItem?.alt || '',
-      sourceUrl,
-      sourceLabel: entry.data.sourceLabel || externalItem?.sourceLabel || 'X',
-      tags: entry.data.tags.length > 0 ? entry.data.tags : externalItem?.tags,
-      order: entry.data.order,
-      featured: entry.data.featured,
-      source: 'cms',
-    }
+const getArtTitle = (sourceUrl: string, id: string) => {
+  const statusId = getStatusId(sourceUrl)
+  if (statusId) return `Xの絵投稿 ${statusId}`
+
+  return sourceUrl || id
+}
+
+const artItems = (await getCollection('art'))
+  .map((entry): ArtItem => {
+    const sourceUrl = entry.data.sourceUrl.trim()
+    const image = entry.data.image.trim()
 
     return {
-      ...item,
-      title: item.title ?? getFallbackTitle(item),
+      id: entry.id,
+      sourceUrl,
+      image,
+      title: getArtTitle(sourceUrl, entry.id),
+      rank: getStatusId(sourceUrl) ?? getStatusId(entry.id),
     }
   })
-  .filter((item) => item.image || item.sourceUrl)
-  .sort(
-    (a, b) =>
-      Number(b.featured) - Number(a.featured) ||
-      a.order - b.order ||
-      b.date.getTime() - a.date.getTime(),
-  )
+  .filter((item) => item.sourceUrl && item.image)
+  .sort(compareRank)
 
-// Keep this gallery to drawings; these X media are 3D/game screenshots or photos.
-const excludedExternalArtItemIds = new Set(excludedArtIds)
-
-const xItems = externalArtItems
-  .filter((item) => !excludedExternalArtItemIds.has(item.id ?? ''))
-  .map((item) => ({
-    ...item,
-    title:
-      item.title ||
-      getFallbackTitle({
-        id: item.id,
-        date: item.date ? new Date(item.date) : fallbackDate,
-        sourceUrl: item.sourceUrl,
-      }),
-    date: item.date ? new Date(item.date) : fallbackDate,
-    alt: item.alt ?? '',
-    sourceLabel: item.sourceLabel ?? 'X',
-    tags: item.tags ?? [],
-    order: item.order ?? 100,
-    featured: item.featured ?? false,
-    source: 'x-browser',
-  }))
-
-const seen = new Set<string>()
-const artItems = [...cmsItems, ...xItems]
-  .filter((item) => {
-    const key = item.sourceUrl || item.image || item.id
-    if (!key) return false
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-  .sort(
-    (a, b) =>
-      Number(b.featured) - Number(a.featured) ||
-      a.order - b.order ||
-      b.date.getTime() - a.date.getTime(),
-  )
-const hasEmbeddedTweets = artItems.some(
-  (item) => !item.image && isXPostUrl(item.sourceUrl),
-)
-
-const getArtTileClass = (
-  item: { featured?: boolean },
-  index: number,
-): string | undefined => {
-  if (item.featured || index % 13 === 0) return 'art-tile--large'
+const getArtTileClass = (index: number): string | undefined => {
+  if (index % 13 === 0) return 'art-tile--large'
   if (index % 7 === 2 || index % 10 === 5) return 'art-tile--tall'
   if (index % 5 === 1 || index % 8 === 4) return 'art-tile--wide'
 
@@ -144,7 +62,7 @@ const getArtTileClass = (
 
 <BaseLayout
   title="絵"
-  description="X投稿やCMSで追加したHattの絵を、画像中心のギャラリーとして並べています。"
+  description="CMSで追加したHattの絵を、画像中心のギャラリーとして並べています。"
   showAnnouncement={false}
 >
   <section class="section-band art-gallery-section" aria-labelledby="art-title">
@@ -153,72 +71,28 @@ const getArtTileClass = (
       {
         artItems.length > 0 ? (
           <div class="art-grid">
-            {artItems.map((item, index) => {
-              const href = item.sourceUrl || item.image || artFeed.profileUrl
-
-              return item.image ? (
-                <a
-                  class:list={['art-tile', getArtTileClass(item, index)]}
-                  href={href}
-                  aria-label={`${item.title}の詳細を見る`}
-                  {...externalAttrs(href)}
-                >
-                  <img
-                    src={item.image}
-                    alt={item.alt || item.title}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </a>
-              ) : item.sourceUrl && isXPostUrl(item.sourceUrl) ? (
-                <article
-                  class:list={[
-                    'art-tile',
-                    'art-tile--embed',
-                    getArtTileClass(item, index),
-                  ]}
-                >
-                  <blockquote
-                    class="twitter-tweet"
-                    data-dnt="true"
-                    data-theme="light"
-                  >
-                    <a href={item.sourceUrl} {...externalAttrs(item.sourceUrl)}>
-                      {item.title}
-                    </a>
-                  </blockquote>
-                  <a
-                    class="art-tweet-fallback"
-                    href={item.sourceUrl}
-                    {...externalAttrs(item.sourceUrl)}
-                  >
-                    Xで見る
-                  </a>
-                </article>
-              ) : (
-                <a
-                  class:list={[
-                    'art-tile',
-                    'art-tile--link',
-                    getArtTileClass(item, index),
-                  ]}
-                  href={href}
-                  {...externalAttrs(href)}
-                >
-                  <span class="i-lucide-external-link" aria-hidden="true" />
-                  <span>{item.title}</span>
-                </a>
-              )
-            })}
+            {artItems.map((item, index) => (
+              <a
+                class:list={['art-tile', getArtTileClass(index)]}
+                href={item.sourceUrl}
+                aria-label={`${item.title}の詳細を見る`}
+                {...externalAttrs(item.sourceUrl)}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            ))}
           </div>
         ) : (
           <div class="art-empty">
             <span class="i-lucide-image-plus" aria-hidden="true" />
             <h2>まだ掲載する絵がありません</h2>
-            <p>
-              Xの公開ページから画像投稿を取得できなかったため、CMSで追加した絵がここに並びます。
-            </p>
-            <a href={artFeed.profileUrl} {...externalAttrs(artFeed.profileUrl)}>
+            <p>CMSでURLと画像を追加すると、ここに絵が並びます。</p>
+            <a href={profileUrl} {...externalAttrs(profileUrl)}>
               Xを見る
             </a>
           </div>
@@ -226,9 +100,4 @@ const getArtTileClass = (
       }
     </div>
   </section>
-  {
-    hasEmbeddedTweets && (
-      <script async src="https://platform.twitter.com/widgets.js" />
-    )
-  }
 </BaseLayout>
