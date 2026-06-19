@@ -1,14 +1,14 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
-const defaultCmsBranch = 'cms-content'
+const defaultCmsBranch = 'main'
 const deploymentBranch =
   process.env.CF_PAGES_BRANCH ||
   process.env.GITHUB_HEAD_REF ||
   process.env.GITHUB_REF_NAME ||
   process.env.BRANCH
 const cmsBranch =
-  process.env.CMS_CONTENT_BRANCH ||
+  process.env.CMS_BACKEND_BRANCH ||
   (deploymentBranch && deploymentBranch !== 'main'
     ? deploymentBranch
     : defaultCmsBranch)
