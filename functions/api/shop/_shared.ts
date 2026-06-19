@@ -76,6 +76,9 @@ export type ShopSettings = {
   checkoutEnabled: boolean
   currency: 'JPY'
   stripeTaxEnabled: boolean
+  stripeConnectedAccountId?: string
+  platformFeeBasisPoints?: number
+  platformFeeFixedJpy?: number
   allowedCountries?: string[]
   shippingProfiles?: ShippingProfile[]
   businessName?: string
@@ -112,10 +115,14 @@ export type OrderRow = {
   customer_email: string | null
   customer_name: string | null
   currency: string
+  stripe_connected_account_id: string | null
   subtotal_jpy: number
   shipping_jpy: number
   tax_jpy: number
   total_jpy: number
+  platform_fee_jpy: number
+  platform_fee_basis_points: number
+  platform_fee_fixed_jpy: number
   payment_status: string
   fulfillment_status: string
   shipping_address_json: string | null
@@ -236,6 +243,13 @@ export function assertCheckoutReady() {
       '決済は準備中です。ショップ設定の販売者情報と規約を確認してください。',
     )
   }
+
+  if (!hasRequiredStripeConnectFields(settings)) {
+    throw new ShopApiError(
+      503,
+      '決済は準備中です。Stripe Connectの販売者アカウントを設定してください。',
+    )
+  }
 }
 
 function hasRequiredLegalFields(shopSettings: ShopSettings) {
@@ -249,6 +263,51 @@ function hasRequiredLegalFields(shopSettings: ShopSettings) {
     shopSettings.privacyPolicy,
     shopSettings.terms,
   ].every((value) => String(value || '').trim().length > 0)
+}
+
+function hasRequiredStripeConnectFields(shopSettings: ShopSettings) {
+  return /^acct_[A-Za-z0-9]+$/.test(
+    String(shopSettings.stripeConnectedAccountId || '').trim(),
+  )
+}
+
+function getStripeConnectedAccountId() {
+  const accountId = String(settings.stripeConnectedAccountId || '').trim()
+  if (!/^acct_[A-Za-z0-9]+$/.test(accountId)) {
+    throw new ShopApiError(
+      503,
+      'Stripe Connectの販売者アカウントが未設定です。',
+    )
+  }
+  return accountId
+}
+
+function normalizePlatformFeeBasisPoints() {
+  const basisPoints = Number(settings.platformFeeBasisPoints ?? 0)
+  if (!Number.isFinite(basisPoints)) return 0
+  return Math.min(Math.max(Math.trunc(basisPoints), 0), 9999)
+}
+
+function normalizePlatformFeeFixedJpy() {
+  const fixedJpy = Number(settings.platformFeeFixedJpy ?? 0)
+  if (!Number.isFinite(fixedJpy)) return 0
+  return Math.max(Math.trunc(fixedJpy), 0)
+}
+
+export function resolvePlatformFee(subtotalJpy: number) {
+  const basisPoints = normalizePlatformFeeBasisPoints()
+  const fixedJpy = normalizePlatformFeeFixedJpy()
+  const percentageFeeJpy = Math.floor((subtotalJpy * basisPoints) / 10000)
+  const requestedFeeJpy = percentageFeeJpy + fixedJpy
+  const maxFeeJpy = Math.max(subtotalJpy - 1, 0)
+  const amountJpy =
+    requestedFeeJpy > 0 ? Math.min(requestedFeeJpy, maxFeeJpy) : 0
+
+  return {
+    amountJpy,
+    basisPoints,
+    fixedJpy,
+  }
 }
 
 export function normalizeCartItems(items: unknown): CheckoutCartItem[] {
@@ -541,15 +600,30 @@ export async function createPendingOrder(
   const now = new Date().toISOString()
   const subtotal = getSubtotal(items)
   const total = subtotal + shipping.amountJpy
+  const stripeConnectedAccountId = getStripeConnectedAccountId()
+  const platformFee = resolvePlatformFee(subtotal)
 
   await db
     .prepare(
       `INSERT INTO shop_orders
-       (id, currency, subtotal_jpy, shipping_jpy, tax_jpy, total_jpy,
+       (id, currency, stripe_connected_account_id,
+        subtotal_jpy, shipping_jpy, tax_jpy, total_jpy,
+        platform_fee_jpy, platform_fee_basis_points, platform_fee_fixed_jpy,
         payment_status, fulfillment_status, created_at, updated_at)
-       VALUES (?, 'JPY', ?, ?, 0, ?, 'pending', 'pending', ?, ?)`,
+       VALUES (?, 'JPY', ?, ?, ?, 0, ?, ?, ?, ?, 'pending', 'pending', ?, ?)`,
     )
-    .bind(orderId, subtotal, shipping.amountJpy, total, now, now)
+    .bind(
+      orderId,
+      stripeConnectedAccountId,
+      subtotal,
+      shipping.amountJpy,
+      total,
+      platformFee.amountJpy,
+      platformFee.basisPoints,
+      platformFee.fixedJpy,
+      now,
+      now,
+    )
     .run()
 
   await db.batch(
@@ -593,6 +667,8 @@ export async function createStripeCheckoutSession(
     throw new ShopApiError(503, 'STRIPE_SECRET_KEYが未設定です。')
   }
 
+  const stripeConnectedAccountId = getStripeConnectedAccountId()
+  const platformFee = resolvePlatformFee(getSubtotal(items))
   const origin = new URL(request.url).origin
   const params = new URLSearchParams()
   params.set('mode', 'payment')
@@ -603,7 +679,23 @@ export async function createStripeCheckoutSession(
   )
   params.set('cancel_url', `${origin}/shop/checkout/cancel/`)
   params.set('metadata[order_id]', orderId)
+  params.set('metadata[stripe_connected_account_id]', stripeConnectedAccountId)
+  params.set('metadata[platform_fee_jpy]', String(platformFee.amountJpy))
   params.set('payment_intent_data[metadata][order_id]', orderId)
+  params.set(
+    'payment_intent_data[metadata][stripe_connected_account_id]',
+    stripeConnectedAccountId,
+  )
+  params.set(
+    'payment_intent_data[metadata][platform_fee_jpy]',
+    String(platformFee.amountJpy),
+  )
+  if (platformFee.amountJpy > 0) {
+    params.set(
+      'payment_intent_data[application_fee_amount]',
+      String(platformFee.amountJpy),
+    )
+  }
   params.set(
     'automatic_tax[enabled]',
     settings.stripeTaxEnabled ? 'true' : 'false',
@@ -675,6 +767,7 @@ export async function createStripeCheckoutSession(
       Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
       'Content-Type': 'application/x-www-form-urlencoded',
       'Stripe-Version': '2026-02-25.clover',
+      'Stripe-Account': stripeConnectedAccountId,
     },
     body: params,
   })

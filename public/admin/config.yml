@@ -757,6 +757,26 @@ collections:
             label: Stripe Taxを有効にする
             widget: boolean
             default: true
+          - name: stripeConnectedAccountId
+            label: Stripe Connect販売者アカウントID
+            hint: acct_ から始まるconnected account ID。未設定だと決済は有効になりません。
+            widget: string
+            required: false
+          - name: platformFeeBasisPoints
+            label: プラットフォーム手数料率（bps）
+            hint: 1000=10%。0なら率の手数料なし。
+            widget: number
+            value_type: int
+            min: 0
+            max: 9999
+            default: 0
+          - name: platformFeeFixedJpy
+            label: プラットフォーム固定手数料（円）
+            hint: 1注文ごとに追加で差し引く手数料。不要なら0。
+            widget: number
+            value_type: int
+            min: 0
+            default: 0
           - name: allowedCountries
             label: 配送可能国
             widget: list

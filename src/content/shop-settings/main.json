@@ -4,6 +4,9 @@
   "checkoutEnabled": true,
   "currency": "JPY",
   "stripeTaxEnabled": true,
+  "stripeConnectedAccountId": "",
+  "platformFeeBasisPoints": 0,
+  "platformFeeFixedJpy": 0,
   "allowedCountries": ["JP"],
   "shippingProfiles": [
     {

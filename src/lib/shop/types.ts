@@ -46,6 +46,9 @@ export type ShopSettings = {
   checkoutEnabled: boolean
   currency: 'JPY'
   stripeTaxEnabled: boolean
+  stripeConnectedAccountId?: string
+  platformFeeBasisPoints: number
+  platformFeeFixedJpy: number
   allowedCountries: string[]
   shippingProfiles: ShippingProfile[]
   businessName?: string
@@ -110,11 +113,18 @@ export function hasRequiredLegalFields(settings: ShopSettings) {
   ].every((value) => String(value || '').trim().length > 0)
 }
 
+export function hasRequiredStripeConnectFields(settings: ShopSettings) {
+  return /^acct_[A-Za-z0-9]+$/.test(
+    String(settings.stripeConnectedAccountId || '').trim(),
+  )
+}
+
 export function canCheckout(settings: ShopSettings) {
   return (
     settings.enabled &&
     settings.checkoutEnabled &&
-    hasRequiredLegalFields(settings)
+    hasRequiredLegalFields(settings) &&
+    hasRequiredStripeConnectFields(settings)
   )
 }
 

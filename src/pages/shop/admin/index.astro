@@ -126,7 +126,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
           const title = document.createElement('h3')
           title.textContent = order.customerEmail || order.id
           const meta = document.createElement('p')
-          meta.textContent = `${formatJpy(order.totalJpy)} / ${order.paymentStatus} / ${order.fulfillmentStatus}`
+          const feeText = order.platformFeeJpy
+            ? ` / 手数料 ${formatJpy(order.platformFeeJpy)}`
+            : ''
+          const accountText = order.stripeConnectedAccountId
+            ? ` / ${order.stripeConnectedAccountId}`
+            : ''
+          meta.textContent = `${formatJpy(order.totalJpy)}${feeText} / ${order.paymentStatus} / ${order.fulfillmentStatus}${accountText}`
           header.append(title, meta)
 
           const items = document.createElement('ul')
