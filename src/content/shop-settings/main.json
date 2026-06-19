@@ -3,7 +3,7 @@
   "enabled": true,
   "checkoutEnabled": true,
   "currency": "JPY",
-  "stripeTaxEnabled": true,
+  "stripeTaxEnabled": false,
   "stripeConnectedAccountId": "acct_1Tk3IkK3npjuj6wg",
   "platformFeeBasisPoints": 0,
   "platformFeeFixedJpy": 0,
