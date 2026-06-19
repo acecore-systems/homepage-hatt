@@ -147,17 +147,8 @@ const art = defineCollection({
     pattern: '**/*.json',
   }),
   schema: z.object({
-    id: z.string().optional(),
-    title: z.string(),
-    description: z.string().optional(),
-    date: cmsDate,
+    sourceUrl: z.string(),
     image: z.string(),
-    alt: z.string().default(''),
-    sourceUrl: z.string().optional(),
-    sourceLabel: z.string().default('X'),
-    tags: z.array(z.string()).default([]),
-    order: z.number().default(100),
-    featured: z.boolean().default(false),
   }),
 })
 
