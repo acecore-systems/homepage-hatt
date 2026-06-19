@@ -6,10 +6,10 @@ import { externalAttrs } from '@/utils/routes'
 
 type ArtFeedItem = {
   id?: string
-  title: string
+  title?: string
   description?: string
-  date: string
-  image: string
+  date?: string
+  image?: string
   alt?: string
   sourceUrl?: string
   sourceLabel?: string
@@ -18,21 +18,68 @@ type ArtFeedItem = {
   featured?: boolean
 }
 
+const externalArtItems = artFeed.items as ArtFeedItem[]
+const externalArtBySourceUrl = new Map(
+  externalArtItems.flatMap((item) =>
+    item.sourceUrl ? [[item.sourceUrl, item] as const] : [],
+  ),
+)
+const fallbackDate = new Date(0)
+const isXPostUrl = (url: string | undefined) =>
+  /^https?:\/\/(?:x\.com|twitter\.com)\/[^/]+\/status\/\d+/i.test(url ?? '')
+const formatArtDate = (date: Date | undefined) =>
+  date && date.getTime() > 0
+    ? new Intl.DateTimeFormat('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(date)
+    : undefined
+const getFallbackTitle = (item: {
+  id?: string
+  date?: Date
+  sourceUrl?: string
+}) => {
+  const dateLabel = formatArtDate(item.date)
+  if (isXPostUrl(item.sourceUrl)) {
+    return dateLabel ? `Xの絵投稿 ${dateLabel}` : 'Xの絵投稿'
+  }
+
+  return dateLabel ? `絵投稿 ${dateLabel}` : (item.id ?? '絵投稿')
+}
+
 const cmsItems = (await getCollection('art'))
-  .map((entry) => ({
-    id: entry.data.id ?? entry.id,
-    title: entry.data.title,
-    description: entry.data.description,
-    date: entry.data.date,
-    image: entry.data.image,
-    alt: entry.data.alt,
-    sourceUrl: entry.data.sourceUrl,
-    sourceLabel: entry.data.sourceLabel,
-    tags: entry.data.tags,
-    order: entry.data.order,
-    featured: entry.data.featured,
-    source: 'cms',
-  }))
+  .map((entry) => {
+    const id = entry.data.id ?? entry.id
+    const sourceUrl = entry.data.sourceUrl?.trim() || undefined
+    const externalItem = sourceUrl
+      ? externalArtBySourceUrl.get(sourceUrl)
+      : undefined
+    const date =
+      entry.data.date ??
+      (externalItem?.date ? new Date(externalItem.date) : fallbackDate)
+    const image = entry.data.image?.trim() || externalItem?.image || undefined
+    const item = {
+      id,
+      title: entry.data.title?.trim() || externalItem?.title || undefined,
+      description: entry.data.description || externalItem?.description,
+      date,
+      image,
+      alt: entry.data.alt || externalItem?.alt || '',
+      sourceUrl,
+      sourceLabel: entry.data.sourceLabel || externalItem?.sourceLabel || 'X',
+      tags: entry.data.tags.length > 0 ? entry.data.tags : externalItem?.tags,
+      order: entry.data.order,
+      featured: entry.data.featured,
+      source: 'cms',
+    }
+
+    return {
+      ...item,
+      title: item.title ?? getFallbackTitle(item),
+    }
+  })
+  .filter((item) => item.image || item.sourceUrl)
   .sort(
     (a, b) =>
       Number(b.featured) - Number(a.featured) ||
@@ -71,11 +118,18 @@ const excludedExternalArtItemIds = new Set([
   'x-1583743697576898560-1',
 ])
 
-const xItems = (artFeed.items as ArtFeedItem[])
+const xItems = externalArtItems
   .filter((item) => !excludedExternalArtItemIds.has(item.id ?? ''))
   .map((item) => ({
     ...item,
-    date: new Date(item.date),
+    title:
+      item.title ||
+      getFallbackTitle({
+        id: item.id,
+        date: item.date ? new Date(item.date) : fallbackDate,
+        sourceUrl: item.sourceUrl,
+      }),
+    date: item.date ? new Date(item.date) : fallbackDate,
     alt: item.alt ?? '',
     sourceLabel: item.sourceLabel ?? 'X',
     tags: item.tags ?? [],
@@ -88,6 +142,7 @@ const seen = new Set<string>()
 const artItems = [...cmsItems, ...xItems]
   .filter((item) => {
     const key = item.sourceUrl || item.image || item.id
+    if (!key) return false
     if (seen.has(key)) return false
     seen.add(key)
     return true
@@ -98,6 +153,9 @@ const artItems = [...cmsItems, ...xItems]
       a.order - b.order ||
       b.date.getTime() - a.date.getTime(),
   )
+const hasEmbeddedTweets = artItems.some(
+  (item) => !item.image && isXPostUrl(item.sourceUrl),
+)
 
 const getArtTileClass = (
   item: { featured?: boolean },
@@ -123,9 +181,9 @@ const getArtTileClass = (
         artItems.length > 0 ? (
           <div class="art-grid">
             {artItems.map((item, index) => {
-              const href = item.sourceUrl || item.image
+              const href = item.sourceUrl || item.image || artFeed.profileUrl
 
-              return (
+              return item.image ? (
                 <a
                   class:list={['art-tile', getArtTileClass(item, index)]}
                   href={href}
@@ -138,6 +196,44 @@ const getArtTileClass = (
                     loading="lazy"
                     decoding="async"
                   />
+                </a>
+              ) : item.sourceUrl && isXPostUrl(item.sourceUrl) ? (
+                <article
+                  class:list={[
+                    'art-tile',
+                    'art-tile--embed',
+                    getArtTileClass(item, index),
+                  ]}
+                >
+                  <blockquote
+                    class="twitter-tweet"
+                    data-dnt="true"
+                    data-theme="light"
+                  >
+                    <a href={item.sourceUrl} {...externalAttrs(item.sourceUrl)}>
+                      {item.title}
+                    </a>
+                  </blockquote>
+                  <a
+                    class="art-tweet-fallback"
+                    href={item.sourceUrl}
+                    {...externalAttrs(item.sourceUrl)}
+                  >
+                    Xで見る
+                  </a>
+                </article>
+              ) : (
+                <a
+                  class:list={[
+                    'art-tile',
+                    'art-tile--link',
+                    getArtTileClass(item, index),
+                  ]}
+                  href={href}
+                  {...externalAttrs(href)}
+                >
+                  <span class="i-lucide-external-link" aria-hidden="true" />
+                  <span>{item.title}</span>
                 </a>
               )
             })}
@@ -157,4 +253,9 @@ const getArtTileClass = (
       }
     </div>
   </section>
+  {
+    hasEmbeddedTweets && (
+      <script async src="https://platform.twitter.com/widgets.js" />
+    )
+  }
 </BaseLayout>

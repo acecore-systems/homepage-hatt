@@ -70,12 +70,28 @@ const pullQuoteSchema = z.object({
 })
 const CONTENT_DATETIME_PATTERN =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?$/
+const CONTENT_DATE_OR_DATETIME_PATTERN =
+  /^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?)$/
 
 const cmsDate = z
   .string()
   .refine((value) => CONTENT_DATETIME_PATTERN.test(value.trim()), {
     message:
       'Content date must include time as YYYY-MM-DDTHH:mm, optionally with timezone',
+  })
+  .transform((value) => {
+    const date = parseCmsDateTime(value)
+    if (!date) {
+      throw new Error(`Invalid date value in content frontmatter: ${value}`)
+    }
+    return date
+  })
+
+const cmsOptionalDate = z
+  .string()
+  .refine((value) => CONTENT_DATE_OR_DATETIME_PATTERN.test(value.trim()), {
+    message:
+      'Content date must be YYYY-MM-DD or YYYY-MM-DDTHH:mm, optionally with timezone',
   })
   .transform((value) => {
     const date = parseCmsDateTime(value)
@@ -146,19 +162,23 @@ const art = defineCollection({
     base: './src/content/art',
     pattern: '**/*.json',
   }),
-  schema: z.object({
-    id: z.string().optional(),
-    title: z.string(),
-    description: z.string().optional(),
-    date: cmsDate,
-    image: z.string(),
-    alt: z.string().default(''),
-    sourceUrl: z.string().optional(),
-    sourceLabel: z.string().default('X'),
-    tags: z.array(z.string()).default([]),
-    order: z.number().default(100),
-    featured: z.boolean().default(false),
-  }),
+  schema: z
+    .object({
+      id: z.string().optional(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      date: cmsOptionalDate.optional(),
+      image: z.string().optional(),
+      alt: z.string().default(''),
+      sourceUrl: z.string().optional(),
+      sourceLabel: z.string().default('X'),
+      tags: z.array(z.string()).default([]),
+      order: z.number().default(100),
+      featured: z.boolean().default(false),
+    })
+    .refine((entry) => entry.image || entry.sourceUrl, {
+      message: 'Art entry must include either image or sourceUrl',
+    }),
 })
 
 const modeling = defineCollection({

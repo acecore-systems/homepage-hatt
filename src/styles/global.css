@@ -678,6 +678,53 @@ main {
   grid-row: span 2;
 }
 
+.art-tile--embed,
+.art-tile--link {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: var(--white);
+}
+
+.art-tile--embed {
+  grid-column: span 2;
+  grid-row: span 3;
+  overflow: auto;
+}
+
+.art-tile--embed .twitter-tweet {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+.art-tweet-fallback {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(21, 26, 36, 0.14);
+  border-radius: 999px;
+  padding: 7px 14px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.art-tile--link {
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+
+.art-tile--link > span:first-child {
+  color: var(--cyan);
+  font-size: 1.6rem;
+}
+
 .art-tile img {
   display: block;
   width: 100%;
