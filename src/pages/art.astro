@@ -1,109 +1,58 @@
 ---
 import { getCollection } from 'astro:content'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import artFeed from '@/data/external/art-posts.json'
 import { externalAttrs } from '@/utils/routes'
 
-type ArtFeedItem = {
-  id?: string
-  title: string
-  description?: string
-  date: string
+const profileUrl = 'https://x.com/borubin'
+
+type ArtItem = {
+  id: string
+  sourceUrl: string
   image: string
-  alt?: string
-  sourceUrl?: string
-  sourceLabel?: string
-  tags?: string[]
-  order?: number
-  featured?: boolean
+  title: string
+  rank?: string
 }
 
-const cmsItems = (await getCollection('art'))
-  .map((entry) => ({
-    id: entry.data.id ?? entry.id,
-    title: entry.data.title,
-    description: entry.data.description,
-    date: entry.data.date,
-    image: entry.data.image,
-    alt: entry.data.alt,
-    sourceUrl: entry.data.sourceUrl,
-    sourceLabel: entry.data.sourceLabel,
-    tags: entry.data.tags,
-    order: entry.data.order,
-    featured: entry.data.featured,
-    source: 'cms',
-  }))
-  .sort(
-    (a, b) =>
-      Number(b.featured) - Number(a.featured) ||
-      a.order - b.order ||
-      b.date.getTime() - a.date.getTime(),
-  )
+const getStatusId = (value: string) =>
+  value.match(/(?:status\/|^x-)(\d{12,})/)?.[1]
 
-// Keep this gallery to drawings; these X media are 3D/game screenshots or photos.
-const excludedExternalArtItemIds = new Set([
-  'x-2047430961743495178-1',
-  'x-2043665982246514716-1',
-  'x-2043312957912986056-1',
-  'x-2037284530353328329-1',
-  'x-2025983192084414926-1',
-  'x-1979795032501800964-1',
-  'x-1952505081427026382-1',
-  'x-1952134150892425554-1',
-  'x-1922025738011586826-1',
-  'x-1921211655788154892-1',
-  'x-1917781911314825566-1',
-  'x-1917775838315176363-1',
-  'x-1852090504546304470-1',
-  'x-1851751978143203529-1',
-  'x-1821199871547777257-1',
-  'x-1798761858784166263-1',
-  'x-1792931675829092412-1',
-  'x-1784270515580068196-1',
-  'x-1758140988307202474-1',
-  'x-1756739731776487906-1',
-  'x-1752727070348890126-1',
-  'x-1742563710387003639-1',
-  'x-1706708859686162888-1',
-  'x-1637381913416704001-1',
-  'x-1609936986420449280-1',
-  'x-1607057304310145024-1',
-  'x-1583743697576898560-1',
-])
+const compareRank = (a: ArtItem, b: ArtItem) => {
+  if (a.rank && b.rank) {
+    return a.rank.length === b.rank.length
+      ? b.rank.localeCompare(a.rank)
+      : b.rank.length - a.rank.length
+  }
+  if (a.rank) return -1
+  if (b.rank) return 1
 
-const xItems = (artFeed.items as ArtFeedItem[])
-  .filter((item) => !excludedExternalArtItemIds.has(item.id ?? ''))
-  .map((item) => ({
-    ...item,
-    date: new Date(item.date),
-    alt: item.alt ?? '',
-    sourceLabel: item.sourceLabel ?? 'X',
-    tags: item.tags ?? [],
-    order: item.order ?? 100,
-    featured: item.featured ?? false,
-    source: 'x-browser',
-  }))
+  return b.id.localeCompare(a.id)
+}
 
-const seen = new Set<string>()
-const artItems = [...cmsItems, ...xItems]
-  .filter((item) => {
-    const key = item.sourceUrl || item.image || item.id
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
+const getArtTitle = (sourceUrl: string, id: string) => {
+  const statusId = getStatusId(sourceUrl)
+  if (statusId) return `Xの絵投稿 ${statusId}`
+
+  return sourceUrl || id
+}
+
+const artItems = (await getCollection('art'))
+  .map((entry): ArtItem => {
+    const sourceUrl = entry.data.sourceUrl.trim()
+    const image = entry.data.image.trim()
+
+    return {
+      id: entry.id,
+      sourceUrl,
+      image,
+      title: getArtTitle(sourceUrl, entry.id),
+      rank: getStatusId(sourceUrl) ?? getStatusId(entry.id),
+    }
   })
-  .sort(
-    (a, b) =>
-      Number(b.featured) - Number(a.featured) ||
-      a.order - b.order ||
-      b.date.getTime() - a.date.getTime(),
-  )
+  .filter((item) => item.sourceUrl && item.image)
+  .sort(compareRank)
 
-const getArtTileClass = (
-  item: { featured?: boolean },
-  index: number,
-): string | undefined => {
-  if (item.featured || index % 13 === 0) return 'art-tile--large'
+const getArtTileClass = (index: number): string | undefined => {
+  if (index % 13 === 0) return 'art-tile--large'
   if (index % 7 === 2 || index % 10 === 5) return 'art-tile--tall'
   if (index % 5 === 1 || index % 8 === 4) return 'art-tile--wide'
 
@@ -113,7 +62,7 @@ const getArtTileClass = (
 
 <BaseLayout
   title="絵"
-  description="X投稿やCMSで追加したHattの絵を、画像中心のギャラリーとして並べています。"
+  description="CMSで追加したHattの絵を、画像中心のギャラリーとして並べています。"
   showAnnouncement={false}
 >
   <section class="section-band art-gallery-section" aria-labelledby="art-title">
@@ -122,34 +71,28 @@ const getArtTileClass = (
       {
         artItems.length > 0 ? (
           <div class="art-grid">
-            {artItems.map((item, index) => {
-              const href = item.sourceUrl || item.image
-
-              return (
-                <a
-                  class:list={['art-tile', getArtTileClass(item, index)]}
-                  href={href}
-                  aria-label={`${item.title}の詳細を見る`}
-                  {...externalAttrs(href)}
-                >
-                  <img
-                    src={item.image}
-                    alt={item.alt || item.title}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </a>
-              )
-            })}
+            {artItems.map((item, index) => (
+              <a
+                class:list={['art-tile', getArtTileClass(index)]}
+                href={item.sourceUrl}
+                aria-label={`${item.title}の詳細を見る`}
+                {...externalAttrs(item.sourceUrl)}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            ))}
           </div>
         ) : (
           <div class="art-empty">
             <span class="i-lucide-image-plus" aria-hidden="true" />
             <h2>まだ掲載する絵がありません</h2>
-            <p>
-              Xの公開ページから画像投稿を取得できなかったため、CMSで追加した絵がここに並びます。
-            </p>
-            <a href={artFeed.profileUrl} {...externalAttrs(artFeed.profileUrl)}>
+            <p>CMSでURLと画像を追加すると、ここに絵が並びます。</p>
+            <a href={profileUrl} {...externalAttrs(profileUrl)}>
               Xを見る
             </a>
           </div>

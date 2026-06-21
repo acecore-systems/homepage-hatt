@@ -39,6 +39,7 @@ npm run validate:content
 - 管理画面: `/admin/index.html`
 - 設定: `public/admin/config.yml`
 - OAuth Worker: `workers/sveltia-cms-auth`
+- 認証方式: GitHub 認証型。編集者は GitHub OAuth Worker 経由で保存し、Cloudflare Access を使う場合も前段の入口保護に限定します。
 - ブログ、タグ、著者、モデリング項目、キャンペーン通知、サイト基本設定を編集できます。
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
