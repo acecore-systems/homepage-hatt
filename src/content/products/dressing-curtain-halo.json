@@ -1,0 +1,28 @@
+{
+  "slug": "dressing-curtain-halo",
+  "title": "お着換えカーテンヘイロー",
+  "category": "modeling",
+  "summary": "着替え時に人目を遮るためのVRChat向けカーテン型ヘイローです。",
+  "description": "位置と大きさを調整して全アバターで使えるVRChat向けアクセサリーです。テクスチャで柄を変更できます。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/dressing-curtain-halo.jpg",
+      "alt": "お着換えカーテンヘイローの紹介画像"
+    }
+  ],
+  "priceJpy": 500,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/dressing-curtain-halo.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/7586035",
+  "features": [
+    "着替え時の目隠しに使えるカーテン型ヘイローです。",
+    "位置と大きさを調整すれば全アバターで使えます。",
+    "初期データに複数の柄が用意されています。"
+  ],
+  "order": 90,
+  "featured": true
+}

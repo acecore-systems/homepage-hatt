@@ -1,0 +1,28 @@
+{
+  "slug": "eringi-sensei",
+  "title": "エリンギ先生3Dモデル(聴診器付属）",
+  "category": "modeling",
+  "summary": "エリンギの小児科医をモチーフにしたVRChat向け3Dアバターです。",
+  "description": "VRCSDK3.0に対応したオリジナル3Dアバターデータです。聴診器が付属し、キノコの傘やチューブの動きが特徴です。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/eringi-sensei.jpg",
+      "alt": "エリンギ先生3Dモデルの紹介画像"
+    }
+  ],
+  "priceJpy": 500,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/eringi-sensei.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/6073427",
+  "features": [
+    "VRChat向けオリジナル3Dアバターです。",
+    "リップシンクでキノコの傘が動きます。",
+    "聴診器は首に追従し、チューブには掴み判定があります。"
+  ],
+  "order": 20,
+  "featured": true
+}

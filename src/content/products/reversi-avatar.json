@@ -1,0 +1,28 @@
+{
+  "slug": "reversi-avatar",
+  "title": "リバーシ/オリジナル3Ｄモデル",
+  "category": "modeling",
+  "summary": "黒髪の「すみ」と白髪の「チョーク」から構成されるVRChat向けアバターです。",
+  "description": "一人なのに二人でお買い得なVRChat向けアバターです。アイルック、Avatar 3.0、Visemesに対応しています。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/reversi-avatar.jpg",
+      "alt": "リバーシの紹介画像"
+    }
+  ],
+  "priceJpy": 4444,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/reversi-avatar.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/8087659",
+  "features": [
+    "黒髪の「すみ」と白髪の「チョーク」から構成されます。",
+    "ラジアルメニューから上下を入れ替えられます。",
+    "改変手引書、FBX、Blenderファイル、テクスチャ用データを収録しています。"
+  ],
+  "order": 130,
+  "featured": true
+}

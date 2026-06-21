@@ -400,6 +400,130 @@ collections:
         widget: boolean
         default: false
 
+  - name: products
+    label: 商品
+    label_singular: 商品
+    description: ショップに並べる絵・小説・3D作品・グッズの商品情報を編集します。
+    icon: shopping_bag
+    folder: src/content/products
+    format: json
+    extension: json
+    identifier_field: title
+    slug: '{{fields.slug}}'
+    preview_path: shop/{{slug}}/
+    summary: '{{title}} - {{priceJpy}}円'
+    thumbnail: images.0.src
+    sortable_fields: [order, title, category, status, priceJpy]
+    fields:
+      - name: slug
+        label: URLスラッグ
+        widget: string
+        pattern:
+          - '^[a-z0-9][a-z0-9_-]*$'
+          - 半角英数字で始まるURL用文字列を入力してください。
+      - name: title
+        label: 商品名
+        widget: string
+      - name: category
+        label: カテゴリ
+        widget: select
+        options:
+          - { label: 絵, value: picture }
+          - { label: 小説, value: novel }
+          - { label: 3D作品, value: modeling }
+          - { label: グッズ, value: goods }
+      - name: summary
+        label: 概要
+        widget: text
+      - name: description
+        label: 説明
+        widget: text
+        required: false
+      - name: images
+        label: 商品画像
+        widget: list
+        required: false
+        fields:
+          - name: src
+            label: 画像
+            widget: image
+          - name: alt
+            label: 代替テキスト
+            widget: string
+            required: false
+          - name: caption
+            label: キャプション
+            widget: string
+            required: false
+      - name: priceJpy
+        label: 価格（円）
+        widget: number
+        value_type: int
+        min: 0
+      - name: status
+        label: 販売状態
+        widget: select
+        options:
+          - { label: 下書き, value: draft }
+          - { label: 販売中, value: published }
+          - { label: 売り切れ, value: sold_out }
+        default: draft
+      - name: fulfillmentType
+        label: 受け渡し種別
+        widget: select
+        options:
+          - { label: デジタル配布, value: digital }
+          - { label: 手動納品, value: manual }
+          - { label: 物理発送, value: physical }
+      - name: stock
+        label: 在庫数
+        widget: number
+        value_type: int
+        min: 0
+        default: 0
+      - name: maxQuantity
+        label: 1注文あたりの最大数量
+        widget: number
+        value_type: int
+        min: 1
+        default: 1
+      - name: r2ObjectKey
+        label: R2オブジェクトキー
+        hint: デジタル配布商品のみ設定します。公開カタログには出しません。
+        widget: string
+        required: false
+      - name: shippingProfileId
+        label: 配送プロファイルID
+        hint: 物理発送商品のみ、ショップ設定の配送プロファイルIDを入力します。
+        widget: string
+        required: false
+      - name: taxCode
+        label: Stripe Tax Code
+        widget: string
+        required: false
+      - name: externalUrl
+        label: 外部販売URL
+        hint: BOOTHなど移行期に併記する外部ページです。
+        widget: string
+        required: false
+      - name: features
+        label: 特徴
+        widget: list
+        required: false
+        field:
+          name: feature
+          label: 特徴
+          widget: string
+      - name: order
+        label: 表示順
+        widget: number
+        value_type: int
+        default: 100
+      - name: featured
+        label: 注目表示
+        widget: boolean
+        default: false
+
   - name: tags
     label: タグ
     label_singular: タグ
@@ -556,6 +680,137 @@ collections:
                 label: 色
                 widget: select
                 options: [cyan, ember, mint]
+
+  - name: shopSettings
+    label: ショップ設定
+    icon: store
+    format: json
+    files:
+      - name: main
+        label: 基本設定
+        file: src/content/shop-settings/main.json
+        fields:
+          - name: id
+            label: ID
+            widget: hidden
+            default: main
+          - name: enabled
+            label: ショップを表示する
+            widget: boolean
+            default: true
+          - name: checkoutEnabled
+            label: 決済を有効にする
+            hint: 特商法、返品、プライバシー、利用条件の文面が揃うまで有効にしないでください。
+            widget: boolean
+            default: false
+          - name: currency
+            label: 通貨
+            widget: select
+            options: [JPY]
+            default: JPY
+          - name: stripeTaxEnabled
+            label: Stripe Taxを有効にする
+            widget: boolean
+            default: true
+          - name: stripeConnectedAccountId
+            label: Stripe Connect販売者アカウントID
+            hint: acct_ から始まるconnected account ID。未設定だと決済は有効になりません。
+            widget: string
+            required: false
+          - name: platformFeeBasisPoints
+            label: プラットフォーム手数料率（bps）
+            hint: 1000=10%。0なら率の手数料なし。
+            widget: number
+            value_type: int
+            min: 0
+            max: 9999
+            default: 0
+          - name: platformFeeFixedJpy
+            label: プラットフォーム固定手数料（円）
+            hint: 1注文ごとに追加で差し引く手数料。不要なら0。
+            widget: number
+            value_type: int
+            min: 0
+            default: 0
+          - name: allowedCountries
+            label: 配送可能国
+            widget: list
+            default: [JP]
+            field:
+              name: country
+              label: 国コード
+              widget: string
+          - name: shippingProfiles
+            label: 配送プロファイル
+            widget: list
+            required: false
+            fields:
+              - name: id
+                label: ID
+                widget: string
+              - name: label
+                label: 表示名
+                widget: string
+              - name: description
+                label: 説明
+                widget: string
+                required: false
+              - name: amountJpy
+                label: 送料（円）
+                widget: number
+                value_type: int
+                min: 0
+                default: 0
+              - name: freeAboveJpy
+                label: 送料無料になる注文金額（円）
+                widget: number
+                value_type: int
+                min: 0
+                required: false
+              - name: countries
+                label: 対応国
+                widget: list
+                default: [JP]
+                field:
+                  name: country
+                  label: 国コード
+                  widget: string
+          - name: businessName
+            label: 事業者名
+            widget: string
+            required: false
+          - name: sellerName
+            label: 販売責任者
+            widget: string
+            required: false
+          - name: sellerAddress
+            label: 所在地
+            widget: text
+            required: false
+          - name: sellerPhone
+            label: 電話番号
+            widget: string
+            required: false
+          - name: sellerEmail
+            label: メールアドレス
+            widget: string
+            required: false
+          - name: contactUrl
+            label: 問い合わせURL
+            widget: string
+            required: false
+          - name: returnsPolicy
+            label: 返品・キャンセルポリシー
+            widget: text
+            required: false
+          - name: privacyPolicy
+            label: プライバシーポリシー
+            widget: text
+            required: false
+          - name: terms
+            label: 利用条件
+            widget: text
+            required: false
 
   - name: campaigns
     label: キャンペーン通知
