@@ -49,6 +49,7 @@ Cloudflare Pages 側で以下を設定してください。
 
 - Secret: `CMS_GITHUB_TOKEN`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com,editor2@example.com`
+- Secret または Variable: `CMS_ACCESS_ALLOWED_DOMAINS=acecore.net`
 - Variable: `CMS_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev`
 
 ### 本番 CMS の保存と PR 反映

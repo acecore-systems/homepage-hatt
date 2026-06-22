@@ -32,9 +32,12 @@ Cloudflare Pages の production と preview の両方に以下を設定します
 
 - Secret: `CMS_GITHUB_TOKEN`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS`
+- Secret または Variable: `CMS_ACCESS_ALLOWED_DOMAINS`
 - Variable: `CMS_ACCESS_HOSTNAMES`
 
 `CMS_ACCESS_ALLOWED_EMAILS` は CMS 編集を許可する Cloudflare Access ユーザーのメールアドレスをカンマ区切りで指定します。
+
+`CMS_ACCESS_ALLOWED_DOMAINS` は CMS 編集を許可するメールドメインをカンマ区切りで指定します。Cloudflare Access group でドメイン許可を使う場合、proxy 側にも同じドメインを設定します。
 
 `CMS_ACCESS_HOSTNAMES` は必要に応じて preview hostname を追加するためのカンマ区切り allowlist です。既定で以下は許可されます。
 

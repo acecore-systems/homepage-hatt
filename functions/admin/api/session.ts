@@ -1,5 +1,6 @@
 type Env = {
   CMS_ACCESS_ALLOWED_EMAILS?: string
+  CMS_ACCESS_ALLOWED_DOMAINS?: string
   CMS_ACCESS_HOSTNAMES?: string
   CMS_GITHUB_TOKEN?: string
 }
@@ -88,8 +89,11 @@ function isAllowedAccessHostname(hostname: string, env: Env) {
 
 function isAllowedAccessEmail(email: string, env: Env) {
   const allowed = parseCsv(env.CMS_ACCESS_ALLOWED_EMAILS)
+  const allowedDomains = parseCsv(env.CMS_ACCESS_ALLOWED_DOMAINS)
+  const normalizedEmail = email.toLowerCase()
+  const domain = normalizedEmail.split('@').pop() || ''
 
-  return allowed.includes(email.toLowerCase())
+  return allowed.includes(normalizedEmail) || allowedDomains.includes(domain)
 }
 
 function getAccessJwtEmail(jwt: string) {
