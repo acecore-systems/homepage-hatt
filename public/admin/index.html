@@ -4,11 +4,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Hatt CMS</title>
-    <script src="/admin/runtime-config.js"></script>
+    <title>Hatt Sveltia CMS</title>
+    <link
+      rel="cms-config-url"
+      href="/admin/config.yml"
+      type="application/yaml"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <link rel="stylesheet" href="/admin/shell.css" />
+    <script src="/admin/manual-init.js" defer></script>
+    <script
+      src="https://unpkg.com/@sveltia/cms@0.166.0/dist/sveltia-cms.js"
+      defer
+    ></script>
+    <script src="/admin/init.js" defer></script>
   </head>
   <body>
-    <script src="https://unpkg.com/@sveltia/cms@0.166.0/dist/sveltia-cms.js"></script>
-    <script src="/admin/init.js"></script>
+    <main id="nc-root"></main>
   </body>
 </html>

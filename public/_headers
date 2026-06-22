@@ -33,7 +33,7 @@
   X-Robots-Tag: noindex, nofollow
   Cache-Control: public, max-age=0, must-revalidate
   Cross-Origin-Opener-Policy: same-origin-allow-popups
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; img-src 'self' data: blob: https://*; font-src 'self' data: https://unpkg.com https://fonts.gstatic.com; media-src blob:; connect-src 'self' blob: data: https://unpkg.com https://api.github.com https://github.com https://www.githubstatus.com https://*.githubusercontent.com https://sveltia-cms-auth.sparkling-tree-7cef.workers.dev; frame-src 'self' blob: https://github.com; worker-src blob:; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://github.com https://sveltia-cms-auth.sparkling-tree-7cef.workers.dev
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; media-src blob:; connect-src 'self'; frame-src 'self' blob:; worker-src blob:; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'
 
 /admin/config.yml
   Content-Type: application/yaml; charset=utf-8

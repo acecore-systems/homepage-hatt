@@ -1,0 +1,48 @@
+html,
+body {
+  background: #ffffff;
+  color: #111827;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body,
+#nc-root {
+  min-height: 100vh;
+}
+
+#nc-root {
+  height: 100vh;
+}
+
+.cms-status {
+  box-sizing: border-box;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+}
+
+.cms-status p {
+  width: min(100%, 38rem);
+  margin: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 1rem 1.25rem;
+  color: #111827;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.cms-status--error p {
+  border-color: #f97316;
+  background: #fff7ed;
+}

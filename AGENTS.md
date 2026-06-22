@@ -14,13 +14,13 @@
 ## CMS とコンテンツ
 
 - CMS content の shape は `src/content.config.ts` の Astro Content Collections schema に合わせる。
-- このリポジトリの CMS 認証は GitHub 認証型とする。Cloudflare Access を前段に置く場合も、保存認証は GitHub OAuth Worker を使う。
-- Cherry のような Cloudflare Access 型 proxy へ寄せる場合は、別途 backend actor、書き込み path 制限、CI 経由 PR 作成まで設計してから行う。
-- CMS backend の publication branch は `main` にし、`publish_mode: editorial_workflow` で短命な CMS branch と PR を作らせる。
+- このリポジトリの CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路にする。
+- CMS backend の publication branch は `main` にし、Pages Functions proxy が `cms/hatt/*` の短命 branch と PR を作る。
 - `cms-content` のような恒久的な CMS 投稿受け皿 branch は使わない。
 - CMS 変更は PR と CI を通して `main` に入れる。`main` への無検証直 push 前提の運用に戻さない。
 - CMS 由来の PR で `src/content/**`、`public/uploads/hatt/**`、CMS 設定で明示した path 以外の差分が含まれる場合は、内容を確認してから merge する。
-- CMS を `main` へ直接書き込ませる場合は、編集者個人 OAuth ではなく専用 bot / GitHub App / backend actor を使い、書き込み path と検証を制限できる状態にしてから行う。
+- CMS 保存用 token は Cloudflare Pages の `CMS_GITHUB_TOKEN` に設定し、編集者個人 OAuth を保存 actor にしない。
+- GitHub proxy の書き込み可能 path は `src/content/**` と `public/uploads/hatt/**` の CMS 管理対象に限定する。
 
 ## 検証
 
