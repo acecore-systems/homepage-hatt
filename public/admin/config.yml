@@ -4,18 +4,13 @@ backend:
   name: github
   repo: acecore-systems/homepage-hatt
   branch: main
-  base_url: https://sveltia-cms-auth.sparkling-tree-7cef.workers.dev
-  auth_methods: [oauth]
-  commit_messages:
-    create: 'cms: create {{collection}} "{{slug}}"'
-    update: 'cms: update {{collection}} "{{slug}}"'
-    delete: 'cms: delete {{collection}} "{{slug}}"'
-    uploadMedia: 'cms: upload "{{path}}"'
-    deleteMedia: 'cms: delete media "{{path}}"'
+  api_root: /admin/api/github
+  graphql_api_root: /admin/api/graphql
+  auth_methods:
+    - token
+  include_credentials: true
 
-publish_mode: editorial_workflow
-
-media_folder: /public/uploads/hatt
+media_folder: public/uploads/hatt
 public_folder: /uploads/hatt
 
 collections:

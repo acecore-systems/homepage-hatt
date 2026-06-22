@@ -4,16 +4,16 @@
 
 ## 技術
 
-| 使用箇所     | 使用技術                          |
-| ------------ | --------------------------------- |
-| サイト生成   | Astro v6, TypeScript              |
-| CSS          | UnoCSS, custom CSS                |
-| CMS          | Sveltia CMS + GitHub OAuth Worker |
-| 検索         | Pagefind                          |
-| OGP          | satori + sharp                    |
-| ホスティング | Cloudflare Pages                  |
-| 広告         | Google AdSense                    |
-| コメント     | Cloudflare Pages Functions + D1   |
+| 使用箇所     | 使用技術                              |
+| ------------ | ------------------------------------- |
+| サイト生成   | Astro v6, TypeScript                  |
+| CSS          | UnoCSS, custom CSS                    |
+| CMS          | Sveltia CMS + Cloudflare Access proxy |
+| 検索         | Pagefind                              |
+| OGP          | satori + sharp                        |
+| ホスティング | Cloudflare Pages                      |
+| 広告         | Google AdSense                        |
+| コメント     | Cloudflare Pages Functions + D1       |
 
 ## 開発
 
@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-`npm run dev` の前に `/admin/runtime-config.js` が生成され、Sveltia CMS の編集対象 branch は通常 `main` になります。検証用に変えたい場合は `CMS_BACKEND_BRANCH` で明示します。
+Sveltia CMS の編集対象 branch は `main` 固定です。CMS 保存は `/admin/api/*` の Pages Functions proxy が受け、短命な `cms/hatt/*` branch と PR として作成します。
 
 ## ビルド
 
@@ -37,16 +37,24 @@ npm run validate:content
 
 - 管理画面: `/admin/index.html`
 - 設定: `public/admin/config.yml`
-- OAuth Worker: `workers/sveltia-cms-auth`
-- 認証方式: GitHub 認証型。編集者は GitHub OAuth Worker 経由で保存し、Cloudflare Access を使う場合も前段の入口保護に限定します。
+- GitHub proxy: `functions/admin/api/github/[[path]].ts`
+- GraphQL proxy: `functions/admin/api/graphql.ts`
+- Access session: `functions/admin/api/session.ts`
+- 認証方式: Cherry 型。編集者は Cloudflare Access で `/admin/` に入り、保存は Cloudflare Pages の `CMS_GITHUB_TOKEN` を使う proxy が行います。
 - ブログ、タグ、著者、モデリング項目、キャンペーン通知、サイト基本設定を編集できます。
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
 
+Cloudflare Pages 側で以下を設定してください。
+
+- Secret: `CMS_GITHUB_TOKEN`
+- Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com,editor2@example.com`
+- Variable: `CMS_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev`
+
 ### 本番 CMS の保存と PR 反映
 
 - 本番 CMS の publication branch は `main` です。`cms-content` のような恒久的な別本流 branch は使いません。
-- `publish_mode: editorial_workflow` により、CMS の保存は短命な CMS branch と PR として作成されます。
+- CMS の保存は Pages Functions proxy により、短命な `cms/hatt/*` branch と PR として作成されます。
 - CMS 由来の PR は通常の PR と同じく review し、`.github/workflows/ci.yml` の `npm run format:check`、`npm run validate:content`、`npm run build` を通してから `main` に merge します。
 - Cloudflare Pages の production deploy 元は GitHub 連携の `main` にします。
 - 詳細は `docs/cms-write-workflow.md` を参照してください。
