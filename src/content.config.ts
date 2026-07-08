@@ -11,6 +11,9 @@ const richImageSchema = z.object({
   alt: z.string().default(''),
   caption: z.string().optional(),
 })
+const shopCategorySchema = z.enum(['picture', 'novel', 'modeling', 'goods'])
+const shopStatusSchema = z.enum(['draft', 'published', 'sold_out'])
+const fulfillmentTypeSchema = z.enum(['digital', 'manual', 'physical'])
 const calloutSchema = z.object({
   title: z.string().optional(),
   text: z.string().optional(),
@@ -207,6 +210,70 @@ const campaigns = defineCollection({
   }),
 })
 
+const products = defineCollection({
+  loader: glob({
+    base: './src/content/products',
+    pattern: '**/*.json',
+  }),
+  schema: z.object({
+    slug: z.string(),
+    title: z.string(),
+    category: shopCategorySchema,
+    summary: z.string(),
+    description: z.string().optional(),
+    images: z.array(richImageSchema).default([]),
+    priceJpy: z.number().int().nonnegative(),
+    status: shopStatusSchema.default('draft'),
+    fulfillmentType: fulfillmentTypeSchema,
+    stock: z.number().int().nonnegative().default(0),
+    maxQuantity: z.number().int().positive().default(1),
+    r2ObjectKey: z.string().optional(),
+    shippingProfileId: z.string().optional(),
+    taxCode: z.string().optional(),
+    externalUrl: z.string().optional(),
+    features: z.array(z.string()).default([]),
+    order: z.number().default(100),
+    featured: z.boolean().default(false),
+  }),
+})
+
+const shippingProfileSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  description: z.string().optional(),
+  amountJpy: z.number().int().nonnegative().default(0),
+  freeAboveJpy: z.number().int().nonnegative().optional(),
+  countries: z.array(z.string()).default(['JP']),
+})
+
+const shopSettings = defineCollection({
+  loader: glob({
+    base: './src/content/shop-settings',
+    pattern: '**/*.json',
+  }),
+  schema: z.object({
+    id: z.string().default('main'),
+    enabled: z.boolean().default(true),
+    checkoutEnabled: z.boolean().default(false),
+    currency: z.literal('JPY').default('JPY'),
+    stripeTaxEnabled: z.boolean().default(true),
+    stripeConnectedAccountId: z.string().optional(),
+    platformFeeBasisPoints: z.number().int().min(0).max(9999).default(0),
+    platformFeeFixedJpy: z.number().int().nonnegative().default(0),
+    allowedCountries: z.array(z.string()).default(['JP']),
+    shippingProfiles: z.array(shippingProfileSchema).default([]),
+    businessName: z.string().optional(),
+    sellerName: z.string().optional(),
+    sellerAddress: z.string().optional(),
+    sellerPhone: z.string().optional(),
+    sellerEmail: z.string().optional(),
+    contactUrl: z.string().optional(),
+    returnsPolicy: z.string().optional(),
+    privacyPolicy: z.string().optional(),
+    terms: z.string().optional(),
+  }),
+})
+
 const site = defineCollection({
   loader: glob({
     base: './src/content/site',
@@ -245,6 +312,8 @@ export const collections = {
   blog,
   campaigns,
   modeling,
+  products,
   site,
+  shopSettings,
   tags,
 }

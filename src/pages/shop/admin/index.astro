@@ -1,0 +1,237 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="ショップ管理"
+  description="ショップ注文の簡易管理画面です。"
+  canonicalPath="/shop/admin/"
+  robots="noindex,nofollow"
+>
+  <section class="page-hero">
+    <div class="section-inner narrow-page">
+      <p class="hero-note">
+        <span class="i-lucide-lock" aria-hidden="true"></span>
+        Shop admin
+      </p>
+      <h1>ショップ管理</h1>
+      <p class="lead">注文、発送、手動納品、返金メモを確認・更新します。</p>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="section-inner shop-admin-shell">
+      <form class="shop-admin-login" data-shop-admin-login>
+        <label for="shop-admin-password">管理パスワード</label>
+        <div>
+          <input
+            id="shop-admin-password"
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required
+          />
+          <button class="primary-button" type="submit">ログイン</button>
+        </div>
+      </form>
+
+      <div class="shop-admin-orders" data-shop-admin-orders hidden>
+        <div class="section-heading">
+          <div>
+            <h2>注文一覧</h2>
+          </div>
+          <button
+            class="secondary-button"
+            type="button"
+            data-shop-admin-refresh
+          >
+            更新
+          </button>
+        </div>
+        <div data-shop-admin-list>
+          <p class="empty-state">注文を読み込んでいます。</p>
+        </div>
+      </div>
+      <p class="shop-cart-status" data-shop-admin-status></p>
+    </div>
+  </section>
+
+  <script is:inline>
+    ;(() => {
+      const loginForm = document.querySelector('[data-shop-admin-login]')
+      const ordersShell = document.querySelector('[data-shop-admin-orders]')
+      const list = document.querySelector('[data-shop-admin-list]')
+      const status = document.querySelector('[data-shop-admin-status]')
+      const refresh = document.querySelector('[data-shop-admin-refresh]')
+
+      function formatJpy(amount) {
+        return new Intl.NumberFormat('ja-JP', {
+          style: 'currency',
+          currency: 'JPY',
+          maximumFractionDigits: 0,
+        }).format(amount || 0)
+      }
+
+      function setStatus(message) {
+        status.textContent = message || ''
+      }
+
+      async function login(event) {
+        event.preventDefault()
+        const formData = new FormData(loginForm)
+        setStatus('ログインしています...')
+        const response = await fetch('/api/shop/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: formData.get('password') }),
+        })
+        const payload = await response.json()
+        if (!response.ok) {
+          setStatus(payload.message || 'ログインできませんでした。')
+          return
+        }
+        loginForm.hidden = true
+        ordersShell.hidden = false
+        setStatus('')
+        await loadOrders()
+      }
+
+      async function loadOrders() {
+        setStatus('注文を読み込んでいます...')
+        const response = await fetch('/api/shop/admin/orders')
+        const payload = await response.json()
+        if (!response.ok) {
+          setStatus(payload.message || '注文を読み込めませんでした。')
+          return
+        }
+        renderOrders(payload.orders || [])
+        setStatus('')
+      }
+
+      function renderOrders(orders) {
+        list.replaceChildren()
+        if (orders.length === 0) {
+          const empty = document.createElement('p')
+          empty.className = 'empty-state'
+          empty.textContent = '注文はまだありません。'
+          list.append(empty)
+          return
+        }
+
+        orders.forEach((order) => {
+          const article = document.createElement('article')
+          article.className = 'shop-admin-order'
+          const header = document.createElement('div')
+          header.className = 'shop-admin-order-head'
+          const title = document.createElement('h3')
+          title.textContent = order.customerEmail || order.id
+          const meta = document.createElement('p')
+          const feeText = order.platformFeeJpy
+            ? ` / 手数料 ${formatJpy(order.platformFeeJpy)}`
+            : ''
+          const accountText = order.stripeConnectedAccountId
+            ? ` / ${order.stripeConnectedAccountId}`
+            : ''
+          meta.textContent = `${formatJpy(order.totalJpy)}${feeText} / ${order.paymentStatus} / ${order.fulfillmentStatus}${accountText}`
+          header.append(title, meta)
+
+          const items = document.createElement('ul')
+          ;(order.items || []).forEach((item) => {
+            const row = document.createElement('li')
+            row.textContent = `${item.title} x ${item.quantity} (${item.itemStatus})`
+            items.append(row)
+          })
+
+          const form = document.createElement('form')
+          form.className = 'shop-admin-order-form'
+          form.append(
+            buildStatusField(order.fulfillmentStatus),
+            buildInputField('追跡番号', 'trackingNumber', order.trackingNumber),
+            buildTextareaField('手動納品メモ', 'manualNote', order.manualNote),
+            buildTextareaField(
+              '返金・キャンセルメモ',
+              'refundNote',
+              order.refundNote,
+            ),
+          )
+          const submit = document.createElement('button')
+          submit.className = 'primary-button'
+          submit.type = 'submit'
+          submit.textContent = '保存'
+          form.append(submit)
+          form.addEventListener('submit', (event) =>
+            updateOrder(event, order.id),
+          )
+          article.append(header, items, form)
+          list.append(article)
+        })
+      }
+
+      function buildFieldShell(labelText, control) {
+        const label = document.createElement('label')
+        label.append(labelText, control)
+        return label
+      }
+
+      function buildStatusField(currentValue) {
+        const select = document.createElement('select')
+        select.name = 'fulfillmentStatus'
+        ;[
+          'pending',
+          'digital_ready',
+          'manual_pending',
+          'manual_complete',
+          'shipping_pending',
+          'shipped',
+          'complete',
+          'canceled',
+        ].forEach((value) => {
+          const option = document.createElement('option')
+          option.value = value
+          option.textContent = value
+          option.selected = value === currentValue
+          select.append(option)
+        })
+        return buildFieldShell('ステータス', select)
+      }
+
+      function buildInputField(labelText, name, value) {
+        const input = document.createElement('input')
+        input.name = name
+        input.value = value || ''
+        return buildFieldShell(labelText, input)
+      }
+
+      function buildTextareaField(labelText, name, value) {
+        const textarea = document.createElement('textarea')
+        textarea.name = name
+        textarea.value = value || ''
+        return buildFieldShell(labelText, textarea)
+      }
+
+      async function updateOrder(event, orderId) {
+        event.preventDefault()
+        const formData = new FormData(event.currentTarget)
+        setStatus('保存しています...')
+        const response = await fetch(
+          `/api/shop/admin/orders/${encodeURIComponent(orderId)}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData.entries())),
+          },
+        )
+        const payload = await response.json()
+        if (!response.ok) {
+          setStatus(payload.message || '保存できませんでした。')
+          return
+        }
+        setStatus('保存しました。')
+        await loadOrders()
+      }
+
+      loginForm?.addEventListener('submit', login)
+      refresh?.addEventListener('click', loadOrders)
+    })()
+  </script>
+</BaseLayout>

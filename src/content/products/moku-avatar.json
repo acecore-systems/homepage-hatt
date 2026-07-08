@@ -1,0 +1,28 @@
+{
+  "slug": "moku-avatar",
+  "title": "【モク】3Dモデル",
+  "category": "modeling",
+  "summary": "きつねの男の子のVRChat向けオリジナル3Dアバターです。",
+  "description": "ショボクレ眼鏡、表情変化、衣装着脱メニュー、モクギミックセットとの連携を想定したVRChat向けアバターです。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/moku-avatar.jpg",
+      "alt": "【モク】3Dモデルの紹介画像"
+    }
+  ],
+  "priceJpy": 1500,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 99,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/moku-avatar.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/7896488",
+  "features": [
+    "LipSync、PhysBone、Avatar 3.0、フルボディトラッキングに対応しています。",
+    "ショボクレ眼鏡、表情変化、衣装着脱メニューを収録しています。",
+    "同時発売のモクギミックセットと組み合わせられます。"
+  ],
+  "order": 110,
+  "featured": true
+}

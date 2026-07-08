@@ -13,12 +13,20 @@ const iconByLabel: Record<string, string> = {
   絵: 'i-lucide-images',
   小説: 'i-lucide-book-open',
   '3D作品': 'i-lucide-box',
+  ショップ: 'i-lucide-shopping-bag',
   講座: 'i-lucide-graduation-cap',
   動画: 'i-lucide-square-play',
   Acecore: 'i-lucide-arrow-up-right',
   ブログ: 'i-lucide-newspaper',
   モデリング: 'i-lucide-box',
   プロフィール: 'i-lucide-user-round',
+}
+
+const compactLabelByLabel: Record<string, string> = {
+  '3D作品': '3D',
+  ショップ: 'Shop',
+  ブログ: 'Blog',
+  Acecore: 'Ace',
 }
 ---
 
@@ -49,25 +57,45 @@ const iconByLabel: Record<string, string> = {
       {
         site.headerLinks.map((link) => {
           const isExternal = link.href.startsWith('http')
+          const compactLabel = compactLabelByLabel[link.label] ?? link.label
 
           return (
             <a
               class:list={['nav-link', { 'nav-link--external': isExternal }]}
               href={link.href}
               {...externalAttrs(link.href)}
+              aria-label={link.label}
               data-hatt-event="nav_click"
               data-hatt-label={link.label}
               data-hatt-location="header"
             >
               <span
-                class={iconByLabel[link.label] ?? 'i-lucide-arrow-right'}
+                class:list={[
+                  'nav-link-icon',
+                  iconByLabel[link.label] ?? 'i-lucide-arrow-right',
+                ]}
                 aria-hidden="true"
               />
-              <span>{link.label}</span>
+              <span class="nav-label nav-label--full">{link.label}</span>
+              <span class="nav-label nav-label--compact" aria-hidden="true">
+                {compactLabel}
+              </span>
             </a>
           )
         })
       }
+      <a
+        class="nav-link nav-cart-link nav-icon-link"
+        href="/shop/cart/"
+        data-hatt-event="nav_click"
+        data-hatt-label="カート"
+        data-hatt-location="header"
+        aria-label="カート"
+      >
+        <span class="i-lucide-shopping-cart" aria-hidden="true"></span>
+        <span class="sr-only">カート</span>
+        <strong data-shop-cart-count hidden>0</strong>
+      </a>
     </div>
   </nav>
 </header>

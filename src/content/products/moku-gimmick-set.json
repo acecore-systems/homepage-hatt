@@ -1,0 +1,28 @@
+{
+  "slug": "moku-gimmick-set",
+  "title": "【モクギミックセット】カメラ　AFK　ライト　他",
+  "category": "modeling",
+  "summary": "モク本体との併用を想定したVRChat向けギミックセットです。",
+  "description": "落ち葉、どんぐり、松ぼっくり、小判、狐火、イヤホン、カメラ、ボイスレコーダー、お稲荷変化などを収録したギミックセットです。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/moku-gimmick-set.jpg",
+      "alt": "モクギミックセットの紹介画像"
+    }
+  ],
+  "priceJpy": 1500,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/moku-gimmick-set.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/7924454",
+  "features": [
+    "モク本体との併用を主に想定したギミックセットです。",
+    "カメラ、AFK、ライト、イヤホン、ボイスレコーダーなどを収録しています。",
+    "Modular Avatarで他アバターにも使用できます。"
+  ],
+  "order": 120,
+  "featured": true
+}

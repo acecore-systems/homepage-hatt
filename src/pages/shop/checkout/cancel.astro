@@ -1,0 +1,27 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="決済を中断しました"
+  description="ショップの決済中断ページです。"
+  canonicalPath="/shop/checkout/cancel/"
+  robots="noindex,nofollow"
+>
+  <section class="page-hero">
+    <div class="section-inner narrow-page shop-result">
+      <p class="hero-note">
+        <span class="i-lucide-circle-alert" aria-hidden="true"></span>
+        Checkout
+      </p>
+      <h1>決済を中断しました</h1>
+      <p class="lead">
+        支払いは完了していません。カート内容を確認して、必要であればもう一度お試しください。
+      </p>
+      <div class="button-row">
+        <a class="primary-button" href="/shop/cart/">カートへ戻る</a>
+        <a class="secondary-button" href="/shop/">ショップへ戻る</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

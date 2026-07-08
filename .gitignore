@@ -68,6 +68,7 @@ dist
 # Astro
 .astro
 /public/admin/runtime-config.js
+functions/api/shop/_catalog.generated.ts
 
 # Local coding assistant state
 .serena/

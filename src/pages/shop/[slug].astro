@@ -1,0 +1,140 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import {
+  CATEGORY_LABELS,
+  FULFILLMENT_LABELS,
+  canCheckout,
+  formatJpy,
+} from '@/lib/shop/types'
+import { getShopProducts, getShopSettings } from '@/lib/shop/content'
+import { externalAttrs } from '@/utils/routes'
+
+export async function getStaticPaths() {
+  const products = await getShopProducts()
+  return products.map((product) => ({
+    params: { slug: product.slug },
+    props: { product },
+  }))
+}
+
+const { product } = Astro.props
+const settings = await getShopSettings()
+const checkoutReady = canCheckout(settings)
+const heroImage = product.images[0]
+---
+
+<BaseLayout
+  title={product.title}
+  description={product.summary}
+  image={heroImage?.src}
+  imageAlt={heroImage?.alt || `${product.title}の画像`}
+  canonicalPath={`/shop/${product.slug}/`}
+  breadcrumbItems={[
+    { name: 'ショップ', item: '/shop/' },
+    { name: product.title, item: `/shop/${product.slug}/` },
+  ]}
+>
+  <article class="page-hero shop-detail">
+    <div class="section-inner shop-detail-grid">
+      <div class="shop-detail-media">
+        {
+          heroImage ? (
+            <img
+              src={heroImage.src}
+              alt={heroImage.alt || `${product.title}の画像`}
+            />
+          ) : (
+            <span class="i-lucide-image" aria-hidden="true" />
+          )
+        }
+      </div>
+      <div class="shop-detail-copy">
+        <p class="hero-note">
+          <span class="i-lucide-shopping-bag" aria-hidden="true"></span>
+          {CATEGORY_LABELS[product.category]} / {
+            FULFILLMENT_LABELS[product.fulfillmentType]
+          }
+        </p>
+        <h1>{product.title}</h1>
+        <p class="lead">{product.summary}</p>
+        {product.description && <p>{product.description}</p>}
+        <div class="shop-detail-price">{formatJpy(product.priceJpy)}</div>
+        {
+          !checkoutReady && (
+            <p class="shop-alert">
+              決済は準備中です。公開前にショップ設定の販売者情報・規約・Stripe
+              Connect設定を確認してください。
+            </p>
+          )
+        }
+        <div class="button-row">
+          {
+            product.priceJpy > 0 ? (
+              <button
+                class="primary-button"
+                type="button"
+                data-shop-add={product.slug}
+                disabled={!checkoutReady || product.status !== 'published'}
+                data-hatt-event="shop_add_to_cart"
+                data-hatt-label={product.slug}
+                data-hatt-location="shop_detail"
+              >
+                カートに入れる
+                <span class="i-lucide-plus" aria-hidden="true" />
+              </button>
+            ) : (
+              product.externalUrl && (
+                <a
+                  class="primary-button"
+                  href={product.externalUrl}
+                  {...externalAttrs(product.externalUrl)}
+                >
+                  無料配布を開く
+                  <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                </a>
+              )
+            )
+          }
+          <a class="secondary-button" href="/shop/cart/">
+            カートを見る
+            <span class="i-lucide-shopping-cart" aria-hidden="true"></span>
+          </a>
+        </div>
+        {
+          product.externalUrl && (
+            <a
+              class="shop-external-link"
+              href={product.externalUrl}
+              {...externalAttrs(product.externalUrl)}
+            >
+              BOOTHでも見る
+              <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+            </a>
+          )
+        }
+      </div>
+    </div>
+  </article>
+
+  {
+    product.features.length > 0 && (
+      <section class="section-band">
+        <div class="section-inner shop-feature-list">
+          <div class="section-heading">
+            <div>
+              <h2>内容</h2>
+            </div>
+          </div>
+          <ul>
+            {product.features.map((feature) => (
+              <li>
+                <span class="i-lucide-check" aria-hidden="true" />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
