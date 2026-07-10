@@ -10,14 +10,10 @@ const CONTENT_RULES = [
   { prefix: 'src/content/blog/', extension: '.md' },
   { prefix: 'src/content/campaigns/', extension: '.json' },
   { prefix: 'src/content/modeling/', extension: '.json' },
-  { prefix: 'src/content/products/', extension: '.json' },
   { prefix: 'src/content/tags/', extension: '.json' },
 ] as const
 
-const CONTENT_FILES = new Set([
-  'src/content/shop-settings/main.json',
-  'src/content/site/main.json',
-])
+const CONTENT_FILES = new Set(['src/content/site/main.json'])
 
 const MEDIA_PREFIX = 'public/uploads/hatt/'
 const MAX_CMS_PATH_LENGTH = 240

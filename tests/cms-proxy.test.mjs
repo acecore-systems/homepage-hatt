@@ -1,13 +1,29 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
+import { SignJWT, exportJWK, generateKeyPair } from 'jose'
 
+import { isAllowedCmsWritePath } from '../functions/admin/api/_cms-policy.ts'
 import { onRequestPost as handleGraphql } from '../functions/admin/api/graphql.ts'
 import { onRequest as handleGithubRest } from '../functions/admin/api/github/[[path]].ts'
+import { onRequestGet as handleSession } from '../functions/admin/api/session.ts'
 
 const originalFetch = globalThis.fetch
 const mainSha = 'a'.repeat(40)
+const accessIssuer = 'https://test.cloudflareaccess.com'
+const accessAudience = 'test-cms-audience'
+const accessCertsUrl = `${accessIssuer}/cdn-cgi/access/certs`
+const accessKeyId = 'test-access-key'
+const { privateKey: accessPrivateKey, publicKey: accessPublicKey } =
+  await generateKeyPair('RS256')
+const accessJwk = await exportJWK(accessPublicKey)
+
+Object.assign(accessJwk, { alg: 'RS256', kid: accessKeyId, use: 'sig' })
+
+const validAccessJwt = await signAccessJwt()
 const allowedEnv = {
+  CMS_ACCESS_AUD: accessAudience,
   CMS_ACCESS_ALLOWED_EMAILS: 'editor@example.com',
+  CMS_ACCESS_TEAM_DOMAIN: accessIssuer,
   CMS_GITHUB_TOKEN: 'test-token',
 }
 
@@ -19,7 +35,7 @@ test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', as
   const calls = []
   let cmsBranch = ''
 
-  globalThis.fetch = async (input, init = {}) => {
+  mockFetch(async (input, init = {}) => {
     const url = String(input)
     const body = typeof init.body === 'string' ? JSON.parse(init.body) : null
 
@@ -77,7 +93,7 @@ test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', as
     }
 
     throw new Error(`Unexpected GitHub request: ${url}`)
-  }
+  })
 
   const response = await handleGraphql({
     request: graphqlRequest({
@@ -125,10 +141,10 @@ test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', as
 test('CMS管理対象外の保存をGitHubへ送らない', async () => {
   let called = false
 
-  globalThis.fetch = async () => {
+  mockFetch(async () => {
     called = true
     throw new Error('GitHub must not be called')
-  }
+  })
 
   const response = await handleGraphql({
     request: graphqlRequest({
@@ -164,13 +180,24 @@ test('CMS管理対象外の保存をGitHubへ送らない', async () => {
   assert.equal(called, false)
 })
 
+test('CMS設定にないcontent pathを書き込み対象にしない', () => {
+  assert.equal(
+    isAllowedCmsWritePath('src/content/products/example.json'),
+    false,
+  )
+  assert.equal(
+    isAllowedCmsWritePath('src/content/shop-settings/main.json'),
+    false,
+  )
+})
+
 test('任意のGraphQL queryをGitHub tokenで実行しない', async () => {
   let called = false
 
-  globalThis.fetch = async () => {
+  mockFetch(async () => {
     called = true
     throw new Error('GitHub must not be called')
-  }
+  })
 
   const response = await handleGraphql({
     request: graphqlRequest({
@@ -185,7 +212,7 @@ test('任意のGraphQL queryをGitHub tokenで実行しない', async () => {
 })
 
 test('Sveltiaのrepository read queryだけを転送する', async () => {
-  globalThis.fetch = async (input, init = {}) => {
+  mockFetch(async (input, init = {}) => {
     assert.equal(String(input), 'https://api.github.com/graphql')
 
     const body = JSON.parse(init.body)
@@ -198,7 +225,7 @@ test('Sveltiaのrepository read queryだけを転送する', async () => {
     return jsonResponse({
       data: { repository: { defaultBranchRef: { name: 'main' } } },
     })
-  }
+  })
 
   const response = await handleGraphql({
     request: graphqlRequest({
@@ -224,7 +251,7 @@ test('Sveltiaのfile content queryを許可済みblobだけで実行する', asy
   const blobSha = 'b'.repeat(40)
   let callCount = 0
 
-  globalThis.fetch = async (input) => {
+  mockFetch(async (input) => {
     callCount += 1
     const url = String(input)
 
@@ -263,7 +290,7 @@ test('Sveltiaのfile content queryを許可済みblobだけで実行する', asy
     }
 
     throw new Error(`Unexpected GitHub request: ${url}`)
-  }
+  })
 
   const response = await handleGraphql({
     request: graphqlRequest({
@@ -306,7 +333,7 @@ test('Sveltiaのfile content queryを許可済みblobだけで実行する', asy
 })
 
 test('Git tree responseからCMS管理対象外のpathとblob SHAを除外する', async () => {
-  globalThis.fetch = async () => {
+  mockFetch(async () => {
     return jsonResponse({
       sha: mainSha,
       truncated: false,
@@ -324,7 +351,7 @@ test('Git tree responseからCMS管理対象外のpathとblob SHAを除外する
         treeItem('README.md', 'blob', 'b'),
       ],
     })
-  }
+  })
 
   const response = await handleGithubRest({
     request: githubRestRequest(
@@ -353,7 +380,7 @@ test('Git tree responseからCMS管理対象外のpathとblob SHAを除外する
 test('CMS treeにないblob SHAは取得させない', async () => {
   let callCount = 0
 
-  globalThis.fetch = async () => {
+  mockFetch(async () => {
     callCount += 1
 
     return jsonResponse({
@@ -361,7 +388,7 @@ test('CMS treeにないblob SHAは取得させない', async () => {
       truncated: false,
       tree: [treeItem('src/content/blog/example.md', 'blob', 'b')],
     })
-  }
+  })
 
   const response = await handleGithubRest({
     request: githubRestRequest(
@@ -374,23 +401,97 @@ test('CMS treeにないblob SHAは取得させない', async () => {
   assert.equal(callCount, 1)
 })
 
-function graphqlRequest(payload) {
+test('メールヘッダーだけではAccess認証を通さない', async () => {
+  const response = await handleSession({
+    request: new Request('http://localhost/admin/api/session', {
+      headers: {
+        'Cf-Access-Authenticated-User-Email': 'editor@example.com',
+      },
+    }),
+    env: allowedEnv,
+  })
+
+  assert.equal(response.status, 401)
+})
+
+test('未署名のAccess JWTを拒否する', async () => {
+  const payload = Buffer.from(
+    JSON.stringify({
+      aud: accessAudience,
+      email: 'editor@example.com',
+      exp: Math.floor(Date.now() / 1000) + 300,
+      iss: accessIssuer,
+    }),
+  ).toString('base64url')
+  const response = await handleSession({
+    request: sessionRequest(`e30.${payload}.invalid`),
+    env: allowedEnv,
+  })
+
+  assert.equal(response.status, 401)
+})
+
+test('別audience向けのAccess JWTを拒否する', async () => {
+  mockFetch(async (input) => {
+    throw new Error(`Unexpected request: ${String(input)}`)
+  })
+
+  const response = await handleSession({
+    request: sessionRequest(
+      await signAccessJwt({ audience: 'different-application' }),
+    ),
+    env: allowedEnv,
+  })
+
+  assert.equal(response.status, 401)
+})
+
+function graphqlRequest(payload, token = validAccessJwt) {
   return new Request('http://localhost/admin/api/graphql', {
     method: 'POST',
     headers: {
-      'Cf-Access-Authenticated-User-Email': 'editor@example.com',
+      'Cf-Access-Jwt-Assertion': token,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   })
 }
 
-function githubRestRequest(path) {
+function githubRestRequest(path, token = validAccessJwt) {
   return new Request(`http://localhost${path}`, {
     headers: {
-      'Cf-Access-Authenticated-User-Email': 'editor@example.com',
+      'Cf-Access-Jwt-Assertion': token,
     },
   })
+}
+
+function sessionRequest(token = validAccessJwt) {
+  return new Request('http://localhost/admin/api/session', {
+    headers: { 'Cf-Access-Jwt-Assertion': token },
+  })
+}
+
+function mockFetch(handler) {
+  globalThis.fetch = async (input, init = {}) => {
+    if (String(input) === accessCertsUrl) {
+      return jsonResponse({ keys: [accessJwk] })
+    }
+
+    return handler(input, init)
+  }
+}
+
+function signAccessJwt({
+  audience = accessAudience,
+  email = 'editor@example.com',
+} = {}) {
+  return new SignJWT({ email })
+    .setProtectedHeader({ alg: 'RS256', kid: accessKeyId })
+    .setIssuer(accessIssuer)
+    .setAudience(audience)
+    .setIssuedAt()
+    .setExpirationTime('5m')
+    .sign(accessPrivateKey)
 }
 
 function jsonResponse(data, status = 200) {
