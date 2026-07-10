@@ -33,13 +33,13 @@
 Cloudflare Pages の production と preview の両方に以下を設定します。
 
 - Secret: `CMS_GITHUB_TOKEN`
-- Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
-- Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
+- Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
+- Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_DOMAINS`
 - Variable: `CMS_ACCESS_HOSTNAMES`
 
-proxy は `Cf-Access-Jwt-Assertion` の署名、issuer、有効期限、audience を検証します。Access application を作り直した場合は、新しい AUD tag を `CMS_ACCESS_AUD` に設定してください。
+proxy は `Cf-Access-Jwt-Assertion` の署名、issuer、有効期限、audience を検証します。team domain と AUD tag は上記の値を既定値として持つため、Access application を作り直した場合だけ新しい値を環境変数へ設定してください。
 
 `CMS_ACCESS_ALLOWED_EMAILS` は CMS 編集を許可する Cloudflare Access ユーザーのメールアドレスをカンマ区切りで指定します。
 

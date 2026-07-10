@@ -21,6 +21,9 @@ const DEFAULT_ACCESS_HOSTNAMES = [
   'localhost',
   '127.0.0.1',
 ]
+const DEFAULT_ACCESS_TEAM_DOMAIN = 'https://acecore.cloudflareaccess.com'
+const DEFAULT_ACCESS_AUD =
+  '044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4'
 
 const jwksByIssuer = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
@@ -39,8 +42,10 @@ export async function getAccessIdentity(
     }
   }
 
-  const issuer = normalizeAccessIssuer(env.CMS_ACCESS_TEAM_DOMAIN)
-  const audience = env.CMS_ACCESS_AUD?.trim()
+  const issuer = normalizeAccessIssuer(
+    env.CMS_ACCESS_TEAM_DOMAIN || DEFAULT_ACCESS_TEAM_DOMAIN,
+  )
+  const audience = env.CMS_ACCESS_AUD?.trim() || DEFAULT_ACCESS_AUD
 
   if (!issuer || !audience) {
     return {

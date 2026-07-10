@@ -431,6 +431,15 @@ test('未署名のAccess JWTを拒否する', async () => {
   assert.equal(response.status, 401)
 })
 
+test('環境変数がなくても既定のAccess検証を無効化しない', async () => {
+  const response = await handleSession({
+    request: sessionRequest('e30.e30.invalid'),
+    env: { CMS_ACCESS_ALLOWED_EMAILS: 'editor@example.com' },
+  })
+
+  assert.equal(response.status, 401)
+})
+
 test('別audience向けのAccess JWTを拒否する', async () => {
   mockFetch(async (input) => {
     throw new Error(`Unexpected request: ${String(input)}`)
