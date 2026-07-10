@@ -16,6 +16,8 @@
 - CMS content の shape は `src/content.config.ts` の Astro Content Collections schema に合わせる。
 - このリポジトリの CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路にする。
 - CMS backend の publication branch は `main` にし、Pages Functions proxy が `cms/hatt/*` の短命 branch と PR を作る。
+- Sveltia CMS の保存は `createCommitOnBranch` で画像とコンテンツを同時に送る。proxy は許可済み path だけで mutation を組み立て直し、1回の保存を同じ commit と PR にまとめる。
+- GitHub REST/GraphQL proxy は Sveltia CMS が必要とする read と write だけを許可し、`CMS_GITHUB_TOKEN` で任意の repository API を実行できる汎用 proxy にしない。
 - `cms-content` のような恒久的な CMS 投稿受け皿 branch は使わない。
 - CMS 変更は PR と CI を通して `main` に入れる。`main` への無検証直 push 前提の運用に戻さない。
 - CMS 由来の PR で `src/content/**`、`public/uploads/hatt/**`、CMS 設定で明示した path 以外の差分が含まれる場合は、内容を確認してから merge する。
@@ -27,6 +29,7 @@
 - サイト出力に影響する変更では原則 `npm run build` を実行する。
 - Markdown、JSON、YAML、Astro、TypeScript、CSS を変更した場合は `npm run format:check` を実行する。
 - CMS/content/schema/route/link に関わる変更では `npm run validate:content` を実行する。
+- CMS proxy に関わる変更では `npm run test:cms` と `npm run typecheck:functions` も実行する。
 - コミット前に `git diff --check` を実行する。
 - Windows sandbox で `spawn EPERM` が出た場合は、同じコマンドを権限付きで再実行して環境要因か切り分ける。
 

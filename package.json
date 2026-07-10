@@ -10,6 +10,8 @@
     "sync:external": "node scripts/sync-external-feeds.mjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "test:cms": "node --test tests/cms-proxy.test.mjs",
+    "typecheck:functions": "tsc --project tsconfig.functions.json",
     "validate:content": "node scripts/validate-content.mjs"
   },
   "dependencies": {
@@ -17,18 +19,21 @@
     "@astrojs/sitemap": "^3.7.2",
     "astro": "^6.1.1",
     "fast-xml-parser": "^5.8.0",
+    "graphql": "^16.14.2",
     "rehype-external-links": "^3.0.0",
     "satori": "^0.26.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@astrojs/markdown-remark": "^7.2.0",
+    "@cloudflare/workers-types": "^5.20260708.1",
     "@iconify-json/lucide": "^1.2.100",
     "@unocss/astro": "^66.6.7",
     "@unocss/preset-typography": "^66.6.7",
     "pagefind": "^1.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^6.0.3",
     "unocss": "^66.6.7"
   },
   "overrides": {

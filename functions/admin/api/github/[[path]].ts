@@ -1,21 +1,19 @@
+import { CMS_REPOSITORY } from '../_cms-policy.ts'
+import {
+  GitHubApiError,
+  copyGitHubResponse,
+  fetchCmsTree,
+  getAllowedCmsBlobShas,
+  githubJson,
+  githubRequest,
+  isRecord,
+} from '../_github-api.ts'
+
 type Env = {
   CMS_ACCESS_ALLOWED_EMAILS?: string
   CMS_ACCESS_ALLOWED_DOMAINS?: string
   CMS_ACCESS_HOSTNAMES?: string
   CMS_GITHUB_TOKEN?: string
-}
-
-type PagesContext = {
-  request: Request
-  env: Env
-}
-
-const DEFAULT_OWNER = 'acecore-systems'
-const DEFAULT_REPO = 'homepage-hatt'
-const DEFAULT_MAIN_BRANCH = 'main'
-const COMMITTER = {
-  name: 'Hatt Sveltia CMS',
-  email: 'cms@acecore.net',
 }
 
 const DEFAULT_ACCESS_HOSTNAMES = [
@@ -27,42 +25,11 @@ const DEFAULT_ACCESS_HOSTNAMES = [
   '127.0.0.1',
 ]
 
-const CONTENT_RULES = [
-  { prefix: 'src/content/art/', extension: '.json' },
-  { prefix: 'src/content/authors/', extension: '.json' },
-  { prefix: 'src/content/blog/', extension: '.md' },
-  { prefix: 'src/content/campaigns/', extension: '.json' },
-  { prefix: 'src/content/modeling/', extension: '.json' },
-  { prefix: 'src/content/tags/', extension: '.json' },
-]
+const SHA_PATTERN = /^[a-f0-9]{40}$/i
 
-const CONTENT_FILES = new Set(['src/content/site/main.json'])
+type ReadTarget = { kind: 'tree'; ref: string } | { kind: 'blob'; sha: string }
 
-const MEDIA_PREFIX = 'public/uploads/hatt/'
-const MEDIA_EXTENSIONS = new Set([
-  '.avif',
-  '.gif',
-  '.jpeg',
-  '.jpg',
-  '.pdf',
-  '.png',
-  '.svg',
-  '.webp',
-])
-
-class GitHubApiError extends Error {
-  status: number
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.status = status
-  }
-}
-
-export const onRequest = async ({
-  request,
-  env,
-}: PagesContext): Promise<Response> => {
+export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   const auth = getAccessIdentity(request, env)
 
   if (!auth.ok) {
@@ -78,44 +45,39 @@ export const onRequest = async ({
     )
   }
 
-  const repo = getRepo()
   const method = request.method.toUpperCase()
+
+  if (method !== 'GET' && method !== 'HEAD') {
+    return json({ message: 'Method not allowed' }, 405, {
+      Allow: 'GET, HEAD',
+    })
+  }
+
   const proxyPath = getProxyPath(request)
 
   try {
-    if (method === 'PUT' || method === 'DELETE') {
-      return await handleContentWrite({
-        auth,
-        method,
-        proxyPath,
-        repo,
-        request,
-        token,
-      })
+    if (proxyPath === 'user') {
+      return await handleCurrentUser({ auth, method, token })
     }
 
-    if (method !== 'GET' && method !== 'HEAD') {
-      return json({ message: 'Method not allowed' }, 405, {
-        Allow: 'GET, HEAD, PUT, DELETE',
-      })
-    }
-
-    if (isCurrentUserPath(proxyPath)) {
-      return await handleCurrentUser({ auth, method, repo, token })
-    }
-
-    if (isCollaboratorCheckPath(proxyPath, repo)) {
+    if (isCollaboratorCheckPath(proxyPath)) {
       return noContent()
     }
 
-    if (!isAllowedReadPath(proxyPath, repo)) {
+    const target = getReadTarget(proxyPath, new URL(request.url))
+
+    if (!target) {
       return json(
         { message: 'CMS proxyで許可されていないGitHub APIです。' },
         403,
       )
     }
 
-    return await proxyGitHubRequest({ method, proxyPath, request, token })
+    if (target.kind === 'tree') {
+      return await handleTreeRead({ method, ref: target.ref, token })
+    }
+
+    return await handleBlobRead({ method, request, sha: target.sha, token })
   } catch (error) {
     return toErrorResponse(error)
   }
@@ -124,12 +86,10 @@ export const onRequest = async ({
 async function handleCurrentUser({
   auth,
   method,
-  repo,
   token,
 }: {
   auth: { email: string }
   method: string
-  repo: Repo
   token: string
 }) {
   if (method === 'HEAD') {
@@ -137,7 +97,7 @@ async function handleCurrentUser({
   }
 
   await githubJson({
-    path: `/repos/${repo.owner}/${repo.name}`,
+    path: `/repos/${CMS_REPOSITORY.owner}/${CMS_REPOSITORY.name}`,
     token,
   })
 
@@ -152,215 +112,97 @@ async function handleCurrentUser({
   })
 }
 
-async function handleContentWrite({
-  auth,
+async function handleTreeRead({
   method,
-  proxyPath,
-  repo,
+  ref,
+  token,
+}: {
+  method: string
+  ref: string
+  token: string
+}) {
+  if (method === 'HEAD') return noContent()
+
+  const tree = await fetchCmsTree(token, ref)
+
+  return json(tree)
+}
+
+async function handleBlobRead({
+  method,
   request,
+  sha,
   token,
 }: {
-  auth: { email: string }
   method: string
-  proxyPath: string
-  repo: Repo
   request: Request
+  sha: string
   token: string
 }) {
-  const contentPath = getContentPathFromProxyPath(proxyPath, repo)
+  const tree = await fetchCmsTree(token)
 
-  if (!contentPath || !isAllowedWritePath(contentPath)) {
-    return json({ message: 'CMSで編集できないパスです。' }, 403)
+  if (!getAllowedCmsBlobShas(tree).has(sha)) {
+    return json({ message: 'CMS管理対象外のGit blobです。' }, 403)
   }
 
-  const payload = parseJsonObject(await request.text())
+  if (method === 'HEAD') return noContent()
 
-  if (!payload) {
-    return json({ message: 'GitHub Contents API payload が不正です。' }, 400)
-  }
-
-  const branch = await createCmsBranch({ contentPath, repo, token })
-  const writePayload = {
-    ...payload,
-    branch,
-    message: buildCommitMessage(method, contentPath),
-    committer: COMMITTER,
-    author: {
-      name: auth.email || COMMITTER.name,
-      email: COMMITTER.email,
-    },
-  }
-  const encodedPath = encodePathSegments(contentPath)
-  const result = await githubJson<Record<string, unknown>>({
-    body: writePayload,
-    method,
-    path: `/repos/${repo.owner}/${repo.name}/contents/${encodedPath}`,
+  const response = await githubRequest({
+    accept: request.headers.get('Accept') || 'application/vnd.github.raw',
+    path: `/repos/${CMS_REPOSITORY.owner}/${CMS_REPOSITORY.name}/git/blobs/${sha}`,
     token,
-  })
-  const pullRequest = await openPullRequest({
-    branch,
-    contentPath,
-    email: auth.email,
-    method,
-    repo,
-    token,
-  })
-
-  return json(
-    {
-      ...result,
-      cms_branch: branch,
-      cms_pull_request: {
-        number: pullRequest.number,
-        html_url: pullRequest.html_url,
-      },
-    },
-    method === 'PUT' ? 201 : 200,
-  )
-}
-
-async function createCmsBranch({
-  contentPath,
-  repo,
-  token,
-}: {
-  contentPath: string
-  repo: Repo
-  token: string
-}) {
-  const mainRef = await githubJson<{ object: { sha: string } }>({
-    path: `/repos/${repo.owner}/${repo.name}/git/ref/heads/${repo.branch}`,
-    token,
-  })
-  const base = sanitizeBranchName(contentPath)
-
-  for (let index = 0; index < 3; index += 1) {
-    const suffix = index === 0 ? '' : `-${index + 1}`
-    const branch = `cms/hatt/${timestamp()}-${base}${suffix}`
-
-    try {
-      await githubJson({
-        body: {
-          ref: `refs/heads/${branch}`,
-          sha: mainRef.object.sha,
-        },
-        method: 'POST',
-        path: `/repos/${repo.owner}/${repo.name}/git/refs`,
-        token,
-      })
-
-      return branch
-    } catch (error) {
-      if (!(error instanceof GitHubApiError) || error.status !== 422) {
-        throw error
-      }
-    }
-  }
-
-  throw new GitHubApiError('CMS保存用branchを作成できませんでした。', 409)
-}
-
-async function openPullRequest({
-  branch,
-  contentPath,
-  email,
-  method,
-  repo,
-  token,
-}: {
-  branch: string
-  contentPath: string
-  email: string
-  method: string
-  repo: Repo
-  token: string
-}) {
-  const action = method === 'DELETE' ? 'delete' : 'update'
-
-  return githubJson<{ html_url: string; number: number }>({
-    body: {
-      base: repo.branch,
-      body: [
-        'Sveltia CMS の保存を Cloudflare Access 認証済みユーザーから受け付けました。',
-        '',
-        `- Access user: ${email || '(email headerなし)'}`,
-        `- File: \`${contentPath}\``,
-        `- Action: ${action}`,
-        '',
-        'CIで content/schema/build を確認してから main に取り込んでください。',
-      ].join('\n'),
-      head: branch,
-      title: `cms: ${action} ${contentPath}`,
-    },
-    method: 'POST',
-    path: `/repos/${repo.owner}/${repo.name}/pulls`,
-    token,
-  })
-}
-
-async function proxyGitHubRequest({
-  method,
-  proxyPath,
-  request,
-  token,
-}: {
-  method: string
-  proxyPath: string
-  request: Request
-  token: string
-}) {
-  const sourceUrl = new URL(request.url)
-  const targetUrl = new URL(`https://api.github.com/${proxyPath}`)
-
-  targetUrl.search = sourceUrl.search
-
-  const response = await fetch(targetUrl.toString(), {
-    method,
-    headers: {
-      Accept: request.headers.get('Accept') || 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'User-Agent': 'homepage-hatt-sveltia-cms',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
   })
 
   return copyGitHubResponse(response)
 }
 
-async function githubJson<T>({
-  body,
-  method = 'GET',
-  path,
-  token,
-}: {
-  body?: unknown
-  method?: string
-  path: string
-  token: string
-}) {
-  const response = await fetch(`https://api.github.com${path}`, {
-    method,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'User-Agent': 'homepage-hatt-sveltia-cms',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
-  const data = await response.json().catch(() => null)
+function getReadTarget(proxyPath: string, sourceUrl: URL): ReadTarget | null {
+  const repoRoot = `repos/${CMS_REPOSITORY.owner}/${CMS_REPOSITORY.name}`
+  const treePrefix = `${repoRoot}/git/trees/`
+  const blobPrefix = `${repoRoot}/git/blobs/`
 
-  if (!response.ok) {
-    const message =
-      data && typeof data.message === 'string'
-        ? data.message
-        : 'GitHub APIでエラーが発生しました。'
+  if (proxyPath.startsWith(treePrefix)) {
+    const ref = proxyPath.slice(treePrefix.length)
+    const queryNames = Array.from(sourceUrl.searchParams.keys())
 
-    throw new GitHubApiError(message, response.status)
+    if (
+      (!SHA_PATTERN.test(ref) && ref !== CMS_REPOSITORY.branch) ||
+      queryNames.some((name) => name !== 'recursive') ||
+      sourceUrl.searchParams.getAll('recursive').length !== 1 ||
+      sourceUrl.searchParams.get('recursive') !== '1'
+    ) {
+      return null
+    }
+
+    return { kind: 'tree', ref }
   }
 
-  return data as T
+  if (proxyPath.startsWith(blobPrefix) && sourceUrl.search === '') {
+    const sha = proxyPath.slice(blobPrefix.length)
+
+    return SHA_PATTERN.test(sha) ? { kind: 'blob', sha } : null
+  }
+
+  return null
+}
+
+function getProxyPath(request: Request) {
+  const pathname = new URL(request.url).pathname
+
+  return pathname
+    .replace(/^\/admin\/api\/github\/?/, '')
+    .replace(/^api\/v3\/?/, '')
+    .replace(/^\/+/, '')
+}
+
+function isCollaboratorCheckPath(proxyPath: string) {
+  const prefix = `repos/${CMS_REPOSITORY.owner}/${CMS_REPOSITORY.name}/collaborators/`
+
+  if (!proxyPath.startsWith(prefix)) return false
+
+  const login = proxyPath.slice(prefix.length)
+
+  return login.length > 0 && !login.includes('/')
 }
 
 function getAccessIdentity(request: Request, env: Env) {
@@ -412,81 +254,6 @@ function getAccessIdentity(request: Request, env: Env) {
   return { ok: true as const, email }
 }
 
-function getRepo() {
-  return {
-    branch: DEFAULT_MAIN_BRANCH,
-    name: DEFAULT_REPO,
-    owner: DEFAULT_OWNER,
-  }
-}
-
-function getProxyPath(request: Request) {
-  const pathname = new URL(request.url).pathname
-
-  return pathname
-    .replace(/^\/admin\/api\/github\/?/, '')
-    .replace(/^api\/v3\/?/, '')
-    .replace(/^\/+/, '')
-}
-
-function getContentPathFromProxyPath(proxyPath: string, repo: Repo) {
-  const prefix = `repos/${repo.owner}/${repo.name}/contents/`
-
-  if (!proxyPath.startsWith(prefix)) return null
-
-  return normalizeEditablePath(
-    decodeURIComponent(proxyPath.slice(prefix.length)),
-  )
-}
-
-function isAllowedReadPath(proxyPath: string, repo: Repo) {
-  if (proxyPath === 'user') return true
-
-  const repoRoot = `repos/${repo.owner}/${repo.name}`
-
-  if (proxyPath === repoRoot) return true
-  if (!proxyPath.startsWith(`${repoRoot}/`)) return false
-
-  const repoPath = proxyPath.slice(repoRoot.length + 1)
-
-  if (
-    repoPath.startsWith('branches') ||
-    repoPath.startsWith('commits') ||
-    repoPath.startsWith('git/blobs/') ||
-    repoPath.startsWith('git/refs/heads/') ||
-    repoPath.startsWith('git/trees/')
-  ) {
-    return true
-  }
-
-  if (repoPath === 'contents' || repoPath.startsWith('contents/')) {
-    const contentPath = normalizeEditablePath(
-      decodeURIComponent(repoPath.replace(/^contents\/?/, '')),
-    )
-
-    return (
-      contentPath !== null &&
-      (contentPath === '' || isReadableContentPath(contentPath))
-    )
-  }
-
-  return false
-}
-
-function isCurrentUserPath(proxyPath: string) {
-  return proxyPath === 'user'
-}
-
-function isCollaboratorCheckPath(proxyPath: string, repo: Repo) {
-  const prefix = `repos/${repo.owner}/${repo.name}/collaborators/`
-
-  if (!proxyPath.startsWith(prefix)) return false
-
-  const login = proxyPath.slice(prefix.length)
-
-  return login.length > 0 && !login.includes('/')
-}
-
 function isAllowedAccessHostname(hostname: string, env: Env) {
   return [...DEFAULT_ACCESS_HOSTNAMES, ...parseCsv(env.CMS_ACCESS_HOSTNAMES)]
     .filter(Boolean)
@@ -512,8 +279,8 @@ function getAccessJwtEmail(jwt: string) {
   try {
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
     const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
-    const data = JSON.parse(atob(padded)) as Record<string, unknown>
-    const email = data.email
+    const data: unknown = JSON.parse(atob(padded))
+    const email = isRecord(data) ? data.email : null
 
     return typeof email === 'string' ? email : ''
   } catch {
@@ -528,43 +295,6 @@ function parseCsv(value: string | undefined) {
     .filter(Boolean)
 }
 
-function isReadableContentPath(path: string) {
-  const parentPrefixes = [
-    'src',
-    'src/content',
-    'src/content/site',
-    'public',
-    'public/uploads',
-  ]
-
-  if (parentPrefixes.includes(path)) return true
-  if (path === 'public/uploads/hatt') return true
-
-  return [
-    ...CONTENT_RULES.map((rule) => rule.prefix),
-    ...Array.from(CONTENT_FILES),
-    MEDIA_PREFIX,
-  ].some((targetPath) => {
-    return path.startsWith(targetPath) || targetPath.startsWith(`${path}/`)
-  })
-}
-
-function isAllowedWritePath(path: string) {
-  if (CONTENT_FILES.has(path)) return true
-
-  if (
-    CONTENT_RULES.some((rule) => {
-      return path.startsWith(rule.prefix) && path.endsWith(rule.extension)
-    })
-  ) {
-    return true
-  }
-
-  if (!path.startsWith(MEDIA_PREFIX)) return false
-
-  return MEDIA_EXTENSIONS.has(getExtension(path))
-}
-
 function hostnameMatches(pattern: string, hostname: string) {
   const normalizedPattern = pattern.trim().toLowerCase()
 
@@ -575,86 +305,17 @@ function hostnameMatches(pattern: string, hostname: string) {
   return hostname === normalizedPattern
 }
 
-function normalizeEditablePath(path: string | null) {
-  if (path === null) return null
-
-  const normalized = path.replace(/\\/g, '/').replace(/^\/+/, '')
-
-  if (
-    normalized === '..' ||
-    normalized.includes('../') ||
-    normalized.includes('/..')
-  ) {
-    return null
-  }
-
-  return normalized
-}
-
-function parseJsonObject(text: string) {
-  try {
-    const value = JSON.parse(text)
-    return value && typeof value === 'object'
-      ? (value as Record<string, unknown>)
-      : null
-  } catch {
-    return null
-  }
-}
-
-function buildCommitMessage(method: string, contentPath: string) {
-  const action = method === 'DELETE' ? 'delete' : 'update'
-
-  return `cms: ${action} ${contentPath}`
-}
-
-function sanitizeBranchName(path: string) {
-  const base = path
-    .replace(/\.[^.]+$/, '')
-    .replace(/[^A-Za-z0-9._-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 72)
-
-  return base || 'content'
-}
-
-function timestamp() {
-  return new Date().toISOString().replace(/\D/g, '').slice(0, 14)
-}
-
-function encodePathSegments(path: string) {
-  return path.split('/').map(encodeURIComponent).join('/')
-}
-
-function getExtension(path: string) {
-  const fileName = path.split('/').pop() || ''
-  const dot = fileName.lastIndexOf('.')
-
-  return dot === -1 ? '' : fileName.slice(dot).toLowerCase()
-}
-
-function copyGitHubResponse(response: Response) {
-  const headers = new Headers()
-
-  for (const name of ['Content-Type', 'ETag', 'Link']) {
-    const value = response.headers.get(name)
-
-    if (value) headers.set(name, value)
-  }
-
-  headers.set('Cache-Control', 'no-store')
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  })
-}
-
 function toErrorResponse(error: unknown) {
   if (error instanceof GitHubApiError) {
     return json({ message: error.message }, error.status)
   }
+
+  console.error(
+    JSON.stringify({
+      message: 'CMS GitHub proxy failed',
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  )
 
   return json({ message: 'CMS GitHub proxyでエラーが発生しました。' }, 500)
 }
@@ -678,5 +339,3 @@ function noContent() {
     },
   })
 }
-
-type Repo = ReturnType<typeof getRepo>
