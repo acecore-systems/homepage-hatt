@@ -17,11 +17,11 @@
 - このリポジトリの CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路にする。
 - CMS backend の publication branch は `main` にし、Pages Functions proxy が `cms/hatt/*` の短命 branch と PR を作る。
 - Sveltia CMS の保存は `createCommitOnBranch` で画像とコンテンツを同時に送る。proxy は許可済み path だけで mutation を組み立て直し、1回の保存を同じ commit と PR にまとめる。
-- GitHub REST/GraphQL proxy は Sveltia CMS が必要とする read と write だけを許可し、`CMS_GITHUB_TOKEN` で任意の repository API を実行できる汎用 proxy にしない。
+- GitHub REST/GraphQL proxy は Sveltia CMS が必要とする read と write だけを許可し、GitHub App installation token で任意の repository API を実行できる汎用 proxy にしない。
 - `cms-content` のような恒久的な CMS 投稿受け皿 branch は使わない。
 - CMS 変更は PR と CI を通して `main` に入れる。`main` への無検証直 push 前提の運用に戻さない。
 - CMS 由来の PR で `src/content/**`、`public/uploads/hatt/**`、CMS 設定で明示した path 以外の差分が含まれる場合は、内容を確認してから merge する。
-- CMS 保存用 token は Cloudflare Pages の `CMS_GITHUB_TOKEN` に設定し、編集者個人 OAuth を保存 actor にしない。
+- CMS 保存は repository 限定の GitHub App installation token を短期発行し、編集者個人 OAuth を保存 actor にしない。
 - GitHub proxy の書き込み可能 path は `src/content/**` と `public/uploads/hatt/**` の CMS 管理対象に限定する。
 
 ## 検証

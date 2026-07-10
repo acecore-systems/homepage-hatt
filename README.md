@@ -42,14 +42,16 @@ npm run typecheck:functions
 - GitHub proxy: `functions/admin/api/github/[[path]].ts`
 - GraphQL proxy: `functions/admin/api/graphql.ts`
 - Access session: `functions/admin/api/session.ts`
-- 認証方式: Cherry 型。編集者は Cloudflare Access で `/admin/` に入り、保存は Cloudflare Pages の `CMS_GITHUB_TOKEN` を使う proxy が行います。
+- 認証方式: Cherry 型。編集者は Cloudflare Access で `/admin/` に入り、保存は専用 GitHub App の短期 installation token を使う proxy が行います。
 - ブログ、タグ、著者、モデリング項目、キャンペーン通知、サイト基本設定を編集できます。
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
 
 Cloudflare Pages 側で以下を設定してください。
 
-- Secret: `CMS_GITHUB_TOKEN`
+- Variable: `CMS_GITHUB_APP_CLIENT_ID`
+- Variable: `CMS_GITHUB_APP_INSTALLATION_ID`
+- Secret: `CMS_GITHUB_APP_PRIVATE_KEY`（PKCS#8 PEM）
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com,editor2@example.com`
@@ -57,6 +59,8 @@ Cloudflare Pages 側で以下を設定してください。
 - Variable: `CMS_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev`
 
 `CMS_ACCESS_TEAM_DOMAIN` と `CMS_ACCESS_AUD` は上記の値を既定値として持ちます。Access application を作り直した場合だけ、新しい値で上書きしてください。
+
+GitHub App は `acecore-systems/homepage-hatt` だけへインストールし、Repository permissions は `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read-only` にします。proxy は秘密鍵で9分以内のApp JWTを署名し、repositoryと権限を再指定した1時間以内のinstallation tokenを発行します。
 
 ### 本番 CMS の保存と PR 反映
 

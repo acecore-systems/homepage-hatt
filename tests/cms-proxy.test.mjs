@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
-import { SignJWT, exportJWK, generateKeyPair } from 'jose'
+import {
+  SignJWT,
+  exportJWK,
+  exportPKCS8,
+  generateKeyPair,
+  jwtVerify,
+} from 'jose'
 
 import { isAllowedCmsWritePath } from '../functions/admin/api/_cms-policy.ts'
+import { getGitHubToken } from '../functions/admin/api/_github-api.ts'
 import { onRequestPost as handleGraphql } from '../functions/admin/api/graphql.ts'
 import { onRequest as handleGithubRest } from '../functions/admin/api/github/[[path]].ts'
 import { onRequestGet as handleSession } from '../functions/admin/api/session.ts'
@@ -16,6 +23,13 @@ const accessKeyId = 'test-access-key'
 const { privateKey: accessPrivateKey, publicKey: accessPublicKey } =
   await generateKeyPair('RS256')
 const accessJwk = await exportJWK(accessPublicKey)
+const githubAppClientId = 'Iv23testclient'
+const githubAppInstallationId = '12345678'
+const routeGithubAppClientId = 'Iv23routeclient'
+const routeGithubAppInstallationId = '87654321'
+const { privateKey: githubAppPrivateKey, publicKey: githubAppPublicKey } =
+  await generateKeyPair('RS256', { extractable: true })
+const githubAppPrivateKeyPem = await exportPKCS8(githubAppPrivateKey)
 
 Object.assign(accessJwk, { alg: 'RS256', kid: accessKeyId, use: 'sig' })
 
@@ -24,11 +38,56 @@ const allowedEnv = {
   CMS_ACCESS_AUD: accessAudience,
   CMS_ACCESS_ALLOWED_EMAILS: 'editor@example.com',
   CMS_ACCESS_TEAM_DOMAIN: accessIssuer,
-  CMS_GITHUB_TOKEN: 'test-token',
+  CMS_GITHUB_APP_CLIENT_ID: routeGithubAppClientId,
+  CMS_GITHUB_APP_INSTALLATION_ID: routeGithubAppInstallationId,
+  CMS_GITHUB_APP_PRIVATE_KEY: githubAppPrivateKeyPem,
 }
 
 afterEach(() => {
   globalThis.fetch = originalFetch
+})
+
+test('GitHub Appの署名付きJWTからrepository限定installation tokenを発行する', async () => {
+  mockFetch(async (input, init = {}) => {
+    assert.equal(
+      String(input),
+      `https://api.github.com/app/installations/${githubAppInstallationId}/access_tokens`,
+    )
+    assert.equal(init.method, 'POST')
+
+    const authorization = new Headers(init.headers).get('Authorization') || ''
+    const { payload } = await jwtVerify(
+      authorization.replace(/^Bearer /, ''),
+      githubAppPublicKey,
+      {
+        algorithms: ['RS256'],
+        issuer: githubAppClientId,
+      },
+    )
+    const body = JSON.parse(init.body)
+
+    assert.ok((payload.exp ?? 0) - (payload.iat ?? 0) <= 10 * 60)
+    assert.deepEqual(body, {
+      repositories: ['homepage-hatt'],
+      permissions: {
+        contents: 'write',
+        pull_requests: 'write',
+      },
+    })
+
+    return jsonResponse({
+      token: 'test-installation-token',
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    })
+  })
+
+  const token = await getGitHubToken({
+    CMS_GITHUB_APP_CLIENT_ID: githubAppClientId,
+    CMS_GITHUB_APP_INSTALLATION_ID: githubAppInstallationId,
+    CMS_GITHUB_APP_PRIVATE_KEY: githubAppPrivateKeyPem,
+  })
+
+  assert.equal(token, 'test-installation-token')
 })
 
 test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', async () => {
@@ -482,8 +541,20 @@ function sessionRequest(token = validAccessJwt) {
 
 function mockFetch(handler) {
   globalThis.fetch = async (input, init = {}) => {
-    if (String(input) === accessCertsUrl) {
+    const url = String(input)
+
+    if (url === accessCertsUrl) {
       return jsonResponse({ keys: [accessJwk] })
+    }
+
+    if (
+      url ===
+      `https://api.github.com/app/installations/${routeGithubAppInstallationId}/access_tokens`
+    ) {
+      return jsonResponse({
+        token: 'test-route-installation-token',
+        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      })
     }
 
     return handler(input, init)

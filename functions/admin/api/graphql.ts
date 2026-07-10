@@ -20,6 +20,7 @@ import {
   copyGitHubResponse,
   fetchCmsTree,
   getAllowedCmsBlobShas,
+  getGitHubToken,
   githubJson,
   githubRequest,
   isRecord,
@@ -65,16 +66,8 @@ export const onRequestPost: PagesFunction<CmsAccessEnv> = async ({
     return json({ message: auth.message }, auth.status)
   }
 
-  const token = env.CMS_GITHUB_TOKEN?.trim()
-
-  if (!token) {
-    return json(
-      { message: 'CMS_GITHUB_TOKEN がCloudflare Pagesに設定されていません。' },
-      503,
-    )
-  }
-
   try {
+    const token = await getGitHubToken(env)
     const bodyText = await readRequestText(request)
 
     if (bodyText === null) {

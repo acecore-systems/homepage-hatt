@@ -5,6 +5,7 @@ import {
   copyGitHubResponse,
   fetchCmsTree,
   getAllowedCmsBlobShas,
+  getGitHubToken,
   githubJson,
   githubRequest,
 } from '../_github-api.ts'
@@ -23,15 +24,6 @@ export const onRequest: PagesFunction<CmsAccessEnv> = async ({
     return json({ message: auth.message }, auth.status)
   }
 
-  const token = env.CMS_GITHUB_TOKEN?.trim()
-
-  if (!token) {
-    return json(
-      { message: 'CMS_GITHUB_TOKEN がCloudflare Pagesに設定されていません。' },
-      503,
-    )
-  }
-
   const method = request.method.toUpperCase()
 
   if (method !== 'GET' && method !== 'HEAD') {
@@ -43,6 +35,8 @@ export const onRequest: PagesFunction<CmsAccessEnv> = async ({
   const proxyPath = getProxyPath(request)
 
   try {
+    const token = await getGitHubToken(env)
+
     if (proxyPath === 'user') {
       return await handleCurrentUser({ auth, method, token })
     }

@@ -6,7 +6,9 @@ export type CmsAccessEnv = {
   CMS_ACCESS_HOSTNAMES?: string
   CMS_ACCESS_TEAM_DOMAIN?: string
   CMS_ACCESS_AUD?: string
-  CMS_GITHUB_TOKEN?: string
+  CMS_GITHUB_APP_CLIENT_ID?: string
+  CMS_GITHUB_APP_INSTALLATION_ID?: string
+  CMS_GITHUB_APP_PRIVATE_KEY?: string
 }
 
 type AccessIdentity =
