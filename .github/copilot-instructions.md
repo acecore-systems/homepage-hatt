@@ -6,7 +6,9 @@
 - PR タイトルと本文は日本語にし、関連 Issue、概要、確認、補足を簡潔に書く。
 - 差分は目的に必要な範囲に絞り、既存の Astro、TypeScript、UnoCSS、Sveltia CMS 構成を尊重する。
 - CMS content の shape は `src/content.config.ts` を正とし、横断制約は `npm run validate:content` で確認する。
-- CMS 認証は GitHub 認証型とし、Cloudflare Access は必要に応じて入口保護として扱う。
+- CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路として扱う。
+- CMS proxy は `createCommitOnBranch` の画像とコンテンツを同じ commit/PR にまとめ、Sveltia CMS が必要とする GitHub API だけを許可する。
 - サイト出力に影響する変更では `npm run build` を実行する。
 - CMS/content/schema/route/link に関わる変更では `npm run format:check`、`npm run validate:content`、`npm run build` を確認する。
+- CMS proxy に関わる変更では `npm run test:cms` と `npm run typecheck:functions` も確認する。
 - docs/template のみなら対象ファイルの format check と `git diff --check` を行う。

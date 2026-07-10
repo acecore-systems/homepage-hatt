@@ -67,7 +67,6 @@ dist
 
 # Astro
 .astro
-/public/admin/runtime-config.js
 
 # Local coding assistant state
 .serena/

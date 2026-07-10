@@ -36,5 +36,11 @@ jobs:
       - name: Validate CMS content
         run: npm run validate:content
 
+      - name: Test CMS proxy
+        run: npm run test:cms
+
+      - name: Type-check Pages Functions
+        run: npm run typecheck:functions
+
       - name: Build site
         run: npm run build
