@@ -27,7 +27,7 @@ async function initCms() {
       const data = await user.json().catch(() => ({}))
       throw new Error(
         getErrorMessage(data) ||
-          'GitHub proxyの確認に失敗しました。CMS_GITHUB_TOKENを確認してください。',
+          'GitHub proxyの確認に失敗しました。GitHub AppのPages設定を確認してください。',
       )
     }
 
