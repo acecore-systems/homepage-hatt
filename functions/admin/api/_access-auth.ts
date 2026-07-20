@@ -2,7 +2,6 @@ import { createRemoteJWKSet, jwtVerify } from 'jose'
 
 export type CmsAccessEnv = {
   CMS_ACCESS_ALLOWED_EMAILS?: string
-  CMS_ACCESS_ALLOWED_DOMAINS?: string
   CMS_ACCESS_HOSTNAMES?: string
   CMS_ACCESS_TEAM_DOMAIN?: string
   CMS_ACCESS_AUD?: string
@@ -148,11 +147,9 @@ function isAllowedAccessHostname(hostname: string, env: CmsAccessEnv) {
 
 function isAllowedAccessEmail(email: string, env: CmsAccessEnv) {
   const allowed = parseCsv(env.CMS_ACCESS_ALLOWED_EMAILS)
-  const allowedDomains = parseCsv(env.CMS_ACCESS_ALLOWED_DOMAINS)
   const normalizedEmail = email.toLowerCase()
-  const domain = normalizedEmail.split('@').pop() || ''
 
-  return allowed.includes(normalizedEmail) || allowedDomains.includes(domain)
+  return allowed.includes(normalizedEmail)
 }
 
 function parseCsv(value: string | undefined) {

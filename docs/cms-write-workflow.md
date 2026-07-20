@@ -1,6 +1,6 @@
 # CMS 書き込み branch 運用
 
-最終更新日: 2026-07-10
+最終更新日: 2026-07-20
 
 ## 現在の方針
 
@@ -8,6 +8,7 @@
 - GitHub default branch: `main`
 - CMS backend: `public/admin/config.yml` の `backend.name: github`
 - CMS auth mode: Cherry 型（Cloudflare Access + Pages Functions GitHub proxy）
+- CMS Access group: `hatt-cms-editors`（このサイトの編集者だけ）
 - CMS publication branch: `main`
 - CMS PR branch prefix: `cms/hatt/`
 
@@ -37,15 +38,12 @@ Cloudflare Pages の production と preview の両方に以下を設定します
 - Secret: `CMS_GITHUB_APP_PRIVATE_KEY`（PKCS#8 PEM）
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
-- Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS`
-- Secret または Variable: `CMS_ACCESS_ALLOWED_DOMAINS`
+- Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS`（`hatt-cms-editors` と同じ完全一致メール）
 - Variable: `CMS_ACCESS_HOSTNAMES`
 
 proxy は `Cf-Access-Jwt-Assertion` の署名、issuer、有効期限、audience を検証します。team domain と AUD tag は上記の値を既定値として持つため、Access application を作り直した場合だけ新しい値を環境変数へ設定してください。
 
-`CMS_ACCESS_ALLOWED_EMAILS` は CMS 編集を許可する Cloudflare Access ユーザーのメールアドレスをカンマ区切りで指定します。
-
-`CMS_ACCESS_ALLOWED_DOMAINS` は CMS 編集を許可するメールドメインをカンマ区切りで指定します。Cloudflare Access group でドメイン許可を使う場合、proxy 側にも同じドメインを設定します。
+`CMS_ACCESS_ALLOWED_EMAILS` は CMS 編集を許可する完全一致メールを指定します。Access application は `hatt-cms-editors` だけを許可し、共有 `default-admin` group、他サイトの編集者、メールドメイン一括許可を使いません。Access group と Pages Functions の allowlist の両方が一致したユーザーだけが CMS API を利用できます。
 
 `CMS_ACCESS_HOSTNAMES` は必要に応じて preview hostname を追加するためのカンマ区切り allowlist です。既定で以下は許可されます。
 
