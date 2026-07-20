@@ -203,7 +203,11 @@ const videoLinks = [
                 data-search={searchText}
               >
                 <span class="video-result-thumbnail">
-                  <img src={video.thumbnailUrl} alt="" loading="lazy" />
+                  <img
+                    src={video.thumbnailUrl}
+                    alt={`${video.title}のサムネイル画像`}
+                    loading="lazy"
+                  />
                   <span class="i-lucide-play" aria-hidden="true" />
                 </span>
                 <span class="video-result-body">

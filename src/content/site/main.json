@@ -61,6 +61,7 @@
       "href": "/art/",
       "cta": "絵を見る",
       "image": "/uploads/hatt/hero-paint.jpg",
+      "imageAlt": "色とりどりの絵の具が並ぶ水彩パレット",
       "tone": "cyan"
     },
     {
@@ -72,6 +73,7 @@
       "href": "/novels/",
       "cta": "作品一覧へ",
       "image": "/uploads/hatt/novel-desert-boy.png",
+      "imageAlt": "砂漠を帆走する乗り物に乗った人物のモノクロイラスト",
       "tone": "ember"
     },
     {
@@ -83,6 +85,7 @@
       "href": "/modeling/",
       "cta": "作品を見る",
       "image": "/uploads/hatt/modeling-preview.jpg",
+      "imageAlt": "3Dアバターと小物を編集するモデリング画面",
       "tone": "mint"
     }
   ]

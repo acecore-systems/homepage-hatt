@@ -70,6 +70,11 @@ collections:
         label: 画像
         widget: image
         required: false
+      - name: imageAlt
+        label: 画像の代替テキスト
+        widget: string
+        required: false
+        hint: 画像に写っている内容を、短く具体的に入力します。未入力の場合は記事タイトルから自動生成されます。
       - name: legacySlugs
         label: 旧URLスラッグ
         widget: list
@@ -199,7 +204,7 @@ collections:
               - name: alt
                 label: 代替テキスト
                 widget: string
-                required: false
+                hint: 画像に写っている内容を、短く具体的に入力します。
               - name: caption
                 label: キャプション
                 widget: string
@@ -547,6 +552,10 @@ collections:
               - name: image
                 label: 画像
                 widget: image
+              - name: imageAlt
+                label: 画像の代替テキスト
+                widget: string
+                hint: 画像に写っている内容を、短く具体的に入力します。
               - name: tone
                 label: 色
                 widget: select
