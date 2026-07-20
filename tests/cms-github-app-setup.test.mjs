@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createPrivateKey, generateKeyPairSync } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 
 import {
@@ -17,6 +18,14 @@ const options = {
   repo: 'homepage-hatt',
   siteUrl: 'https://hatt.acecore.net',
 }
+
+test('セットアップに必要なWranglerを開発依存関係として固定する', async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL('../package.json', import.meta.url), 'utf8'),
+  )
+
+  assert.match(packageJson.devDependencies?.wrangler ?? '', /^\^4\./)
+})
 
 test('GitHub App manifestは最小権限かつwebhook無効で生成する', () => {
   const manifest = buildGithubAppManifest(options, 'http://127.0.0.1:12345')
