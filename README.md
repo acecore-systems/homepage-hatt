@@ -43,6 +43,7 @@ npm run typecheck:functions
 - GraphQL proxy: `functions/admin/api/graphql.ts`
 - Access session: `functions/admin/api/session.ts`
 - 認証方式: Cherry 型。編集者は Cloudflare Access で `/admin/` に入り、保存は専用 GitHub App の短期 installation token を使う proxy が行います。
+- Access application の Allow policy はサイト専用の `hatt-cms-editors` group だけを参照します。共有管理者 group やメールドメイン一括許可は使いません。
 - ブログ、タグ、著者、モデリング項目、キャンペーン通知、サイト基本設定を編集できます。
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
@@ -54,9 +55,10 @@ Cloudflare Pages 側で以下を設定してください。
 - Secret: `CMS_GITHUB_APP_PRIVATE_KEY`（PKCS#8 PEM）
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
-- Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com,editor2@example.com`
-- Secret または Variable: `CMS_ACCESS_ALLOWED_DOMAINS=acecore.net`
+- Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com`
 - Variable: `CMS_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev`
+
+`CMS_ACCESS_ALLOWED_EMAILS` は `hatt-cms-editors` と同じ完全一致メールだけを production / preview の両方へ設定します。他サイト編集者、共有管理者、メールドメイン一括許可は追加しません。
 
 `CMS_ACCESS_TEAM_DOMAIN` と `CMS_ACCESS_AUD` は上記の値を既定値として持ちます。Access application を作り直した場合だけ、新しい値で上書きしてください。
 

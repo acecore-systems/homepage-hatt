@@ -514,6 +514,20 @@ test('別audience向けのAccess JWTを拒否する', async () => {
   assert.equal(response.status, 401)
 })
 
+test('同一ドメインでもメールallowlist未登録ユーザーを拒否する', async () => {
+  const response = await handleSession({
+    request: sessionRequest(
+      await signAccessJwt({ email: 'other@example.com' }),
+    ),
+    env: {
+      ...allowedEnv,
+      CMS_ACCESS_ALLOWED_DOMAINS: 'example.com',
+    },
+  })
+
+  assert.equal(response.status, 403)
+})
+
 function graphqlRequest(payload, token = validAccessJwt) {
   return new Request('http://localhost/admin/api/graphql', {
     method: 'POST',
