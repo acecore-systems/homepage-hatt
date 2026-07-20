@@ -10,8 +10,9 @@
     "sync:external": "node scripts/sync-external-feeds.mjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "test:cms": "node --test tests/cms-proxy.test.mjs",
+    "test:cms": "node --test tests/cms-proxy.test.mjs tests/cms-github-app-setup.test.mjs",
     "test:sitemap": "node --test tests/sitemap-lastmod.test.mjs",
+    "setup:cms-app": "node scripts/setup-cms-github-app.mjs --owner acecore-systems --repo homepage-hatt --app-name \"Acecore Hatt CMS\" --site-url https://hatt.acecore.net --pages-project homepage-hatt",
     "typecheck:functions": "tsc --project tsconfig.functions.json",
     "validate:content": "node scripts/validate-content.mjs"
   },

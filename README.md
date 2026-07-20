@@ -64,6 +64,8 @@ Cloudflare Pages 側で以下を設定してください。
 
 GitHub App は `acecore-systems/homepage-hatt` だけへインストールし、Repository permissions は `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read-only` にします。proxy は秘密鍵で9分以内のApp JWTを署名し、repositoryと権限を再指定した1時間以内のinstallation tokenを発行します。
 
+GitHub App を新規作成または置換するときは `npm run setup:cms-app` を実行します。セットアップ画面では `homepage-hatt` だけを選択してください。補助スクリプトはAppの所有者、権限、対象repositoryが1件だけであることを検証し、秘密鍵をファイルへ保存せず、production / preview の両方へ必要な3 secretを登録します。
+
 ### 本番 CMS の保存と PR 反映
 
 - 本番 CMS の publication branch は `main` です。`cms-content` のような恒久的な別本流 branch は使いません。

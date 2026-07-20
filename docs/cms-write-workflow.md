@@ -54,6 +54,17 @@ proxy は `Cf-Access-Jwt-Assertion` の署名、issuer、有効期限、audience
 - `localhost`
 - `127.0.0.1`
 
+## GitHub App のセットアップ
+
+初回作成またはApp置換時は、依存関係を導入したうえで次を実行します。
+
+```bash
+npm ci
+npm run setup:cms-app
+```
+
+GitHubではApp名が `Acecore Hatt CMS`、インストール先が `acecore-systems`、Repository accessが `Only select repositories: homepage-hatt` であることを確認します。補助スクリプトは所有者、最小権限、対象repositoryが1件だけであることをGitHub APIで再検証し、PKCS#8秘密鍵をディスクへ保存せず、Cloudflare Pagesのproduction / previewへ `CMS_GITHUB_APP_CLIENT_ID`、`CMS_GITHUB_APP_INSTALLATION_ID`、`CMS_GITHUB_APP_PRIVATE_KEY` を登録します。
+
 ## CMS で編集してよい範囲
 
 - `src/content/blog/**`
