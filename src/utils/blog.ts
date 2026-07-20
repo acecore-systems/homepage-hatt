@@ -22,6 +22,10 @@ export function getBlogPath(post: BlogPost) {
   return `/blog/article/${getBlogSlug(post)}/`
 }
 
+export function getBlogImageAlt(post: BlogPost) {
+  return post.data.imageAlt?.trim() || `${post.data.title}のアイキャッチ画像`
+}
+
 export async function getSiteConfig() {
   const site = await getEntry('site', 'main')
   if (!site) {

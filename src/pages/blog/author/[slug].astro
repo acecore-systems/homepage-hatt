@@ -59,7 +59,7 @@ const authors = await getAuthors()
           author.data.avatar && (
             <img
               src={author.data.avatar}
-              alt=""
+              alt={`${author.data.name}のプロフィール画像`}
               width="84"
               height="84"
               style="border-radius: 16px;"

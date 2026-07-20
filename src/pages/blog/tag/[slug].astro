@@ -6,6 +6,7 @@ import { isWithinPublicationWindow } from '@/utils/publication-window'
 import {
   getArchiveStats,
   getAuthors,
+  getBlogImageAlt,
   getBlogPath,
   getPosts,
   getPostsByTag,
@@ -117,7 +118,7 @@ const getPictureTileClass = (index: number): string | undefined => {
                   >
                     <img
                       src={image}
-                      alt={post.data.title}
+                      alt={getBlogImageAlt(post)}
                       loading="lazy"
                       decoding="async"
                     />

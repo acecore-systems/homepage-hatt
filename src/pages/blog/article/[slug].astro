@@ -12,6 +12,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 import {
   getAdjacentPosts,
   getAuthorMap,
+  getBlogImageAlt,
   getBlogPath,
   getBlogSlug,
   getPosts,
@@ -100,7 +101,7 @@ const jsonLdData = faqJsonLd ? [articleJsonLd, faqJsonLd] : articleJsonLd
   title={post.data.title}
   description={post.data.description}
   image={ogImagePath}
-  imageAlt={post.data.title}
+  imageAlt={getBlogImageAlt(post)}
   ogType="article"
   canonicalPath={getBlogPath(post)}
   publishedTime={post.data.date}
@@ -159,7 +160,7 @@ const jsonLdData = faqJsonLd ? [articleJsonLd, faqJsonLd] : articleJsonLd
           <div class="post-cover">
             <img
               src={post.data.image}
-              alt={post.data.title}
+              alt={getBlogImageAlt(post)}
               loading="eager"
               decoding="async"
             />

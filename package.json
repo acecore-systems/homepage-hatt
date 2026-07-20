@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && pagefind --site dist",
+    "build": "astro build && node scripts/audit-image-alts.mjs && pagefind --site dist",
+    "audit:image-alts": "node scripts/audit-image-alts.mjs",
     "preview": "astro preview",
     "sync:external": "node scripts/sync-external-feeds.mjs",
     "format": "prettier . --write",
