@@ -2,15 +2,17 @@ import sitemap from '@astrojs/sitemap'
 import UnoCSS from '@unocss/astro'
 import { unified } from '@astrojs/markdown-remark'
 import rehypeExternalLinks from 'rehype-external-links'
+import { createSitemapLastmodResolver } from './scripts/sitemap-lastmod.mjs'
 import rehypeOptimizeImages from './src/utils/rehype-optimize-images'
 import { defineConfig } from 'astro/config'
+
+const sitemapLastmod = createSitemapLastmodResolver()
 
 export default defineConfig({
   site: 'https://hatt.acecore.net',
   integrations: [
     UnoCSS(),
     sitemap({
-      lastmod: new Date(),
       filter: (page) =>
         ![
           /\/blog\/og\//,
@@ -21,6 +23,9 @@ export default defineConfig({
           /\/blog\/search\//,
         ].some((pattern) => pattern.test(page)),
       serialize(item) {
+        const lastmod = sitemapLastmod(item.url)
+        if (lastmod) item.lastmod = lastmod
+
         if (item.url === 'https://hatt.acecore.net/') {
           item.changefreq = 'weekly'
           item.priority = 1.0

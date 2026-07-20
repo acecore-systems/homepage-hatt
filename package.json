@@ -11,6 +11,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "test:cms": "node --test tests/cms-proxy.test.mjs",
+    "test:sitemap": "node --test tests/sitemap-lastmod.test.mjs",
     "typecheck:functions": "tsc --project tsconfig.functions.json",
     "validate:content": "node scripts/validate-content.mjs"
   },

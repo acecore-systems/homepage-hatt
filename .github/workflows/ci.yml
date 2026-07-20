@@ -39,6 +39,9 @@ jobs:
       - name: Test CMS proxy
         run: npm run test:cms
 
+      - name: Test sitemap modification dates
+        run: npm run test:sitemap
+
       - name: Type-check Pages Functions
         run: npm run typecheck:functions
 
