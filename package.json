@@ -25,7 +25,7 @@
     "graphql": "^17.0.2",
     "jose": "^6.2.4",
     "rehype-external-links": "^3.0.0",
-    "satori": "^0.28.2",
+    "satori": "^0.29.0",
     "sharp": "^0.35.3"
   },
   "devDependencies": {
