@@ -101,15 +101,16 @@ Cloudflare Pages 側で以下を設定してください。
 - R2 binding: `SHOP_FILES` (`homepage-hatt-shop-files`)
 - Secret: `STRIPE_SECRET_KEY`
 - Secret: `STRIPE_WEBHOOK_SECRET`
-- Secret: `SHOP_ADMIN_PASSWORD_HASH`
-- Secret: `SHOP_ADMIN_SESSION_SECRET`
 - Secret: `SHOP_DOWNLOAD_TOKEN_SECRET`
+- Variable: `SHOP_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
+- Variable: `SHOP_ACCESS_AUD=12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84`
+- Variable: `SHOP_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev`
 
 ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` です。コメント用 D1 とは migration directory を分けています。
 
 デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
 
-管理画面は `/shop/admin/` です。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新できます。
+管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、Pages Functions でも Access JWT の署名・発行元・audience を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。
 
 ## ブログコメント
 

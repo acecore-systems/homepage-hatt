@@ -35,7 +35,7 @@ export const onRequestPatch = async ({
 }: PagesContext) => {
   try {
     assertSameOriginRequest(request)
-    await requireAdmin(request, env)
+    const identity = await requireAdmin(request, env)
 
     const orderId = Array.isArray(params?.id) ? params?.id[0] : params?.id
     if (!orderId) {
@@ -89,7 +89,7 @@ export const onRequestPatch = async ({
       orderId,
       'admin_update',
       '管理画面から注文情報を更新しました。',
-      'admin',
+      identity.email,
     )
 
     return jsonResponse({ ok: true })

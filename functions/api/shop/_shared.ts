@@ -1,4 +1,5 @@
 import { SHOP_PRODUCTS, SHOP_SETTINGS } from './_catalog.generated'
+import { getShopAccessIdentity, type ShopAccessEnv } from './_access-auth'
 
 type D1PreparedStatement = {
   bind(...values: unknown[]): D1PreparedStatement
@@ -22,13 +23,11 @@ export type R2Bucket = {
   get(key: string): Promise<R2ObjectBody | null>
 }
 
-export type ShopEnv = {
+export type ShopEnv = ShopAccessEnv & {
   SHOP_DB?: D1Database
   SHOP_FILES?: R2Bucket
   STRIPE_SECRET_KEY?: string
   STRIPE_WEBHOOK_SECRET?: string
-  SHOP_ADMIN_PASSWORD_HASH?: string
-  SHOP_ADMIN_SESSION_SECRET?: string
   SHOP_DOWNLOAD_TOKEN_SECRET?: string
 }
 
@@ -152,13 +151,11 @@ export type OrderItemRow = {
 }
 
 export const products = SHOP_PRODUCTS as readonly unknown[] as ShopProduct[]
-export const settings = SHOP_SETTINGS as ShopSettings
+export const settings = SHOP_SETTINGS as unknown as ShopSettings
 export const productBySlug = new Map(
   products.map((product) => [product.slug, product]),
 )
 
-const ADMIN_COOKIE = 'hatt_shop_admin'
-const ADMIN_SESSION_TTL_SECONDS = 8 * 60 * 60
 const DOWNLOAD_TOKEN_TTL_SECONDS = 24 * 60 * 60
 
 export function jsonResponse(
@@ -978,64 +975,13 @@ export async function finishStripeEvent(
 }
 
 export async function requireAdmin(request: Request, env: ShopEnv) {
-  const session = getCookie(request, ADMIN_COOKIE)
-  if (!session) throw new ShopApiError(401, '管理者ログインが必要です。')
-  if (!(await verifyAdminSession(session, env))) {
-    throw new ShopApiError(401, '管理者ログインが必要です。')
-  }
-}
+  const identity = await getShopAccessIdentity(request, env)
 
-export async function verifyAdminPassword(password: string, env: ShopEnv) {
-  const configured = env.SHOP_ADMIN_PASSWORD_HASH || ''
-  if (!configured.startsWith('sha256:')) return false
-
-  const actual = await sha256Hex(password)
-  return constantTimeEqual(configured.slice('sha256:'.length), actual)
-}
-
-export async function createAdminSession(env: ShopEnv) {
-  if (!env.SHOP_ADMIN_SESSION_SECRET) {
-    throw new ShopApiError(503, 'SHOP_ADMIN_SESSION_SECRETが未設定です。')
+  if (!identity.ok) {
+    throw new ShopApiError(identity.status, identity.message)
   }
 
-  const payload = base64UrlEncode(
-    JSON.stringify({
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + ADMIN_SESSION_TTL_SECONDS,
-    }),
-  )
-  const signature = await hmacHex(env.SHOP_ADMIN_SESSION_SECRET, payload)
-  return `${payload}.${signature}`
-}
-
-export function adminSessionCookie(token: string) {
-  return `${ADMIN_COOKIE}=${token}; Path=/; Max-Age=${ADMIN_SESSION_TTL_SECONDS}; HttpOnly; Secure; SameSite=Lax`
-}
-
-async function verifyAdminSession(token: string, env: ShopEnv) {
-  if (!env.SHOP_ADMIN_SESSION_SECRET) return false
-
-  const [payload, signature] = token.split('.')
-  if (!payload || !signature) return false
-
-  const expected = await hmacHex(env.SHOP_ADMIN_SESSION_SECRET, payload)
-  if (!constantTimeEqual(expected, signature)) return false
-
-  try {
-    const decoded = JSON.parse(base64UrlDecode(payload)) as { exp?: number }
-    return Number(decoded.exp || 0) > Date.now() / 1000
-  } catch {
-    return false
-  }
-}
-
-function getCookie(request: Request, name: string) {
-  return request.headers
-    .get('Cookie')
-    ?.split(';')
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${name}=`))
-    ?.slice(name.length + 1)
+  return identity
 }
 
 async function sha256Hex(value: string) {
@@ -1075,14 +1021,4 @@ function constantTimeEqual(left: string, right: string) {
     result |= left.charCodeAt(i) ^ right.charCodeAt(i)
   }
   return result === 0
-}
-
-function base64UrlEncode(value: string) {
-  return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
-}
-
-function base64UrlDecode(value: string) {
-  const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
-  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
-  return atob(padded)
 }

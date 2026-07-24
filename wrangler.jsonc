@@ -27,6 +27,9 @@
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
     "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
     "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
+    "SHOP_ACCESS_TEAM_DOMAIN": "https://acecore.cloudflareaccess.com",
+    "SHOP_ACCESS_AUD": "12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84",
+    "SHOP_ACCESS_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev",
   },
   "services": [
     {
@@ -60,6 +63,9 @@
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
         "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
+        "SHOP_ACCESS_TEAM_DOMAIN": "https://acecore.cloudflareaccess.com",
+        "SHOP_ACCESS_AUD": "12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84",
+        "SHOP_ACCESS_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev",
       },
       "services": [
         {
@@ -93,6 +99,9 @@
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
         "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
+        "SHOP_ACCESS_TEAM_DOMAIN": "https://acecore.cloudflareaccess.com",
+        "SHOP_ACCESS_AUD": "12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84",
+        "SHOP_ACCESS_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev",
       },
       "services": [
         {

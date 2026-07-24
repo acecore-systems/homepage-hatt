@@ -21,19 +21,15 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 
   <section class="section-band">
     <div class="section-inner shop-admin-shell">
-      <form class="shop-admin-login" data-shop-admin-login>
-        <label for="shop-admin-password">管理パスワード</label>
-        <div>
-          <input
-            id="shop-admin-password"
-            type="password"
-            name="password"
-            autocomplete="current-password"
-            required
-          />
-          <button class="primary-button" type="submit">ログイン</button>
-        </div>
-      </form>
+      <div class="shop-admin-session">
+        <p>
+          <span class="i-lucide-shield-check" aria-hidden="true"></span>
+          <span data-shop-admin-email>認証を確認しています</span>
+        </p>
+        <a class="secondary-button" href="/cdn-cgi/access/logout">
+          ログアウト
+        </a>
+      </div>
 
       <div class="shop-admin-orders" data-shop-admin-orders hidden>
         <div class="section-heading">
@@ -58,11 +54,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 
   <script is:inline>
     ;(() => {
-      const loginForm = document.querySelector('[data-shop-admin-login]')
       const ordersShell = document.querySelector('[data-shop-admin-orders]')
       const list = document.querySelector('[data-shop-admin-list]')
       const status = document.querySelector('[data-shop-admin-status]')
       const refresh = document.querySelector('[data-shop-admin-refresh]')
+      const sessionEmail = document.querySelector('[data-shop-admin-email]')
 
       function formatJpy(amount) {
         return new Intl.NumberFormat('ja-JP', {
@@ -76,30 +72,27 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         status.textContent = message || ''
       }
 
-      async function login(event) {
-        event.preventDefault()
-        const formData = new FormData(loginForm)
-        setStatus('ログインしています...')
-        const response = await fetch('/api/shop/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: formData.get('password') }),
-        })
-        const payload = await response.json()
+      async function initialize() {
+        setStatus('認証を確認しています...')
+        const response = await fetch('/api/shop/admin/session')
+        const payload = await readPayload(response)
         if (!response.ok) {
-          setStatus(payload.message || 'ログインできませんでした。')
+          setStatus(
+            payload.message ||
+              'Cloudflare Accessのセッションを確認できませんでした。',
+          )
           return
         }
-        loginForm.hidden = true
+
+        sessionEmail.textContent = payload.email || 'Cloudflare Access'
         ordersShell.hidden = false
-        setStatus('')
         await loadOrders()
       }
 
       async function loadOrders() {
         setStatus('注文を読み込んでいます...')
         const response = await fetch('/api/shop/admin/orders')
-        const payload = await response.json()
+        const payload = await readPayload(response)
         if (!response.ok) {
           setStatus(payload.message || '注文を読み込めませんでした。')
           return
@@ -221,7 +214,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
             body: JSON.stringify(Object.fromEntries(formData.entries())),
           },
         )
-        const payload = await response.json()
+        const payload = await readPayload(response)
         if (!response.ok) {
           setStatus(payload.message || '保存できませんでした。')
           return
@@ -230,8 +223,19 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         await loadOrders()
       }
 
-      loginForm?.addEventListener('submit', login)
+      async function readPayload(response) {
+        const contentType = response.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          return {
+            message:
+              'Cloudflare Accessのセッションが切れています。ページを再読み込みしてください。',
+          }
+        }
+        return response.json()
+      }
+
       refresh?.addEventListener('click', loadOrders)
+      initialize()
     })()
   </script>
 </BaseLayout>

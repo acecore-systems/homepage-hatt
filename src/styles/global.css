@@ -3626,7 +3626,6 @@ main {
 .shop-hero-panel,
 .shop-cart-summary,
 .shop-legal section,
-.shop-admin-login,
 .shop-admin-order {
   border: 1px solid rgba(21, 26, 36, 0.12);
   border-radius: var(--radius);
@@ -3962,17 +3961,24 @@ button:disabled {
   gap: 18px;
 }
 
-.shop-admin-login {
-  display: grid;
-  gap: 10px;
-}
-
-.shop-admin-login > div {
+.shop-admin-session {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
+  border-bottom: 1px solid rgba(21, 26, 36, 0.12);
+  padding-bottom: 14px;
 }
 
-.shop-admin-login input,
+.shop-admin-session p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink-700);
+  font-weight: 800;
+}
+
 .shop-admin-order-form input,
 .shop-admin-order-form select,
 .shop-admin-order-form textarea {
@@ -4053,12 +4059,9 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .shop-admin-login > div {
-    flex-direction: column;
-  }
-
   .shop-product-foot,
-  .shop-admin-order-head {
+  .shop-admin-order-head,
+  .shop-admin-session {
     align-items: flex-start;
     flex-direction: column;
   }
