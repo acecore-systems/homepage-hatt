@@ -11,8 +11,7 @@ export type CmsAccessEnv = {
 }
 
 type AccessIdentity =
-  | { ok: true; email: string }
-  | { ok: false; status: number; message: string }
+  { ok: true; email: string } | { ok: false; status: number; message: string }
 
 const DEFAULT_ACCESS_HOSTNAMES = [
   'hatt.acecore.net',
