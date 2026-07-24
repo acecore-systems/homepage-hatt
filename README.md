@@ -18,6 +18,8 @@
 
 ## 開発
 
+Node.js 24.18.0 以上を使用してください。リポジトリの固定バージョンは `.node-version` に記載しています。
+
 ```bash
 npm install
 npm run dev
@@ -34,7 +36,7 @@ npm run test:cms
 npm run typecheck:functions
 ```
 
-`npm run build` は `astro build && pagefind --site dist` を実行します。
+`npm run build` は `astro build && node scripts/audit-image-alts.mjs && pagefind --site dist` を実行し、画像の代替テキストを監査してから検索インデックスを生成します。
 
 ## CMS
 
