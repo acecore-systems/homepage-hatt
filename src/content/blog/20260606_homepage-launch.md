@@ -10,6 +10,7 @@ tags:
   - modeling
 author: hatt
 image: /uploads/hatt/site-cover.jpg
+imageAlt: 木製の机とデジタル端末が並ぶHattの作業スペースのイラスト
 callout:
   title: まず見てほしい作品
   text: モデリングページでは、BOOTHで公開中の作品、YouTube動画、対応環境、試着ワールドを作品ごとに見られます。

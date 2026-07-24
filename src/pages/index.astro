@@ -103,7 +103,10 @@ const modelingLinks = [
         </div>
         <div class="home-hero-sketch" aria-hidden="true">
           <span class="home-hero-tape"></span>
-          <img src="/uploads/hatt/novel-desert-boy.png" alt="" />
+          <img
+            src="/uploads/hatt/novel-desert-boy.png"
+            alt="砂漠を帆走する乗り物に乗った人物のモノクロイラスト"
+          />
         </div>
       </div>
 
@@ -112,7 +115,7 @@ const modelingLinks = [
           featuredPillars.map((pillar) => (
             <article class={`home-pillar home-pillar--${pillar.id}`}>
               <div class="home-pillar-image">
-                <img src={pillar.image} alt="" />
+                <img src={pillar.image} alt={pillar.imageAlt} />
               </div>
               <div class="home-pillar-body">
                 <div class="home-pillar-head">

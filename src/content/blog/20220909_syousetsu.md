@@ -8,6 +8,7 @@ tags:
   - novel
 author: hatt
 image: /uploads/hatt/article-syousetsu.jpg
+imageAlt: 青空の下に砂丘が広がる砂漠の風景
 legacySlugs:
   - 20220909_syousetsu
 ---

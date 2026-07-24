@@ -54,11 +54,31 @@ async function validateCmsConfig() {
       'CMS backend branch must be main; do not use a permanent cms-content branch',
     )
   }
-  if (!/^publish_mode:\s*editorial_workflow\b/m.test(config)) {
-    fail(
-      scope,
-      'CMS must use editorial_workflow so saves create short-lived branches and PRs',
+  if (
+    !/backend:\s*[\s\S]*?\n\s+api_root:\s*\/admin\/api\/github\b/.test(config)
+  ) {
+    fail(scope, 'CMS backend must use the local GitHub proxy api_root')
+  }
+  if (
+    !/backend:\s*[\s\S]*?\n\s+graphql_api_root:\s*\/admin\/api\/graphql\b/.test(
+      config,
     )
+  ) {
+    fail(scope, 'CMS backend must use the local GraphQL proxy')
+  }
+  if (
+    !/backend:\s*[\s\S]*?\n\s+auth_methods:\s*\n\s+-\s*token\b/.test(config)
+  ) {
+    fail(scope, 'CMS backend must use token auth through Cloudflare Access')
+  }
+  if (!/backend:\s*[\s\S]*?\n\s+include_credentials:\s*true\b/.test(config)) {
+    fail(scope, 'CMS backend must include credentials for the Access proxy')
+  }
+  if (/^\s*base_url:\s*https?:\/\/sveltia-cms-auth\b/m.test(config)) {
+    fail(scope, 'CMS must not use the legacy GitHub OAuth Worker')
+  }
+  if (/^\s*publish_mode:\s*editorial_workflow\b/m.test(config)) {
+    fail(scope, 'CMS PR workflow is handled by the local Access proxy')
   }
 
   for (const contentPath of extractCmsContentPaths(config)) {

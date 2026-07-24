@@ -31,8 +31,18 @@ type Props = {
 const site = await getSiteConfig()
 const props = Astro.props
 const title = Astro.props.title ?? site.name
-const description = Astro.props.description ?? site.description
-const pageTitle = title === site.name ? title : `${title} | ${site.name}`
+const rawDescription = Astro.props.description ?? site.description
+const siteTopics = '絵・小説・VRChat向け3D作品'
+const pageTitle =
+  title === site.name
+    ? `${site.name}｜${siteTopics}`
+    : `${title}｜Hattの${siteTopics}`
+const description =
+  rawDescription === site.description
+    ? `${rawDescription}作品一覧や制作記録、BOOTHやYouTubeの公開情報をまとめています。`
+    : rawDescription.length >= 70
+      ? rawDescription
+      : `${rawDescription} ${site.description}`
 const pageClass = Astro.props.pageClass ?? ''
 const showAnnouncement = props.showAnnouncement ?? true
 const toAbsolute = (path: string) =>
@@ -105,6 +115,7 @@ const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
     <meta name="format-detection" content="telephone=no" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <meta name="msvalidate.01" content="B670753BF4A50FA5437E5694CB04BAFD" />
     <meta name="robots" content={props.robots ?? 'index,follow'} />
     <link rel="canonical" href={canonical} />
     <link

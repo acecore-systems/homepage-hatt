@@ -1,21 +1,16 @@
-# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.166.0/schema/sveltia-cms.json
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.172.4/schema/sveltia-cms.json
 
 backend:
   name: github
   repo: acecore-systems/homepage-hatt
   branch: main
-  base_url: https://sveltia-cms-auth.sparkling-tree-7cef.workers.dev
-  auth_methods: [oauth]
-  commit_messages:
-    create: 'cms: create {{collection}} "{{slug}}"'
-    update: 'cms: update {{collection}} "{{slug}}"'
-    delete: 'cms: delete {{collection}} "{{slug}}"'
-    uploadMedia: 'cms: upload "{{path}}"'
-    deleteMedia: 'cms: delete media "{{path}}"'
+  api_root: /admin/api/github
+  graphql_api_root: /admin/api/graphql
+  auth_methods:
+    - token
+  include_credentials: true
 
-publish_mode: editorial_workflow
-
-media_folder: /public/uploads/hatt
+media_folder: public/uploads/hatt
 public_folder: /uploads/hatt
 
 collections:
@@ -75,6 +70,11 @@ collections:
         label: 画像
         widget: image
         required: false
+      - name: imageAlt
+        label: 画像の代替テキスト
+        widget: string
+        required: false
+        hint: 画像に写っている内容を、短く具体的に入力します。未入力の場合は記事タイトルから自動生成されます。
       - name: legacySlugs
         label: 旧URLスラッグ
         widget: list
@@ -204,7 +204,7 @@ collections:
               - name: alt
                 label: 代替テキスト
                 widget: string
-                required: false
+                hint: 画像に写っている内容を、短く具体的に入力します。
               - name: caption
                 label: キャプション
                 widget: string
@@ -676,6 +676,10 @@ collections:
               - name: image
                 label: 画像
                 widget: image
+              - name: imageAlt
+                label: 画像の代替テキスト
+                widget: string
+                hint: 画像に写っている内容を、短く具体的に入力します。
               - name: tone
                 label: 色
                 widget: select

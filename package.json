@@ -4,37 +4,53 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/write-cms-runtime-config.mjs && node scripts/write-shop-runtime-catalog.mjs",
+    "predev": "node scripts/write-shop-runtime-catalog.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/write-cms-runtime-config.mjs && node scripts/write-shop-runtime-catalog.mjs",
-    "build": "astro build && pagefind --site dist",
+    "prebuild": "node scripts/write-shop-runtime-catalog.mjs",
+    "build": "astro build && node scripts/audit-image-alts.mjs && pagefind --site dist",
+    "audit:image-alts": "node scripts/audit-image-alts.mjs",
     "preview": "astro preview",
     "sync:external": "node scripts/sync-external-feeds.mjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "test:cms": "node --test tests/cms-proxy.test.mjs tests/cms-github-app-setup.test.mjs",
+    "test:sitemap": "node --test tests/sitemap-lastmod.test.mjs",
+    "setup:cms-app": "node scripts/setup-cms-github-app.mjs --owner acecore-systems --repo homepage-hatt --app-name \"Acecore Hatt CMS\" --site-url https://hatt.acecore.net --pages-project homepage-hatt",
+    "typecheck:functions": "tsc --project tsconfig.functions.json",
     "validate:content": "node scripts/validate-content.mjs"
   },
   "dependencies": {
-    "@astrojs/rss": "^4.0.18",
-    "@astrojs/sitemap": "^3.7.2",
-    "astro": "^6.1.1",
-    "fast-xml-parser": "^5.8.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
+    "astro": "^7.1.3",
+    "fast-xml-parser": "^5.10.1",
+    "graphql": "^17.0.2",
+    "jose": "^6.2.4",
     "rehype-external-links": "^3.0.0",
-    "satori": "^0.26.0",
-    "sharp": "^0.34.5"
+    "satori": "^0.29.0",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
-    "@astrojs/markdown-remark": "^7.2.0",
-    "@iconify-json/lucide": "^1.2.100",
-    "@unocss/astro": "^66.6.7",
-    "@unocss/preset-typography": "^66.6.7",
-    "pagefind": "^1.4.0",
-    "prettier": "^3.8.1",
+    "@astrojs/markdown-remark": "^7.2.1",
+    "@cloudflare/workers-types": "^5.20260723.1",
+    "@iconify-json/lucide": "^1.2.118",
+    "@unocss/astro": "^66.7.5",
+    "@unocss/preset-typography": "^66.7.5",
+    "pagefind": "^1.5.2",
+    "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
-    "unocss": "^66.6.7"
+    "typescript": "^7.0.2",
+    "unocss": "^66.7.5",
+    "wrangler": "^4.114.0"
   },
   "overrides": {
-    "esbuild": "0.28.1",
-    "vite": "^7.3.2"
+    "sharp": "$sharp"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260721.1": true
   }
 }

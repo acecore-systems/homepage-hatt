@@ -8,7 +8,7 @@ const linkSchema = z.object({
 })
 const richImageSchema = z.object({
   src: z.string(),
-  alt: z.string().default(''),
+  alt: z.string().trim().min(1),
   caption: z.string().optional(),
 })
 const shopCategorySchema = z.enum(['picture', 'novel', 'modeling', 'goods'])
@@ -102,6 +102,7 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     author: z.string(),
     image: z.string().optional(),
+    imageAlt: z.string().trim().min(1).optional(),
     legacySlugs: z.array(z.string()).default([]),
     callout: calloutSchema.optional(),
     timeline: timelineSchema.optional(),
@@ -300,6 +301,7 @@ const site = defineCollection({
         href: z.string(),
         cta: z.string(),
         image: z.string(),
+        imageAlt: z.string().trim().min(1),
         tone: z.enum(['cyan', 'ember', 'mint']),
       }),
     ),

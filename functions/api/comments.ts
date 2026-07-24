@@ -39,11 +39,7 @@ type CommentRow = {
 }
 
 type ApiMessageKey =
-  | 'unavailable'
-  | 'invalid'
-  | 'rateLimited'
-  | 'turnstile'
-  | 'failed'
+  'unavailable' | 'invalid' | 'rateLimited' | 'turnstile' | 'failed'
 
 const API_MESSAGES: Record<ApiMessageKey, string> = {
   unavailable: 'コメント機能を一時的に利用できません。',

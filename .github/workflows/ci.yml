@@ -19,10 +19,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .node-version
           cache: npm
@@ -35,6 +35,15 @@ jobs:
 
       - name: Validate CMS content
         run: npm run validate:content
+
+      - name: Test CMS proxy
+        run: npm run test:cms
+
+      - name: Test sitemap modification dates
+        run: npm run test:sitemap
+
+      - name: Type-check Pages Functions
+        run: npm run typecheck:functions
 
       - name: Build site
         run: npm run build

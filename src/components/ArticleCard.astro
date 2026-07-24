@@ -1,6 +1,6 @@
 ---
 import type { BlogPost } from '@/utils/blog'
-import { getBlogPath } from '@/utils/blog'
+import { getBlogImageAlt, getBlogPath } from '@/utils/blog'
 import { formatDate } from '@/utils/format'
 import { isWithinPublicationWindow } from '@/utils/publication-window'
 
@@ -32,7 +32,7 @@ const isPublished = isWithinPublicationWindow(publicationStartsAt)
       <img
         class="article-card-image"
         src={post.data.image}
-        alt=""
+        alt={getBlogImageAlt(post)}
         loading="lazy"
         decoding="async"
       />

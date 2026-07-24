@@ -12,9 +12,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 import {
   getAdjacentPosts,
   getAuthorMap,
+  getBlogImageAlt,
   getBlogPath,
   getBlogSlug,
-  getBlogSlugs,
   getPosts,
   getRelatedPosts,
   getTagMap,
@@ -24,16 +24,14 @@ import { isWithinPublicationWindow } from '@/utils/publication-window'
 
 export async function getStaticPaths() {
   const posts = await getPosts()
-  return posts.flatMap((post) =>
-    getBlogSlugs(post).map((slug) => ({
-      params: { slug },
-      props: {
-        isCanonical: slug === getBlogSlug(post),
-        post,
-        posts,
-      },
-    })),
-  )
+  return posts.map((post) => ({
+    params: { slug: getBlogSlug(post) },
+    props: {
+      isCanonical: true,
+      post,
+      posts,
+    },
+  }))
 }
 
 const { isCanonical, post, posts } = Astro.props
@@ -103,7 +101,7 @@ const jsonLdData = faqJsonLd ? [articleJsonLd, faqJsonLd] : articleJsonLd
   title={post.data.title}
   description={post.data.description}
   image={ogImagePath}
-  imageAlt={post.data.title}
+  imageAlt={getBlogImageAlt(post)}
   ogType="article"
   canonicalPath={getBlogPath(post)}
   publishedTime={post.data.date}
@@ -162,7 +160,7 @@ const jsonLdData = faqJsonLd ? [articleJsonLd, faqJsonLd] : articleJsonLd
           <div class="post-cover">
             <img
               src={post.data.image}
-              alt={post.data.title}
+              alt={getBlogImageAlt(post)}
               loading="eager"
               decoding="async"
             />
