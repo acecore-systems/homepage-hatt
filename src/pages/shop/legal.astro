@@ -4,12 +4,16 @@ import { getShopSettings } from '@/lib/shop/content'
 
 const settings = await getShopSettings()
 const rows = [
-  ['事業者名', settings.businessName],
-  ['販売責任者', settings.sellerName],
-  ['所在地', settings.sellerAddress],
-  ['電話番号', settings.sellerPhone],
-  ['メールアドレス', settings.sellerEmail],
-  ['問い合わせURL', settings.contactUrl],
+  { label: '事業者名', value: settings.businessName },
+  { label: '販売責任者', value: settings.sellerName },
+  { label: '所在地', value: settings.sellerAddress },
+  { label: '電話番号', value: settings.sellerPhone },
+  { label: 'メールアドレス', value: settings.sellerEmail },
+  {
+    label: '問い合わせURL',
+    value: settings.contactUrl,
+    href: settings.contactUrl,
+  },
 ]
 ---
 
@@ -37,24 +41,30 @@ const rows = [
         <h2>販売者情報</h2>
         <dl>
           {
-            rows.map(([label, value]) => (
+            rows.map(({ label, value, href }) => (
               <div>
                 <dt>{label}</dt>
-                <dd>{value || '未設定'}</dd>
+                <dd>
+                  {href && value ? (
+                    <a href={href}>{value}</a>
+                  ) : (
+                    value || '未設定'
+                  )}
+                </dd>
               </div>
             ))
           }
         </dl>
       </section>
-      <section>
+      <section id="returns-policy">
         <h2>返品・キャンセル</h2>
         <p>{settings.returnsPolicy || '未設定'}</p>
       </section>
-      <section>
+      <section id="privacy-policy">
         <h2>プライバシーポリシー</h2>
         <p>{settings.privacyPolicy || '未設定'}</p>
       </section>
-      <section>
+      <section id="terms">
         <h2>利用条件</h2>
         <p>{settings.terms || '未設定'}</p>
       </section>

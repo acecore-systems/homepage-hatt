@@ -104,6 +104,9 @@ Cloudflare Pages 側で以下を設定してください。
 - Secret: `STRIPE_SECRET_KEY`
 - Secret: `STRIPE_WEBHOOK_SECRET`
 - Secret: `SHOP_DOWNLOAD_TOKEN_SECRET`
+- Variable: `SHOP_CONTACT_EMAIL_FROM=Hatt shop <noreply@hatt.acecore.net>`
+- Variable: `SHOP_CONTACT_EMAIL_TO=borubin@outlook.jp`
+- Service binding: `COURSE_EMAIL_SERVICE` -> `homepage-hatt-course-email`
 - Variable: `SHOP_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Variable: `SHOP_ACCESS_AUD=12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84`
 - Variable: `SHOP_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev`

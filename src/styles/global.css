@@ -3956,6 +3956,118 @@ button:disabled {
   white-space: pre-wrap;
 }
 
+.shop-legal a,
+.shop-cart-policy a,
+.shop-contact-copy a,
+.shop-contact-consent a {
+  color: var(--ink-900);
+  font-weight: 800;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.shop-contact-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.34fr) minmax(0, 1fr);
+  gap: 44px;
+  align-items: start;
+}
+
+.shop-contact-copy {
+  position: sticky;
+  top: 96px;
+}
+
+.shop-contact-copy h2 {
+  margin: 0 0 16px;
+  font-size: 1.35rem;
+}
+
+.shop-contact-copy ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--ink-600);
+  font-weight: 650;
+}
+
+.shop-contact-form {
+  display: grid;
+  gap: 18px;
+  border-top: 1px solid rgba(21, 26, 36, 0.16);
+  padding-top: 22px;
+}
+
+.shop-contact-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.shop-contact-wide {
+  grid-column: 1 / -1;
+}
+
+.shop-contact-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink-700);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.shop-contact-form input,
+.shop-contact-form select,
+.shop-contact-form textarea {
+  width: 100%;
+  border: 1px solid rgba(21, 26, 36, 0.18);
+  border-radius: calc(var(--radius) - 2px);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 11px 12px;
+  color: var(--ink-900);
+  font: inherit;
+}
+
+.shop-contact-form textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+.shop-contact-form input:focus,
+.shop-contact-form select:focus,
+.shop-contact-form textarea:focus {
+  border-color: var(--ink-700);
+  outline: 3px solid rgba(159, 216, 227, 0.28);
+}
+
+.shop-contact-form .shop-contact-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 650;
+}
+
+.shop-contact-consent input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--ink-900);
+}
+
+.shop-contact-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.shop-contact-actions p {
+  margin: 0;
+  color: var(--ink-500);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
 .shop-admin-shell {
   display: grid;
   gap: 18px;
@@ -4043,20 +4155,32 @@ button:disabled {
   .shop-hero-grid,
   .shop-detail-grid,
   .shop-cart-shell,
+  .shop-contact-grid,
   .shop-admin-order-form,
   .shop-product-grid {
     grid-template-columns: 1fr;
   }
 
-  .shop-cart-summary {
+  .shop-cart-summary,
+  .shop-contact-copy {
     position: static;
   }
 }
 
 @media (max-width: 680px) {
   .shop-cart-item,
+  .shop-contact-fields,
   .shop-legal dl div {
     grid-template-columns: 1fr;
+  }
+
+  .shop-contact-wide {
+    grid-column: auto;
+  }
+
+  .shop-contact-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .shop-product-foot,
