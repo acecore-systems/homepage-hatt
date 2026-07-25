@@ -17,6 +17,7 @@
     "test:shop": "node --test tests/shop-access.test.mjs",
     "test:sitemap": "node --test tests/sitemap-lastmod.test.mjs",
     "setup:cms-app": "node scripts/setup-cms-github-app.mjs --owner acecore-systems --repo homepage-hatt --app-name \"Acecore Hatt CMS\" --site-url https://hatt.acecore.net --pages-project homepage-hatt",
+    "pretypecheck:functions": "node scripts/write-shop-runtime-catalog.mjs",
     "typecheck:functions": "tsc --project tsconfig.functions.json",
     "validate:content": "node scripts/validate-content.mjs"
   },
