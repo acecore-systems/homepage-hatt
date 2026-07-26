@@ -30,8 +30,8 @@
   },
   "devDependencies": {
     "@astrojs/markdown-remark": "^7.2.1",
-    "@cloudflare/workers-types": "^5.20260723.1",
-    "@iconify-json/lucide": "^1.2.118",
+    "@cloudflare/workers-types": "^5.20260726.1",
+    "@iconify-json/lucide": "^1.2.120",
     "@unocss/astro": "^66.7.5",
     "@unocss/preset-typography": "^66.7.5",
     "pagefind": "^1.5.2",
