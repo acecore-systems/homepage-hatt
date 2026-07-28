@@ -23,18 +23,21 @@
 3. Sveltia CMS が `/admin/api/github/*` と `/admin/api/graphql` を GitHub backend として使う。
 4. Pages Functions proxy が専用 GitHub App の短期 installation token で GitHub API を呼び出す。
 5. Sveltia CMS が画像とコンテンツをまとめた `createCommitOnBranch` mutation を送る。
-6. proxy がrepository、branch、変更path、件数、合計サイズ、現在の `main` HEADを検証し、許可済みpathだけでmutationを組み立て直す。
+6. proxy がrepository、branch、変更path、件数、合計サイズ、共有content schema、Markdown、raster media、現在の `main` HEADを同期検証し、許可済みpathだけでmutationを組み立て直す。
 7. `expectedHeadOid` が現在のHEADと一致する場合だけ、画像とコンテンツを `main` の同じcommitへ原子的に保存する。
-8. GitHub応答が失われた場合は固有operation markerをcommit履歴から照合し、成功済み保存の重複や誤った失敗扱いを避ける。
+8. GitHub応答が失われた場合は固有operation marker、親SHA、変更path、blob SHA、削除後treeを照合し、成功済み保存の重複や誤った失敗扱いを避ける。
 9. Cloudflare Pages がGitHub `main` pushを受けてproduction deployする。
 
 ## Cloudflare Pages 設定
 
-Cloudflare Pages の production と preview の両方に以下を設定します。
+Cloudflare Pages のproductionだけに以下のGitHub App設定を置きます。PR由来コードが動くpreviewへmain書込鍵を配布してはいけません。
 
 - Variable: `CMS_GITHUB_APP_CLIENT_ID`
 - Variable: `CMS_GITHUB_APP_INSTALLATION_ID`
 - Secret: `CMS_GITHUB_APP_PRIVATE_KEY`（PKCS#8 PEM）
+
+以下のAccess検証設定は必要なproduction / preview環境に設定できます。
+
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS`（`hatt-cms-editors` と同じ完全一致メール）
@@ -62,7 +65,7 @@ npm ci
 npm run setup:cms-app
 ```
 
-GitHubではApp名が `Acecore Hatt CMS`、インストール先が `acecore-systems`、Repository accessが `Only select repositories: homepage-hatt`、Repository permissionsが `Contents: Read and write` と `Metadata: Read-only` だけであることを確認します。補助スクリプトは所有者、最小権限、対象repositoryが1件だけであることをGitHub APIで再検証し、PKCS#8秘密鍵をディスクへ保存せず、Cloudflare Pagesのproduction / previewへ `CMS_GITHUB_APP_CLIENT_ID`、`CMS_GITHUB_APP_INSTALLATION_ID`、`CMS_GITHUB_APP_PRIVATE_KEY` を登録します。
+GitHubではApp名が `Acecore Hatt CMS`、インストール先が `acecore-systems`、Repository accessが `Only select repositories: homepage-hatt`、Repository permissionsが `Contents: Read and write` と `Metadata: Read-only` だけであることを確認します。補助スクリプトは所有者、最小権限、対象repositoryが1件だけであることをGitHub APIで再検証し、PKCS#8秘密鍵をディスクへ保存せず、Cloudflare Pagesのproductionだけへ `CMS_GITHUB_APP_CLIENT_ID`、`CMS_GITHUB_APP_INSTALLATION_ID`、`CMS_GITHUB_APP_PRIVATE_KEY` を登録します。previewではApp設定不足により書込みをfail closedします。
 
 `main` を対象にするrepository rulesetでは、通常の開発者に対するPR・CI要件を維持しながら、repository限定の `Acecore Hatt CMS` Appだけをbypass actorとして `Always allow` にします。CMS App以外のactorへbypassを付与しません。
 
@@ -78,6 +81,8 @@ GitHubではApp名が `Acecore Hatt CMS`、インストール先が `acecore-sys
 - `public/uploads/hatt/**`
 
 proxy は上記のCMS管理対象以外へのwriteを拒否します。Functions、CMS設定、schema、workflow、AstroコンポーネントなどはCMSから変更できず、通常のbranch・PR・CIを通します。
+
+必須 `src/content/site/main.json`、author、tagは削除を拒否します。コンテンツから参照され得る `public/uploads/hatt/**` も参照切れを防ぐため削除を拒否し、差し替え時は新しいraster画像の追加だけを許可します。
 
 `npm run validate:content` は CMS config が次の条件を満たすことも確認します。
 

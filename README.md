@@ -50,11 +50,14 @@ npm run typecheck:functions
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
 
-Cloudflare Pages 側で以下を設定してください。
+Cloudflare Pages のproductionだけに以下のGitHub App設定を置いてください。previewへmain書込鍵を配布してはいけません。
 
 - Variable: `CMS_GITHUB_APP_CLIENT_ID`
 - Variable: `CMS_GITHUB_APP_INSTALLATION_ID`
 - Secret: `CMS_GITHUB_APP_PRIVATE_KEY`（PKCS#8 PEM）
+
+Access検証設定は必要なproduction / preview環境に設定できます。
+
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com`
@@ -66,12 +69,13 @@ Cloudflare Pages 側で以下を設定してください。
 
 GitHub App は `acecore-systems/homepage-hatt` だけへインストールし、Repository permissions は `Contents: Read and write`、`Metadata: Read-only` にします。proxy は秘密鍵で9分以内のApp JWTを署名し、repositoryと権限を再指定した1時間以内のinstallation tokenを発行します。
 
-GitHub App を新規作成または置換するときは `npm run setup:cms-app` を実行します。セットアップ画面では `homepage-hatt` だけを選択してください。補助スクリプトはAppの所有者、権限、対象repositoryが1件だけであることを検証し、秘密鍵をファイルへ保存せず、production / preview の両方へ必要な3 secretを登録します。
+GitHub App を新規作成または置換するときは `npm run setup:cms-app` を実行します。セットアップ画面では `homepage-hatt` だけを選択してください。補助スクリプトはAppの所有者、権限、対象repositoryが1件だけであることを検証し、秘密鍵をファイルへ保存せず、productionだけへ必要な3 secretを登録します。preview FunctionsはGitHub App設定不足で書込みをfail closedします。
 
 ### 本番 CMS の保存と公開
 
 - 本番 CMS の publication branch は `main` です。`cms-content` のような恒久的な別本流 branch は使いません。
-- CMS の保存は Pages Functions proxy により、許可済みの画像とコンテンツを `main` の同じcommitへ直接保存します。`expectedHeadOid` が現在のHEADと一致しない場合は上書きせず、再読み込みを求めます。
+- CMS の保存は Pages Functions proxy が共有content schema、Markdown、raster mediaを同期検証し、許可済みの画像とコンテンツを `main` の同じcommitへ直接保存します。`expectedHeadOid` が現在のHEADと一致しない場合は上書きせず、再読み込みを求めます。
+- 必須 `src/content/site/main.json`、author、tagと、コンテンツから参照され得る `public/uploads/hatt/**` はCMSから削除できません。
 - 保存後はGitHub連携のCloudflare Pagesがproduction deployを開始します。CIや手動mergeの完了をCMS保存リクエスト内で待ちません。
 - Functions、CMS設定、schema、workflow、サイトコードなどの変更は通常のbranch・PR・CIを通します。CMS用GitHub Appはこれらのpathへ書き込めません。
 - `main` のrepository rulesetでは通常のPR・CI要件を維持し、repository限定の `Acecore Hatt CMS` Appだけをbypass actorに指定します。
