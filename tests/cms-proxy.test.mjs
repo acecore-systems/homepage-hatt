@@ -1049,7 +1049,10 @@ function validMarkdown(body = '# Example') {
 }
 
 function validPngBytes() {
-  return Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+  return Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+    'base64',
+  )
 }
 
 function gitBlobOid(base64Contents) {

@@ -4,6 +4,7 @@ import path from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
+import sharp from 'sharp'
 
 import { validateCmsFileContents } from '../functions/admin/api/_cms-content-validator.ts'
 import { isAllowedCmsWritePath } from '../functions/admin/api/_cms-policy.ts'
@@ -13,6 +14,7 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 )
+const rasterImagesPromise = createRasterImages()
 
 test('現在のCMS管理コンテンツとmediaをすべてruntime schemaで検証できる', async () => {
   const roots = ['src/content', 'public/uploads/hatt']
@@ -187,6 +189,77 @@ test('CMS mediaはraster実体だけを許可しSVGとPDFを対象外にする',
   )
 })
 
+test('CMS mediaは許可対象5形式の実画像を受理する', async () => {
+  for (const [extension, bytes] of Object.entries(await rasterImagesPromise)) {
+    assert.deepEqual(
+      validateCmsFileContents(`public/uploads/hatt/valid.${extension}`, bytes),
+      { ok: true },
+      extension,
+    )
+  }
+})
+
+test('CMS mediaはheader-onlyとtruncated dataを拒否する', async () => {
+  const prefixLengths = {
+    png: 8,
+    jpg: 3,
+    gif: 6,
+    webp: 12,
+    avif: 16,
+  }
+
+  for (const [extension, bytes] of Object.entries(await rasterImagesPromise)) {
+    const path = `public/uploads/hatt/invalid.${extension}`
+
+    assert.equal(
+      validateCmsFileContents(path, bytes.subarray(0, prefixLengths[extension]))
+        .ok,
+      false,
+      `${extension} header-only`,
+    )
+    assert.equal(
+      validateCmsFileContents(path, bytes.subarray(0, bytes.byteLength - 1)).ok,
+      false,
+      `${extension} truncated`,
+    )
+  }
+})
+
+test('CMS mediaは宣言lengthと実データが一致しなければ拒否する', async () => {
+  const images = await rasterImagesPromise
+  const png = Buffer.from(images.png)
+  png.writeUInt32BE(png.readUInt32BE(8) + 1, 8)
+
+  const webp = Buffer.from(images.webp)
+  webp.writeUInt32LE(webp.readUInt32LE(4) + 1, 4)
+
+  const avif = Buffer.from(images.avif)
+  avif.writeUInt32BE(avif.readUInt32BE(0) + 1, 0)
+
+  const invalidImages = {
+    png,
+    jpg: Buffer.from([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x00, 0x00, 0xff, 0xd9,
+    ]),
+    gif: Buffer.from([
+      0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x2c, 0x00, 0x00, 0x00, 0x00,
+      0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x04, 0x00, 0x3b,
+    ]),
+    webp,
+    avif,
+  }
+
+  for (const [extension, bytes] of Object.entries(invalidImages)) {
+    assert.equal(
+      validateCmsFileContents(`public/uploads/hatt/invalid.${extension}`, bytes)
+        .ok,
+      false,
+      `${extension} length mismatch`,
+    )
+  }
+})
+
 test('CMS JSONは共有schemaと安全なURL制約に一致しなければ拒否する', () => {
   const campaign = {
     id: 'unsafe',
@@ -225,6 +298,27 @@ test('CMS JSONは共有schemaと安全なURL制約に一致しなければ拒否
     false,
   )
 })
+
+async function createRasterImages() {
+  const source = () =>
+    sharp({
+      create: {
+        width: 2,
+        height: 2,
+        channels: 4,
+        background: { r: 24, g: 96, b: 160, alpha: 0.5 },
+      },
+    })
+  const [png, jpg, gif, webp, avif] = await Promise.all([
+    source().png().toBuffer(),
+    source().jpeg({ progressive: true }).toBuffer(),
+    source().gif().toBuffer(),
+    source().webp().toBuffer(),
+    source().avif().toBuffer(),
+  ])
+
+  return { png, jpg, gif, webp, avif }
+}
 
 function assertAcceptedMarkdown(body, title = 'title: Example') {
   assert.deepEqual(
