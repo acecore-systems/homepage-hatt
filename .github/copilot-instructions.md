@@ -8,7 +8,8 @@
 - CMS content の shape は `src/content.config.ts` を正とし、横断制約は `npm run validate:content` で確認する。
 - CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路として扱う。
 - Access は `hatt-cms-editors` 専用 group と完全一致メール allowlist に限定し、共有管理者 group やメールドメイン一括許可を CMS に流用しない。
-- CMS proxy は `createCommitOnBranch` の画像とコンテンツを同じ commit/PR にまとめ、Sveltia CMS が必要とする GitHub API だけを許可する。
+- CMS proxy は `createCommitOnBranch` の画像とコンテンツを、`expectedHeadOid` が一致するときだけ `main` の同じcommitへ直接保存し、Sveltia CMS が必要とするGitHub APIだけを許可する。
+- CMS管理対象のコンテンツ・画像以外のコード、schema、CMS設定、workflow変更は通常のbranch・PR・CIを通す。
 - サイト出力に影響する変更では `npm run build` を実行する。
 - CMS/content/schema/route/link に関わる変更では `npm run format:check`、`npm run validate:content`、`npm run build` を確認する。
 - CMS proxy に関わる変更では `npm run test:cms` と `npm run typecheck:functions` も確認する。

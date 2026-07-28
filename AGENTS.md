@@ -16,12 +16,12 @@
 - CMS content の shape は `src/content.config.ts` の Astro Content Collections schema に合わせる。
 - このリポジトリの CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路にする。
 - Access application は `hatt-cms-editors` 専用 group だけを許可し、共有管理者 group やメールドメイン一括許可を使わない。Pages Functions の `CMS_ACCESS_ALLOWED_EMAILS` も同じ編集者の完全一致メールだけにする。
-- CMS backend の publication branch は `main` にし、Pages Functions proxy が `cms/hatt/*` の短命 branch と PR を作る。
-- Sveltia CMS の保存は `createCommitOnBranch` で画像とコンテンツを同時に送る。proxy は許可済み path だけで mutation を組み立て直し、1回の保存を同じ commit と PR にまとめる。
+- CMS backend の publication branch は `main` にし、Pages Functions proxy が CMS 管理対象だけを `main` の1 commitへ直接保存する。
+- Sveltia CMS の保存は `createCommitOnBranch` で画像とコンテンツを同時に送る。proxy は許可済み path だけで mutation を組み立て直し、`expectedHeadOid` が現在の `main` と一致するときだけ同じ commit にまとめる。
 - GitHub REST/GraphQL proxy は Sveltia CMS が必要とする read と write だけを許可し、GitHub App installation token で任意の repository API を実行できる汎用 proxy にしない。
 - `cms-content` のような恒久的な CMS 投稿受け皿 branch は使わない。
-- CMS 変更は PR と CI を通して `main` に入れる。`main` への無検証直 push 前提の運用に戻さない。
-- CMS 由来の PR で `src/content/**`、`public/uploads/hatt/**`、CMS 設定で明示した path 以外の差分が含まれる場合は、内容を確認してから merge する。
+- CMS画面からのコンテンツ・画像保存だけは同期allowlist検証後に `main` へ直接入れ、Cloudflare Pagesの公開を開始する。CIやレビューの完了を保存リクエスト内で待たない。
+- Functions、CMS設定、schema、workflow、サイトコードなどの変更は従来どおりbranch・PR・CIを通し、CMS用GitHub Appからは書き込ませない。
 - CMS 保存は repository 限定の GitHub App installation token を短期発行し、編集者個人 OAuth を保存 actor にしない。
 - GitHub proxy の書き込み可能 path は `src/content/**` と `public/uploads/hatt/**` の CMS 管理対象に限定する。
 

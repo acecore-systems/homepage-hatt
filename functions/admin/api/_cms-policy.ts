@@ -81,16 +81,6 @@ export function isAllowedCmsDirectoryPath(path: string) {
   })
 }
 
-export function sanitizeCmsBranchPart(path: string) {
-  const base = path
-    .replace(/\.[^.]+$/, '')
-    .replace(/[^A-Za-z0-9_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 48)
-
-  return base || 'content'
-}
-
 export function encodePathSegments(path: string) {
   return path.split('/').map(encodeURIComponent).join('/')
 }
