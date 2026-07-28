@@ -71,7 +71,6 @@ test('GitHub Appの署名付きJWTからrepository限定installation tokenを発
       repositories: ['homepage-hatt'],
       permissions: {
         contents: 'write',
-        pull_requests: 'write',
       },
     })
 
@@ -90,9 +89,8 @@ test('GitHub Appの署名付きJWTからrepository限定installation tokenを発
   assert.equal(token, 'test-installation-token')
 })
 
-test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', async () => {
+test('画像と本文をmainの同じ1 commitへ直接保存する', async () => {
   const calls = []
-  let cmsBranch = ''
 
   mockFetch(async (input, init = {}) => {
     const url = String(input)
@@ -104,22 +102,18 @@ test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', as
       return jsonResponse({ object: { sha: mainSha } })
     }
 
-    if (url.endsWith('/git/refs')) {
-      cmsBranch = body.ref.replace('refs/heads/', '')
-      assert.match(cmsBranch, /^cms\/hatt\//)
-      assert.equal(body.sha, mainSha)
-
-      return jsonResponse({ ref: body.ref, object: { sha: mainSha } }, 201)
-    }
-
     if (url.endsWith('/graphql')) {
       assert.match(body.query, /mutation CmsCommit/)
       assert.equal(
         body.variables.input.branch.repositoryNameWithOwner,
         'acecore-systems/homepage-hatt',
       )
-      assert.equal(body.variables.input.branch.branchName, cmsBranch)
+      assert.equal(body.variables.input.branch.branchName, 'main')
       assert.equal(body.variables.input.expectedHeadOid, mainSha)
+      assert.match(
+        body.variables.input.message.body,
+        /^CMS-Operation: [0-9a-f-]{36}$/,
+      )
       assert.deepEqual(
         body.variables.input.fileChanges.additions.map(({ path }) => path),
         ['public/uploads/hatt/example.png', 'src/content/blog/example.md'],
@@ -137,18 +131,6 @@ test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', as
           },
         },
       })
-    }
-
-    if (url.endsWith('/pulls')) {
-      assert.equal(body.head, cmsBranch)
-      assert.equal(body.base, 'main')
-      assert.match(body.body, /public\/uploads\/hatt\/example\.png/)
-      assert.match(body.body, /src\/content\/blog\/example\.md/)
-
-      return jsonResponse(
-        { number: 91, html_url: 'https://github.com/example/pull/91' },
-        201,
-      )
     }
 
     throw new Error(`Unexpected GitHub request: ${url}`)
@@ -192,9 +174,140 @@ test('画像と本文を同じ短期branchの1 commit・1 PRに保存する', as
   const result = await response.json()
 
   assert.equal(response.status, 200)
-  assert.equal(result.extensions.cms.branch, cmsBranch)
-  assert.equal(result.extensions.cms.pull_request.number, 91)
-  assert.equal(calls.length, 4)
+  assert.equal(result.extensions.cms.branch, 'main')
+  assert.equal(result.extensions.cms.commit.oid, 'b'.repeat(40))
+  assert.equal(result.extensions.cms.publication, 'cloudflare-pages')
+  assert.equal(calls.length, 2)
+  assert.equal(
+    calls.some(({ url }) => url.endsWith('/git/refs')),
+    false,
+  )
+  assert.equal(
+    calls.some(({ url }) => url.endsWith('/pulls')),
+    false,
+  )
+})
+
+test('direct保存の応答喪失後に固有marker付きcommitを確認して成功扱いにする', async () => {
+  const committedSha = 'e'.repeat(40)
+  let operationMarker = ''
+  let mainRefReads = 0
+
+  mockFetch(async (input, init = {}) => {
+    const url = String(input)
+
+    if (url.endsWith('/git/ref/heads/main')) {
+      mainRefReads += 1
+
+      return jsonResponse({
+        object: { sha: mainRefReads === 1 ? mainSha : committedSha },
+      })
+    }
+
+    if (url.endsWith('/graphql')) {
+      const body = JSON.parse(init.body)
+
+      operationMarker = body.variables.input.message.body
+      throw new TypeError('upstream response was lost')
+    }
+
+    if (url.includes('/commits?sha=main&per_page=100')) {
+      return jsonResponse([
+        {
+          sha: committedSha,
+          parents: [{ sha: mainSha }],
+          commit: {
+            message: `cms: update src/content/blog/example.md\n\n${operationMarker}`,
+            committer: { date: '2026-07-28T00:00:00Z' },
+          },
+        },
+      ])
+    }
+
+    throw new Error(`Unexpected GitHub request: ${url}`)
+  })
+
+  const response = await handleGraphql({
+    request: cmsSaveRequest(),
+    env: allowedEnv,
+  })
+  const result = await response.json()
+
+  assert.equal(response.status, 200)
+  assert.equal(result.data.createCommitOnBranch.commit.oid, committedSha)
+  assert.equal(result.extensions.cms.commit.oid, committedSha)
+  assert.equal(mainRefReads, 2)
+})
+
+test('保存中に別commitがmainへ入った場合は上書きせず409にする', async () => {
+  let operationMarker = ''
+  let mainRefReads = 0
+
+  mockFetch(async (input, init = {}) => {
+    const url = String(input)
+
+    if (url.endsWith('/git/ref/heads/main')) {
+      mainRefReads += 1
+
+      return jsonResponse({
+        object: { sha: mainRefReads === 1 ? mainSha : 'f'.repeat(40) },
+      })
+    }
+
+    if (url.endsWith('/graphql')) {
+      const body = JSON.parse(init.body)
+
+      operationMarker = body.variables.input.message.body
+      return jsonResponse({
+        errors: [{ message: 'Expected branch head did not match' }],
+      })
+    }
+
+    if (url.includes('/commits?sha=main&per_page=100')) {
+      return jsonResponse([
+        {
+          sha: 'f'.repeat(40),
+          parents: [{ sha: mainSha }],
+          commit: {
+            message: `unrelated update\n\nnot-${operationMarker}`,
+            committer: { date: '2026-07-28T00:00:00Z' },
+          },
+        },
+      ])
+    }
+
+    throw new Error(`Unexpected GitHub request: ${url}`)
+  })
+
+  const response = await handleGraphql({
+    request: cmsSaveRequest(),
+    env: allowedEnv,
+  })
+  const result = await response.json()
+
+  assert.equal(response.status, 409)
+  assert.match(result.message, /mainが更新されています/)
+})
+
+test('編集開始後にmainが更新済みなら書き込み前に409にする', async () => {
+  let callCount = 0
+
+  mockFetch(async (input) => {
+    callCount += 1
+    assert.match(String(input), /git\/ref\/heads\/main$/)
+
+    return jsonResponse({ object: { sha: 'f'.repeat(40) } })
+  })
+
+  const response = await handleGraphql({
+    request: cmsSaveRequest(),
+    env: allowedEnv,
+  })
+  const result = await response.json()
+
+  assert.equal(response.status, 409)
+  assert.match(result.message, /mainが更新されています/)
+  assert.equal(callCount, 1)
 })
 
 test('CMS管理対象外の保存をGitHubへ送らない', async () => {
@@ -536,6 +649,37 @@ function graphqlRequest(payload, token = validAccessJwt) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
+  })
+}
+
+function cmsSaveRequest() {
+  return graphqlRequest({
+    query: `
+      mutation($input: CreateCommitOnBranchInput!) {
+        createCommitOnBranch(input: $input) {
+          commit { oid committedDate }
+        }
+      }
+    `,
+    variables: {
+      input: {
+        branch: {
+          repositoryNameWithOwner: 'acecore-systems/homepage-hatt',
+          branchName: 'main',
+        },
+        expectedHeadOid: mainSha,
+        fileChanges: {
+          additions: [
+            {
+              path: 'src/content/blog/example.md',
+              contents: Buffer.from('# Example').toString('base64'),
+            },
+          ],
+          deletions: [],
+        },
+        message: { headline: 'Create example' },
+      },
+    },
   })
 }
 

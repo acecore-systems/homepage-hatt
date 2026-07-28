@@ -92,7 +92,6 @@ export async function getGitHubToken(env: GitHubAuthEnv) {
         repositories: [CMS_REPOSITORY.name],
         permissions: {
           contents: 'write',
-          pull_requests: 'write',
         },
       }),
     },

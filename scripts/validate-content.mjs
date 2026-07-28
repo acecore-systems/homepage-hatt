@@ -78,7 +78,7 @@ async function validateCmsConfig() {
     fail(scope, 'CMS must not use the legacy GitHub OAuth Worker')
   }
   if (/^\s*publish_mode:\s*editorial_workflow\b/m.test(config)) {
-    fail(scope, 'CMS PR workflow is handled by the local Access proxy')
+    fail(scope, 'CMS publication is handled directly by the local Access proxy')
   }
 
   for (const contentPath of extractCmsContentPaths(config)) {
