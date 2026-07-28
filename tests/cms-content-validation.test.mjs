@@ -3,10 +3,12 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 
 import { validateCmsFileContents } from '../functions/admin/api/_cms-content-validator.ts'
 import { isAllowedCmsWritePath } from '../functions/admin/api/_cms-policy.ts'
 
+const markdownRenderer = await createMarkdownProcessor()
 const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -75,6 +77,85 @@ test('同じ記号・長さを満たすfenceだけをcode block終端として�
     ].join('\n'),
     /raw HTML/,
   )
+})
+
+test('backtickを含むinfo stringをfenceとして扱わない', async () => {
+  const unsafeHtml = '<img src=x onerror=alert(1)>'
+  const invalidOpenings = [
+    { closing: '```', opening: '```bad`info' },
+    { closing: '````', opening: '````bad`info' },
+    { closing: '```', opening: '```bad\\`info' },
+  ]
+
+  for (const { closing, opening } of invalidOpenings) {
+    const body = [opening, unsafeHtml, closing].join('\n')
+
+    assertRejectedMarkdown(body, /raw HTML/)
+    assert.match(await renderMarkdown(body), /<img\b[^>]*\bonerror=/i, opening)
+  }
+})
+
+test('tabで4列目以降へ字下げした行をfence開始・終了として扱わない', async () => {
+  const unsafeHtml = '<img src=x onerror=alert(1)>'
+
+  for (let spaces = 0; spaces <= 3; spaces += 1) {
+    const opening = ' '.repeat(spaces) + '\t```info'
+    const body = [opening, unsafeHtml, '```'].join('\n')
+
+    assertRejectedMarkdown(body, /raw HTML/)
+    assert.match(await renderMarkdown(body), /<img\b[^>]*\bonerror=/i, opening)
+  }
+
+  const bodyWithTabbedClosing = ['```html', 'sample', '\t```', unsafeHtml].join(
+    '\n',
+  )
+
+  assertAcceptedMarkdown(bodyWithTabbedClosing)
+  assert.doesNotMatch(await renderMarkdown(bodyWithTabbedClosing), /<img\b/i)
+})
+
+test('3文字・4文字以上のbacktickとtilde fenceをrendererと同じく許可する', async () => {
+  const unsafeHtml = '<img src=x onerror=alert(1)>'
+  const validFences = [
+    ['```html', unsafeHtml, '```'].join('\n'),
+    ['````markdown', '```', unsafeHtml, '```', '````'].join('\n'),
+    ['~~~text title=`sample`', unsafeHtml, '~~~'].join('\n'),
+  ]
+
+  for (const body of validFences) {
+    assertAcceptedMarkdown(body)
+    assert.doesNotMatch(await renderMarkdown(body), /<img\b/i)
+  }
+})
+
+test('inline・reference形式の危険なhrefとsrcを拒否する', async () => {
+  const cases = [
+    {
+      body: '[x](javascript\\:alert(1))',
+      renderedPattern: /href="javascript:alert\(1\)"/i,
+    },
+    {
+      body: ['[x][id]', '', '[id]: javascript:alert(1)'].join('\n'),
+      renderedPattern: /href="javascript:alert\(1\)"/i,
+    },
+    {
+      body: ['[x][id]', '', '[id]: java&#x73;cript\\:alert(1)'].join('\n'),
+      renderedPattern: /href="javascript:alert\(1\)"/i,
+    },
+    {
+      body: [
+        '![x][asset]',
+        '',
+        '[asset]: data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+      ].join('\n'),
+      renderedPattern: /src="data:image\/svg\+xml;base64,/i,
+    },
+  ]
+
+  for (const { body, renderedPattern } of cases) {
+    assertRejectedMarkdown(body, /危険なURL/)
+    assert.match(await renderMarkdown(body), renderedPattern)
+  }
 })
 
 test('引用符内の感嘆符は許可しYAML aliasは拒否する', () => {
@@ -174,6 +255,12 @@ function validFrontmatter(title = 'title: Example') {
     'author: hatt',
     '---',
   ].join('\n')
+}
+
+async function renderMarkdown(body) {
+  const { code } = await markdownRenderer.render(body)
+
+  return code
 }
 
 async function listFiles(root) {

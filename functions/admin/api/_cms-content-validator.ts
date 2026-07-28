@@ -289,7 +289,7 @@ function stripMarkdownCode(value: string) {
 
   for (const line of lines) {
     if (fence) {
-      const closing = line.match(/^[ \t]{0,3}(`+|~+)[ \t]*$/)
+      const closing = line.match(/^ {0,3}(`+|~+)[ \t]*$/)
 
       if (
         closing &&
@@ -303,9 +303,9 @@ function stripMarkdownCode(value: string) {
       continue
     }
 
-    const opening = line.match(/^[ \t]{0,3}(`{3,}|~{3,}).*$/)
+    const opening = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
 
-    if (opening) {
+    if (opening && (opening[1][0] === '~' || !opening[2].includes('`'))) {
       fence = {
         character: opening[1][0] as '`' | '~',
         length: opening[1].length,
