@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { afterEach, test } from 'node:test'
 import {
   SignJWT,
@@ -74,10 +75,7 @@ test('GitHub Appの署名付きJWTからrepository限定installation tokenを発
       },
     })
 
-    return jsonResponse({
-      token: 'test-installation-token',
-      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-    })
+    return jsonResponse(installationTokenResponse('test-installation-token'))
   })
 
   const token = await getGitHubToken({
@@ -156,11 +154,11 @@ test('画像と本文をmainの同じ1 commitへ直接保存する', async () =>
             additions: [
               {
                 path: 'public/uploads/hatt/example.png',
-                contents: Buffer.from('image').toString('base64'),
+                contents: validPngBytes().toString('base64'),
               },
               {
                 path: 'src/content/blog/example.md',
-                contents: Buffer.from('# Example').toString('base64'),
+                contents: Buffer.from(validMarkdown()).toString('base64'),
               },
             ],
             deletions: [],
@@ -188,8 +186,10 @@ test('画像と本文をmainの同じ1 commitへ直接保存する', async () =>
   )
 })
 
-test('direct保存の応答喪失後に固有marker付きcommitを確認して成功扱いにする', async () => {
+test('direct保存の応答喪失後にmarker・親SHA・path・blob SHAを照合して復旧する', async () => {
   const committedSha = 'e'.repeat(40)
+  const expectedContents = Buffer.from(validMarkdown()).toString('base64')
+  const expectedBlobSha = gitBlobOid(expectedContents)
   let operationMarker = ''
   let mainRefReads = 0
 
@@ -224,6 +224,34 @@ test('direct保存の応答喪失後に固有marker付きcommitを確認して�
       ])
     }
 
+    if (url.endsWith(`/commits/${committedSha}?per_page=100`)) {
+      return jsonResponse({
+        sha: committedSha,
+        files: [
+          {
+            filename: 'src/content/blog/example.md',
+            status: 'modified',
+          },
+        ],
+      })
+    }
+
+    if (url.includes(`/git/trees/${committedSha}?recursive=1`)) {
+      return jsonResponse({
+        sha: 'c'.repeat(40),
+        truncated: false,
+        tree: [
+          {
+            mode: '100644',
+            path: 'src/content/blog/example.md',
+            sha: expectedBlobSha,
+            size: Buffer.from(validMarkdown()).byteLength,
+            type: 'blob',
+          },
+        ],
+      })
+    }
+
     throw new Error(`Unexpected GitHub request: ${url}`)
   })
 
@@ -237,6 +265,141 @@ test('direct保存の応答喪失後に固有marker付きcommitを確認して�
   assert.equal(result.data.createCommitOnBranch.commit.oid, committedSha)
   assert.equal(result.extensions.cms.commit.oid, committedSha)
   assert.equal(mainRefReads, 2)
+})
+
+test('markerと親SHAが一致しても変更pathが異なるcommitを成功扱いにしない', async () => {
+  const committedSha = 'e'.repeat(40)
+  let operationMarker = ''
+  let mainRefReads = 0
+  let treeRequested = false
+
+  mockFetch(async (input, init = {}) => {
+    const url = String(input)
+
+    if (url.endsWith('/git/ref/heads/main')) {
+      mainRefReads += 1
+      return jsonResponse({
+        object: { sha: mainRefReads === 1 ? mainSha : committedSha },
+      })
+    }
+
+    if (url.endsWith('/graphql')) {
+      operationMarker = JSON.parse(init.body).variables.input.message.body
+      throw new TypeError('upstream response was lost')
+    }
+
+    if (url.includes('/commits?sha=main&per_page=100')) {
+      return jsonResponse([
+        {
+          sha: committedSha,
+          parents: [{ sha: mainSha }],
+          commit: {
+            message: `cms: update example\n\n${operationMarker}`,
+            committer: { date: '2026-07-28T00:00:00Z' },
+          },
+        },
+      ])
+    }
+
+    if (url.endsWith(`/commits/${committedSha}?per_page=100`)) {
+      return jsonResponse({
+        sha: committedSha,
+        files: [
+          {
+            filename: 'src/content/blog/example.md',
+            status: 'modified',
+          },
+          { filename: 'README.md', status: 'modified' },
+        ],
+      })
+    }
+
+    if (url.includes('/git/trees/')) treeRequested = true
+
+    throw new Error(`Unexpected GitHub request: ${url}`)
+  })
+
+  const response = await handleGraphql({
+    request: cmsSaveRequest(),
+    env: allowedEnv,
+  })
+
+  assert.equal(response.status, 409)
+  assert.match((await response.json()).message, /mainが更新されています/)
+  assert.equal(treeRequested, false)
+})
+
+test('marker・親SHA・pathが一致してもblob SHAが異なるcommitを成功扱いにしない', async () => {
+  const committedSha = 'e'.repeat(40)
+  let operationMarker = ''
+  let mainRefReads = 0
+
+  mockFetch(async (input, init = {}) => {
+    const url = String(input)
+
+    if (url.endsWith('/git/ref/heads/main')) {
+      mainRefReads += 1
+      return jsonResponse({
+        object: { sha: mainRefReads === 1 ? mainSha : committedSha },
+      })
+    }
+
+    if (url.endsWith('/graphql')) {
+      operationMarker = JSON.parse(init.body).variables.input.message.body
+      throw new TypeError('upstream response was lost')
+    }
+
+    if (url.includes('/commits?sha=main&per_page=100')) {
+      return jsonResponse([
+        {
+          sha: committedSha,
+          parents: [{ sha: mainSha }],
+          commit: {
+            message: `cms: update example\n\n${operationMarker}`,
+            committer: { date: '2026-07-28T00:00:00Z' },
+          },
+        },
+      ])
+    }
+
+    if (url.endsWith(`/commits/${committedSha}?per_page=100`)) {
+      return jsonResponse({
+        sha: committedSha,
+        files: [
+          {
+            filename: 'src/content/blog/example.md',
+            status: 'modified',
+          },
+        ],
+      })
+    }
+
+    if (url.includes(`/git/trees/${committedSha}?recursive=1`)) {
+      return jsonResponse({
+        sha: 'c'.repeat(40),
+        truncated: false,
+        tree: [
+          {
+            mode: '100644',
+            path: 'src/content/blog/example.md',
+            sha: 'f'.repeat(40),
+            size: Buffer.from(validMarkdown()).byteLength,
+            type: 'blob',
+          },
+        ],
+      })
+    }
+
+    throw new Error(`Unexpected GitHub request: ${url}`)
+  })
+
+  const response = await handleGraphql({
+    request: cmsSaveRequest(),
+    env: allowedEnv,
+  })
+
+  assert.equal(response.status, 409)
+  assert.match((await response.json()).message, /mainが更新されています/)
 })
 
 test('保存中に別commitがmainへ入った場合は上書きせず409にする', async () => {
@@ -672,7 +835,7 @@ function cmsSaveRequest() {
           additions: [
             {
               path: 'src/content/blog/example.md',
-              contents: Buffer.from('# Example').toString('base64'),
+              contents: Buffer.from(validMarkdown()).toString('base64'),
             },
           ],
           deletions: [],
@@ -709,10 +872,9 @@ function mockFetch(handler) {
       url ===
       `https://api.github.com/app/installations/${routeGithubAppInstallationId}/access_tokens`
     ) {
-      return jsonResponse({
-        token: 'test-route-installation-token',
-        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      })
+      return jsonResponse(
+        installationTokenResponse('test-route-installation-token'),
+      )
     }
 
     return handler(input, init)
@@ -737,6 +899,48 @@ function jsonResponse(data, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json' },
   })
+}
+
+function installationTokenResponse(token) {
+  return {
+    token,
+    expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    permissions: {
+      contents: 'write',
+      metadata: 'read',
+    },
+    repositories: [
+      {
+        full_name: 'acecore-systems/homepage-hatt',
+      },
+    ],
+  }
+}
+
+function validMarkdown(body = '# Example') {
+  return [
+    '---',
+    'title: Example',
+    'description: Example description',
+    'date: 2026-07-28T12:00+09:00',
+    'author: hatt',
+    '---',
+    body,
+    '',
+  ].join('\n')
+}
+
+function validPngBytes() {
+  return Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+}
+
+function gitBlobOid(base64Contents) {
+  const bytes = Buffer.from(base64Contents, 'base64')
+
+  return createHash('sha1')
+    .update(`blob ${bytes.byteLength}\0`)
+    .update(bytes)
+    .digest('hex')
 }
 
 function treeItem(path, type, marker) {

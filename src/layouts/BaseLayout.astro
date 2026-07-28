@@ -6,6 +6,7 @@ import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
 import SearchModal from '@/components/SearchModal.astro'
 import { getSiteConfig } from '@/utils/blog'
+import { serializeJsonForHtmlScript } from '@/utils/safe-json'
 
 type JsonLd = Record<string, unknown> | Record<string, unknown>[]
 
@@ -103,7 +104,7 @@ const jsonLdItems = Array.isArray(props.jsonLd)
         props.jsonLd,
       ]
     : [siteJsonLd, ...(breadcrumbJsonLd ? [breadcrumbJsonLd] : [])]
-const jsonLd = JSON.stringify(jsonLdItems).replace(/</g, '\\u003c')
+const jsonLd = serializeJsonForHtmlScript(jsonLdItems)
 ---
 
 <!doctype html>

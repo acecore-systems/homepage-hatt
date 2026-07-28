@@ -31,7 +31,10 @@ export class GitHubApiError extends Error {
   }
 }
 
-export async function getGitHubToken(env: GitHubAuthEnv) {
+export async function getGitHubToken(
+  env: GitHubAuthEnv,
+  { fresh = false }: { fresh?: boolean } = {},
+) {
   const clientId = env.CMS_GITHUB_APP_CLIENT_ID?.trim()
   const installationId = env.CMS_GITHUB_APP_INSTALLATION_ID?.trim()
   const privateKey = env.CMS_GITHUB_APP_PRIVATE_KEY?.replace(
@@ -55,6 +58,7 @@ export async function getGitHubToken(env: GitHubAuthEnv) {
   const cached = installationTokenCache.get(cacheKey)
 
   if (
+    !fresh &&
     cached &&
     cached.expiresAt - INSTALLATION_TOKEN_REFRESH_BUFFER_MS > Date.now()
   ) {
@@ -102,7 +106,8 @@ export async function getGitHubToken(env: GitHubAuthEnv) {
     !response.ok ||
     !isRecord(data) ||
     typeof data.token !== 'string' ||
-    typeof data.expires_at !== 'string'
+    typeof data.expires_at !== 'string' ||
+    !hasExpectedInstallationTokenScope(data)
   ) {
     const message =
       isRecord(data) && typeof data.message === 'string'
@@ -124,6 +129,34 @@ export async function getGitHubToken(env: GitHubAuthEnv) {
   installationTokenCache.set(cacheKey, { token: data.token, expiresAt })
 
   return data.token
+}
+
+function hasExpectedInstallationTokenScope(data: Record<string, unknown>) {
+  if (!isRecord(data.permissions) || data.permissions.contents !== 'write') {
+    return false
+  }
+
+  if (
+    Object.entries(data.permissions).some(([name, permission]) => {
+      if (name === 'contents') return permission !== 'write'
+      if (name === 'metadata') return permission !== 'read'
+
+      return permission !== 'none'
+    })
+  ) {
+    return false
+  }
+
+  if (!Array.isArray(data.repositories) || data.repositories.length !== 1) {
+    return false
+  }
+
+  const repository = data.repositories[0]
+
+  return (
+    isRecord(repository) &&
+    repository.full_name === `${CMS_REPOSITORY.owner}/${CMS_REPOSITORY.name}`
+  )
 }
 
 export type CmsGitTreeItem = {

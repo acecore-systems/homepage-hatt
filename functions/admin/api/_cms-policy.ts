@@ -22,9 +22,7 @@ const MEDIA_EXTENSIONS = new Set([
   '.gif',
   '.jpeg',
   '.jpg',
-  '.pdf',
   '.png',
-  '.svg',
   '.webp',
 ])
 
