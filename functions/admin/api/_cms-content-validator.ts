@@ -110,7 +110,7 @@ function validateMarkdown(
 
   if (
     rawFrontmatter.length > MAX_FRONTMATTER_CHARS ||
-    YAML_ALIAS_OR_TAG_PATTERN.test(rawFrontmatter)
+    YAML_ALIAS_OR_TAG_PATTERN.test(stripYamlQuotedText(rawFrontmatter))
   ) {
     return {
       ok: false,
@@ -165,6 +165,44 @@ function validateMarkdown(
   }
 
   return { ok: true }
+}
+
+function stripYamlQuotedText(value: string) {
+  let result = ''
+  let quote: "'" | '"' | null = null
+
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index]
+
+    if (!quote) {
+      if (character === "'" || character === '"') {
+        quote = character
+        result += ' '
+      } else {
+        result += character
+      }
+
+      continue
+    }
+
+    if (quote === "'" && character === "'" && value[index + 1] === "'") {
+      result += '  '
+      index += 1
+      continue
+    }
+
+    if (quote === '"' && character === '\\' && index + 1 < value.length) {
+      result += '  '
+      index += 1
+      continue
+    }
+
+    if (character === quote) quote = null
+
+    result += character === '\n' || character === '\r' ? character : ' '
+  }
+
+  return result
 }
 
 function validateRasterImage(

@@ -9,7 +9,10 @@ import {
   jwtVerify,
 } from 'jose'
 
-import { isAllowedCmsWritePath } from '../functions/admin/api/_cms-policy.ts'
+import {
+  isAllowedCmsDeletePath,
+  isAllowedCmsWritePath,
+} from '../functions/admin/api/_cms-policy.ts'
 import { getGitHubToken } from '../functions/admin/api/_github-api.ts'
 import { onRequestPost as handleGraphql } from '../functions/admin/api/graphql.ts'
 import { onRequest as handleGithubRest } from '../functions/admin/api/github/[[path]].ts'
@@ -526,6 +529,34 @@ test('CMS設定にないcontent pathを書き込み対象にしない', () => {
   )
 })
 
+test('必須site・author・tagと参照され得るmediaの削除をGitHubへ送らない', async () => {
+  let called = false
+
+  mockFetch(async () => {
+    called = true
+    throw new Error('GitHub must not be called')
+  })
+
+  for (const path of [
+    'src/content/site/main.json',
+    'src/content/authors/hatt.json',
+    'src/content/tags/announcement.json',
+    'public/uploads/hatt/hatt.webp',
+  ]) {
+    const response = await handleGraphql({
+      request: cmsDeleteRequest(path),
+      env: allowedEnv,
+    })
+
+    assert.equal(response.status, 403)
+    assert.equal(isAllowedCmsDeletePath(path), false)
+  }
+
+  assert.equal(isAllowedCmsDeletePath('src/content/blog/example.md'), true)
+  assert.equal(isAllowedCmsDeletePath('src/content/art/example.json'), true)
+  assert.equal(called, false)
+})
+
 test('任意のGraphQL queryをGitHub tokenで実行しない', async () => {
   let called = false
 
@@ -841,6 +872,32 @@ function cmsSaveRequest() {
           deletions: [],
         },
         message: { headline: 'Create example' },
+      },
+    },
+  })
+}
+
+function cmsDeleteRequest(path) {
+  return graphqlRequest({
+    query: `
+      mutation($input: CreateCommitOnBranchInput!) {
+        createCommitOnBranch(input: $input) {
+          commit { oid committedDate }
+        }
+      }
+    `,
+    variables: {
+      input: {
+        branch: {
+          repositoryNameWithOwner: 'acecore-systems/homepage-hatt',
+          branchName: 'main',
+        },
+        expectedHeadOid: mainSha,
+        fileChanges: {
+          additions: [],
+          deletions: [{ path }],
+        },
+        message: { headline: 'Delete example' },
       },
     },
   })

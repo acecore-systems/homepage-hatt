@@ -14,6 +14,12 @@ const CONTENT_RULES = [
 ] as const
 
 const CONTENT_FILES = new Set(['src/content/site/main.json'])
+const DELETABLE_CONTENT_PREFIXES = new Set([
+  'src/content/art/',
+  'src/content/blog/',
+  'src/content/campaigns/',
+  'src/content/modeling/',
+])
 
 const MEDIA_PREFIX = 'public/uploads/hatt/'
 const MAX_CMS_PATH_LENGTH = 240
@@ -65,6 +71,15 @@ export function isAllowedCmsWritePath(path: string) {
   if (!path.startsWith(MEDIA_PREFIX)) return false
 
   return MEDIA_EXTENSIONS.has(getExtension(path))
+}
+
+export function isAllowedCmsDeletePath(path: string) {
+  return CONTENT_RULES.some(
+    ({ prefix, extension }) =>
+      DELETABLE_CONTENT_PREFIXES.has(prefix) &&
+      path.startsWith(prefix) &&
+      path.endsWith(extension),
+  )
 }
 
 export function isAllowedCmsDirectoryPath(path: string) {

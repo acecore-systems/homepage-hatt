@@ -40,6 +40,9 @@ test('現在のCMS管理コンテンツとmediaをすべてruntime schemaで検�
 test('Markdownのraw HTMLと危険なURL schemeを拒否する', () => {
   assertRejectedMarkdown('<img src=x onerror=alert(1)>', /raw HTML/)
   assertRejectedMarkdown('[click](java&#x73;cript:alert(1))', /危険なURL/)
+  assertRejectedMarkdown('[click](java&#x09;script:alert(1))', /危険なURL/)
+  assertRejectedMarkdown('[click](java&#13;script:alert(1))', /危険なURL/)
+  assertRejectedMarkdown('[click](java&Tab;script:alert(1))', /危険なURL/)
   assertRejectedMarkdown('[click](data:text/html;base64,AAAA)', /危険なURL/)
 })
 
@@ -63,6 +66,18 @@ test('同じ記号・長さを満たすfenceだけをcode block終端として�
     ].join('\n'),
     /raw HTML/,
   )
+})
+
+test('引用符内の感嘆符は許可しYAML aliasは拒否する', () => {
+  assertAcceptedMarkdown('本文', "title: 'Example !!'")
+
+  const result = validateCmsFileContents(
+    'src/content/blog/example.md',
+    Buffer.from(`${validFrontmatter('title: &shared Example')}\n本文\n`),
+  )
+
+  assert.equal(result.ok, false)
+  assert.match(result.message, /許可されていないYAML構文/)
 })
 
 test('CMS mediaはraster実体だけを許可しSVGとPDFを対象外にする', () => {
@@ -100,11 +115,11 @@ test('CMS JSONは共有schemaと安全なURL制約に一致しなければ拒否
   )
 })
 
-function assertAcceptedMarkdown(body) {
+function assertAcceptedMarkdown(body, title = 'title: Example') {
   assert.deepEqual(
     validateCmsFileContents(
       'src/content/blog/example.md',
-      Buffer.from(`${validFrontmatter()}\n${body}\n`),
+      Buffer.from(`${validFrontmatter(title)}\n${body}\n`),
     ),
     { ok: true },
   )
@@ -120,10 +135,10 @@ function assertRejectedMarkdown(body, pattern) {
   assert.match(result.message, pattern)
 }
 
-function validFrontmatter() {
+function validFrontmatter(title = 'title: Example') {
   return [
     '---',
-    'title: Example',
+    title,
     'description: Example description',
     'date: 2026-07-28T12:00+09:00',
     'author: hatt',

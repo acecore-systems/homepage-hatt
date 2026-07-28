@@ -10,6 +10,7 @@ import {
 
 import {
   CMS_REPOSITORY,
+  isAllowedCmsDeletePath,
   isAllowedCmsWritePath,
   normalizeCmsPath,
 } from './_cms-policy.ts'
@@ -666,7 +667,7 @@ function parseCmsCommitInput(value: unknown): CmsCommitInput | null {
     if (
       !path ||
       path !== deletion.path ||
-      !isAllowedCmsWritePath(path) ||
+      !isAllowedCmsDeletePath(path) ||
       paths.has(path)
     ) {
       return null
