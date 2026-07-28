@@ -39,7 +39,7 @@ const CMS_DIRECTORY_ROOTS = [
 ]
 
 export function normalizeCmsPath(path: string | null) {
-  if (path === null || path.includes('\0')) return null
+  if (path === null || /[\u0000-\u001f\u007f]/.test(path)) return null
 
   const normalized = path.replace(/\\/g, '/').replace(/^\/+/, '')
 

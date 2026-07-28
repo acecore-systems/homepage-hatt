@@ -31,6 +31,11 @@ const JSON_SCHEMAS = [
   { prefix: 'src/content/modeling/', schema: modelingContentSchema },
   { prefix: 'src/content/tags/', schema: tagContentSchema },
 ] as const
+const PATH_DERIVED_ID_PREFIXES = new Set([
+  'src/content/authors/',
+  'src/content/campaigns/',
+  'src/content/tags/',
+])
 
 export function validateCmsFileContents(
   path: string,
@@ -83,6 +88,40 @@ function validateJson(
     return {
       ok: false,
       message: `${path}: コンテンツschemaに一致しません${location}。`,
+    }
+  }
+
+  const identityValidation = validatePathDerivedId(path, result.data)
+
+  if (!identityValidation.ok) return identityValidation
+
+  return { ok: true }
+}
+
+function validatePathDerivedId(
+  path: string,
+  value: unknown,
+): CmsContentValidation {
+  const prefix = Array.from(PATH_DERIVED_ID_PREFIXES).find((candidate) =>
+    path.startsWith(candidate),
+  )
+
+  if (!prefix) return { ok: true }
+
+  const relativePath = path.slice(prefix.length)
+  const expectedId = relativePath.endsWith('.json')
+    ? relativePath.slice(0, -'.json'.length)
+    : ''
+
+  if (
+    !expectedId ||
+    expectedId.includes('/') ||
+    !isRecord(value) ||
+    value.id !== expectedId
+  ) {
+    return {
+      ok: false,
+      message: `${path}: idはJSONファイル名と一致させてください。`,
     }
   }
 
@@ -296,20 +335,60 @@ function stripInlineCode(value: string) {
 
     while (value[openingEnd] === '`') openingEnd += 1
 
-    const marker = value.slice(cursor, openingEnd)
-    const closing = value.indexOf(marker, openingEnd)
+    if (isEscapedBacktickRun(value, cursor)) {
+      result += value.slice(cursor, openingEnd)
+      cursor = openingEnd
+      continue
+    }
 
-    if (closing === -1) {
+    const marker = value.slice(cursor, openingEnd)
+    const closing = findClosingBacktickRun(value, openingEnd, marker.length)
+
+    if (!closing) {
       result += marker
       cursor = openingEnd
       continue
     }
 
-    result += ' '.repeat(closing + marker.length - cursor)
-    cursor = closing + marker.length
+    result += ' '.repeat(closing.end - cursor)
+    cursor = closing.end
   }
 
   return result
+}
+
+function isEscapedBacktickRun(value: string, start: number) {
+  let backslashes = 0
+
+  for (let index = start - 1; index >= 0 && value[index] === '\\'; index -= 1) {
+    backslashes += 1
+  }
+
+  return backslashes % 2 === 1
+}
+
+function findClosingBacktickRun(
+  value: string,
+  start: number,
+  expectedLength: number,
+) {
+  let cursor = start
+
+  while (cursor < value.length) {
+    const opening = value.indexOf('`', cursor)
+
+    if (opening === -1) return null
+
+    let end = opening
+
+    while (value[end] === '`') end += 1
+
+    if (end - opening === expectedLength) return { end }
+
+    cursor = end
+  }
+
+  return null
 }
 
 function findMarkdownDestinations(value: string) {
@@ -410,4 +489,8 @@ function getExtension(path: string) {
   const dot = fileName.lastIndexOf('.')
 
   return dot === -1 ? '' : fileName.slice(dot).toLowerCase()
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
 }

@@ -46,6 +46,15 @@ test('Markdownのraw HTMLと危険なURL schemeを拒否する', () => {
   assertRejectedMarkdown('[click](data:text/html;base64,AAAA)', /危険なURL/)
 })
 
+test('escaped backtickでraw HTML検査を回避させない', () => {
+  const unsafeHtml = '<img src=x onerror=alert(1)>'
+
+  assertRejectedMarkdown(`\\\`${unsafeHtml}\\\``, /raw HTML/)
+  assertRejectedMarkdown(`\\\`\`${unsafeHtml}\\\`\``, /raw HTML/)
+  assertAcceptedMarkdown(`\`${unsafeHtml}\``)
+  assertAcceptedMarkdown(`\`\`${unsafeHtml}\`\``)
+})
+
 test('同じ記号・長さを満たすfenceだけをcode block終端として扱う', () => {
   assertAcceptedMarkdown(
     [
@@ -98,19 +107,40 @@ test('CMS mediaはraster実体だけを許可しSVGとPDFを対象外にする',
 })
 
 test('CMS JSONは共有schemaと安全なURL制約に一致しなければ拒否する', () => {
-  const unsafe = Buffer.from(
-    JSON.stringify({
-      id: 'unsafe',
-      enabled: true,
-      kind: 'notice',
-      placement: 'global',
-      title: 'Unsafe',
-      href: 'javascript:alert(1)',
-    }),
-  )
+  const campaign = {
+    id: 'unsafe',
+    enabled: true,
+    kind: 'notice',
+    placement: 'global',
+    title: 'Unsafe',
+  }
 
   assert.equal(
-    validateCmsFileContents('src/content/campaigns/unsafe.json', unsafe).ok,
+    validateCmsFileContents(
+      'src/content/campaigns/unsafe.json',
+      Buffer.from(JSON.stringify({ ...campaign, href: 'javascript:alert(1)' })),
+    ).ok,
+    false,
+  )
+  assert.equal(
+    validateCmsFileContents(
+      'src/content/campaigns/unsafe.json',
+      Buffer.from(JSON.stringify({ ...campaign, placement: 'unknown' })),
+    ).ok,
+    false,
+  )
+  assert.equal(
+    validateCmsFileContents(
+      'src/content/campaigns/unsafe.json',
+      Buffer.from(JSON.stringify({ ...campaign, unexpected: true })),
+    ).ok,
+    false,
+  )
+  assert.equal(
+    validateCmsFileContents(
+      'src/content/campaigns/different.json',
+      Buffer.from(JSON.stringify(campaign)),
+    ).ok,
     false,
   )
 })

@@ -12,6 +12,7 @@ import {
 import {
   isAllowedCmsDeletePath,
   isAllowedCmsWritePath,
+  normalizeCmsPath,
 } from '../functions/admin/api/_cms-policy.ts'
 import { getGitHubToken } from '../functions/admin/api/_github-api.ts'
 import { onRequestPost as handleGraphql } from '../functions/admin/api/graphql.ts'
@@ -529,6 +530,66 @@ test('CMS設定にないcontent pathを書き込み対象にしない', () => {
   )
 })
 
+test('制御文字入りpathを保存・削除・履歴参照に使わせない', async () => {
+  let forwarded = false
+
+  mockFetch(async () => {
+    forwarded = true
+    throw new Error('GitHub must not be called')
+  })
+
+  const unsafePaths = [
+    {
+      graphql: 'src/content/blog/example\\n.md',
+      path: 'src/content/blog/example\n.md',
+    },
+    {
+      graphql: 'src/content/blog/example\\u007f.md',
+      path: 'src/content/blog/example\u007f.md',
+    },
+  ]
+
+  for (const unsafePath of unsafePaths) {
+    assert.equal(normalizeCmsPath(unsafePath.path), null)
+
+    const writeResponse = await handleGraphql({
+      request: cmsSaveRequest(unsafePath.path),
+      env: allowedEnv,
+    })
+    const deleteResponse = await handleGraphql({
+      request: cmsDeleteRequest(unsafePath.path),
+      env: allowedEnv,
+    })
+    const historyResponse = await handleGraphql({
+      request: graphqlRequest({
+        query: `
+          query {
+            repository(owner: "acecore-systems", name: "homepage-hatt") {
+              ref(qualifiedName: "main") {
+                target {
+                  ... on Commit {
+                    history(first: 1, path: "${unsafePath.graphql}") {
+                      nodes { oid }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: {},
+      }),
+      env: allowedEnv,
+    })
+
+    assert.equal(writeResponse.status, 403)
+    assert.equal(deleteResponse.status, 403)
+    assert.equal(historyResponse.status, 403)
+  }
+
+  assert.equal(forwarded, false)
+})
+
 test('必須site・author・tagと参照され得るmediaの削除をGitHubへ送らない', async () => {
   let called = false
 
@@ -846,7 +907,7 @@ function graphqlRequest(payload, token = validAccessJwt) {
   })
 }
 
-function cmsSaveRequest() {
+function cmsSaveRequest(path = 'src/content/blog/example.md') {
   return graphqlRequest({
     query: `
       mutation($input: CreateCommitOnBranchInput!) {
@@ -865,7 +926,7 @@ function cmsSaveRequest() {
         fileChanges: {
           additions: [
             {
-              path: 'src/content/blog/example.md',
+              path,
               contents: Buffer.from(validMarkdown()).toString('base64'),
             },
           ],
