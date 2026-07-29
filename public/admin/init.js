@@ -31,9 +31,25 @@ async function initCms() {
       )
     }
 
-    window.location.hash =
-      '#access_token=cloudflare-access&token_type=bearer&provider=github'
-    window.CMS.init()
+    if (
+      !window.location.hash ||
+      window.location.hash === '#' ||
+      window.location.hash === '#/'
+    ) {
+      const payload = window.btoa(
+        JSON.stringify({
+          token: 'cloudflare-access',
+          prefs: { language: 'ja' },
+        }),
+      )
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}#/signin/${payload}`,
+      )
+    }
+
+    await window.CMS.init()
     showPublishNotice()
   } catch (error) {
     showStatus(error instanceof Error ? error.message : String(error), true)
