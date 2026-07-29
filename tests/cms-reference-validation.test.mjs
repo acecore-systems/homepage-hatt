@@ -324,6 +324,23 @@ test('異なるtag slugとblog effective slugは同じ保存で追加できる',
   })
 })
 
+test('tagの予約route slug indexをprojected stateで拒否する', async () => {
+  await assert.rejects(
+    validateProjectedCmsReferences({
+      additions: [
+        jsonAddition('src/content/tags/projected-index.json', {
+          id: 'projected-index',
+          name: 'Projected index',
+          slug: 'index',
+        }),
+      ],
+      currentState,
+      deletions: [],
+    }),
+    (error) => error.status === 422 && /コンテンツschema/.test(error.message),
+  )
+})
+
 test('blog filename由来のroute slugにも共有slug制約を適用する', async () => {
   await assert.rejects(
     validateProjectedCmsReferences({

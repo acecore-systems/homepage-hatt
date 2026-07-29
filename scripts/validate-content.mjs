@@ -162,7 +162,7 @@ async function validateCmsProxyWiring() {
     {
       source: schemas,
       pattern:
-        /contentRouteSlugSchema[\s\S]*slug: contentRouteSlugSchema\.optional\(\)[\s\S]*slug: contentRouteSlugSchema/,
+        /contentRouteSlugSchema[\s\S]*tagRouteSlugSchema[\s\S]*value !== 'index'[\s\S]*slug: contentRouteSlugSchema\.optional\(\)[\s\S]*slug: tagRouteSlugSchema/,
       message: 'tag and blog slugs must share the safe route schema',
     },
     {

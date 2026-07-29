@@ -54,6 +54,10 @@ export const contentRouteSlugSchema = z
   .min(1)
   .max(MAX_CONTENT_ROUTE_SLUG_LENGTH)
   .regex(CONTENT_ROUTE_SLUG_PATTERN)
+const tagRouteSlugSchema = contentRouteSlugSchema.refine(
+  (value) => value !== 'index',
+  'tag slugのindexは予約済みです。',
+)
 
 const linkSchema = z
   .object({
@@ -184,7 +188,7 @@ export const tagContentSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    slug: contentRouteSlugSchema,
+    slug: tagRouteSlugSchema,
     description: z.string().optional(),
   })
   .strict()

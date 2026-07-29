@@ -106,7 +106,7 @@ proxy は上記のCMS管理対象以外へのwriteを拒否します。content c
 - 保存前とmutation実行時に `main` のHEADを `expectedHeadOid` で照合します。編集開始後または同時保存中にHEADが更新された場合は上書きせず409を返し、CMSの再読み込みを求めます。
 - 参照整合性の検証は保存直前に照合した正確な `main` commit SHAへ束縛します。tree省略、blobの不正SHA・binary・truncated・byte size不一致、件数または合計size上限超過はfail closedします。
 - projected stateでは現行treeへ同じmutationの追加・削除を適用してから、全CMS contentのschemaと記事author・tag・local media参照を再検証します。Markdownのlocal media参照はcodeを除外し、backslash escape、HTML entity、percent encoding、dot-segment traversalを正規化して確認します。
-- author id、tag slug、記事の実効slugは `^[a-z0-9][a-z0-9_-]*$`、最大120文字に限定します。author idはJSON filenameとの一致も要求し、tagと記事のroute slugはprojected state全体で重複を拒否します。記事でfrontmatter `slug` を省略した場合は拡張子を除いたfilenameを同じ制約で検証します。
+- author id、tag slug、記事の実効slugは `^[a-z0-9][a-z0-9_-]*$`、最大120文字に限定します。author idはJSON filenameとの一致も要求し、tagと記事のroute slugはprojected state全体で重複を拒否します。tagの `index` は `/blog/tag/` の静的一覧routeと衝突するため予約済みです。記事でfrontmatter `slug` を省略した場合は拡張子を除いたfilenameを同じ制約で検証します。
 - mutationの応答が失われた場合は、固有operation marker、親commit、最新履歴を照合します。保存済みと確認できた場合だけ成功応答を再構成し、判定できない場合は再保存せず再読み込みするよう案内します。
 
 ## 残る制約

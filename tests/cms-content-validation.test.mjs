@@ -579,6 +579,23 @@ test('CMS JSONは共有schemaと安全なURL制約に一致しなければ拒否
     )
   }
 
+  assert.equal(
+    (
+      await validateCmsFileContents(
+        'src/content/tags/unsafe.json',
+        Buffer.from(
+          JSON.stringify({
+            id: 'unsafe',
+            name: 'Unsafe',
+            slug: 'index',
+          }),
+        ),
+      )
+    ).ok,
+    false,
+    'tag slug index',
+  )
+
   for (const authorId of ['', '..', 'nested/author', 'x'.repeat(121)]) {
     assert.equal(contentRouteSlugSchema.safeParse(authorId).success, false)
   }
