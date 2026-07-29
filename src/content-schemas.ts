@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 const CONTENT_DATETIME_PATTERN =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?$/
+const CONTENT_ROUTE_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]*$/
+const MAX_CONTENT_ROUTE_SLUG_LENGTH = 120
 
 function isSafeContentUrl(value: string) {
   if (
@@ -47,6 +49,11 @@ const contentDateSchema = z
       Number.isFinite(Date.parse(value)),
     '日時は時刻を含む YYYY-MM-DDTHH:mm 形式で指定してください。',
   )
+export const contentRouteSlugSchema = z
+  .string()
+  .min(1)
+  .max(MAX_CONTENT_ROUTE_SLUG_LENGTH)
+  .regex(CONTENT_ROUTE_SLUG_PATTERN)
 
 const linkSchema = z
   .object({
@@ -144,10 +151,7 @@ const pullQuoteSchema = z
 export const blogContentSchema = z
   .object({
     title: z.string(),
-    slug: z
-      .string()
-      .regex(/^[a-z0-9][a-z0-9_-]*$/)
-      .optional(),
+    slug: contentRouteSlugSchema.optional(),
     description: z.string(),
     date: contentDateSchema,
     lastUpdated: contentDateSchema.optional(),
@@ -180,14 +184,14 @@ export const tagContentSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    slug: z.string(),
+    slug: contentRouteSlugSchema,
     description: z.string().optional(),
   })
   .strict()
 
 export const authorContentSchema = z
   .object({
-    id: z.string(),
+    id: contentRouteSlugSchema,
     name: z.string(),
     bio: z.string(),
     avatar: contentUrlSchema.optional(),

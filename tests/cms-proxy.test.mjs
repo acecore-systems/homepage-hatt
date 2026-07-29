@@ -11,7 +11,9 @@ import {
 
 import {
   isAllowedCmsDeletePath,
+  isAllowedCmsDirectoryPath,
   isAllowedCmsWritePath,
+  isCmsReferenceStatePath,
   normalizeCmsPath,
 } from '../functions/admin/api/_cms-policy.ts'
 import { getGitHubToken } from '../functions/admin/api/_github-api.ts'
@@ -21,6 +23,12 @@ import { onRequestGet as handleSession } from '../functions/admin/api/session.ts
 
 const originalFetch = globalThis.fetch
 const mainSha = 'a'.repeat(40)
+const referenceAuthorSha = '1'.repeat(40)
+const referenceAuthorText = JSON.stringify({
+  id: 'hatt',
+  name: 'Hatt',
+  bio: 'Test author',
+})
 const accessIssuer = 'https://test.cloudflareaccess.com'
 const accessAudience = 'test-cms-audience'
 const accessCertsUrl = `${accessIssuer}/cdn-cgi/access/certs`
@@ -528,6 +536,48 @@ test('CMS設定にないcontent pathを書き込み対象にしない', () => {
     isAllowedCmsWritePath('src/content/shop-settings/main.json'),
     false,
   )
+
+  for (const path of [
+    'src/content/art/nested/example.json',
+    'src/content/authors/nested/example.json',
+    'src/content/blog/nested/example.md',
+    'src/content/campaigns/nested/example.json',
+    'src/content/modeling/nested/example.json',
+    'src/content/tags/nested/example.json',
+  ]) {
+    assert.equal(isAllowedCmsWritePath(path), false)
+    assert.equal(isAllowedCmsDeletePath(path), false)
+    assert.equal(isCmsReferenceStatePath(path), false)
+  }
+
+  assert.equal(isAllowedCmsDirectoryPath('src/content/blog/nested'), false)
+  assert.equal(isAllowedCmsDirectoryPath('public/uploads/hatt/nested'), true)
+  assert.equal(
+    isAllowedCmsWritePath('public/uploads/hatt/nested/example.png'),
+    true,
+  )
+})
+
+test('collection下位directoryへのcontent保存・削除をGitHubへ送らない', async () => {
+  let called = false
+
+  mockFetch(async () => {
+    called = true
+    throw new Error('GitHub must not be called')
+  })
+
+  const writeResponse = await handleGraphql({
+    request: cmsSaveRequest('src/content/blog/nested/example.md'),
+    env: allowedEnv,
+  })
+  const deleteResponse = await handleGraphql({
+    request: cmsDeleteRequest('src/content/blog/nested/example.md'),
+    env: allowedEnv,
+  })
+
+  assert.equal(writeResponse.status, 403)
+  assert.equal(deleteResponse.status, 403)
+  assert.equal(called, false)
 })
 
 test('制御文字入りpathを保存・削除・履歴参照に使わせない', async () => {
@@ -769,6 +819,8 @@ test('Git tree responseからCMS管理対象外のpathとblob SHAを除外する
         treeItem('src/content', 'tree', '2'),
         treeItem('src/content/blog', 'tree', '3'),
         treeItem('src/content/blog/example.md', 'blob', '4'),
+        treeItem('src/content/blog/nested', 'tree', 'c'),
+        treeItem('src/content/blog/nested/example.md', 'blob', 'd'),
         treeItem('src/private.ts', 'blob', '5'),
         treeItem('public', 'tree', '6'),
         treeItem('public/uploads', 'tree', '7'),
@@ -993,6 +1045,44 @@ function mockFetch(handler) {
       return jsonResponse(
         installationTokenResponse('test-route-installation-token'),
       )
+    }
+
+    if (
+      url.endsWith(`/git/trees/${mainSha}?recursive=1`) &&
+      (init.method === undefined || init.method === 'GET')
+    ) {
+      return jsonResponse({
+        sha: '2'.repeat(40),
+        truncated: false,
+        tree: [
+          {
+            mode: '100644',
+            path: 'src/content/authors/hatt.json',
+            sha: referenceAuthorSha,
+            size: Buffer.byteLength(referenceAuthorText),
+            type: 'blob',
+          },
+        ],
+      })
+    }
+
+    if (url.endsWith('/graphql') && typeof init.body === 'string') {
+      const body = JSON.parse(init.body)
+
+      if (body.query?.includes('query CmsReferenceState')) {
+        return jsonResponse({
+          data: {
+            repository: {
+              blob0: {
+                byteSize: Buffer.byteLength(referenceAuthorText),
+                isBinary: false,
+                isTruncated: false,
+                text: referenceAuthorText,
+              },
+            },
+          },
+        })
+      }
     }
 
     return handler(input, init)

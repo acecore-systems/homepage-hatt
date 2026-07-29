@@ -12,8 +12,12 @@ import {
 
 type CmsContentValidation = { ok: true } | { ok: false; message: string }
 
-const MAX_TEXT_FILE_BYTES = 2 * 1024 * 1024
+export const MAX_CMS_TEXT_FILE_BYTES = 448 * 1024
 const MAX_FRONTMATTER_CHARS = 256 * 1024
+const MAX_PNG_INFLATED_BYTES = 64 * 1024 * 1024
+const MAX_PNG_PIXELS = 100_000_000
+const MAX_RASTER_BLOCKS = 8_192
+const MAX_PNG_IDAT_CHUNKS = 4_096
 const UTF8_DECODER = new TextDecoder('utf-8', {
   fatal: true,
   ignoreBOM: false,
@@ -37,10 +41,10 @@ const PATH_DERIVED_ID_PREFIXES = new Set([
   'src/content/tags/',
 ])
 
-export function validateCmsFileContents(
+export async function validateCmsFileContents(
   path: string,
   bytes: Uint8Array,
-): CmsContentValidation {
+): Promise<CmsContentValidation> {
   if (path === 'src/content/site/main.json') {
     return validateJson(path, bytes, siteContentSchema)
   }
@@ -56,7 +60,7 @@ export function validateCmsFileContents(
   }
 
   if (path.startsWith('public/uploads/hatt/')) {
-    return validateRasterImage(path, bytes)
+    return await validateRasterImage(path, bytes)
   }
 
   return { ok: false, message: `${path}: CMS管理対象の形式ではありません。` }
@@ -244,13 +248,13 @@ function stripYamlQuotedText(value: string) {
   return result
 }
 
-function validateRasterImage(
+async function validateRasterImage(
   path: string,
   bytes: Uint8Array,
-): CmsContentValidation {
+): Promise<CmsContentValidation> {
   const extension = getExtension(path)
   const valid =
-    (extension === '.png' && isPng(bytes)) ||
+    (extension === '.png' && (await isPng(bytes))) ||
     ((extension === '.jpg' || extension === '.jpeg') && isJpeg(bytes)) ||
     (extension === '.gif' && isGif(bytes)) ||
     (extension === '.webp' && isWebp(bytes)) ||
@@ -268,7 +272,7 @@ function decodeText(
   path: string,
   bytes: Uint8Array,
 ): { ok: true; value: string } | { ok: false; message: string } {
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_TEXT_FILE_BYTES) {
+  if (bytes.byteLength === 0 || bytes.byteLength > MAX_CMS_TEXT_FILE_BYTES) {
     return {
       ok: false,
       message: `${path}: テキストファイルのサイズが不正です。`,
@@ -282,7 +286,7 @@ function decodeText(
   }
 }
 
-function stripMarkdownCode(value: string) {
+export function stripMarkdownCode(value: string) {
   const lines = value.split(/\r?\n/)
   const visibleLines: string[] = []
   let fence: { character: '`' | '~'; length: number } | null = null
@@ -391,7 +395,7 @@ function findClosingBacktickRun(
   return null
 }
 
-function findMarkdownDestinations(value: string) {
+export function findMarkdownDestinations(value: string) {
   const destinations: string[] = []
   const patterns = [
     /\]\(\s*(?:<([^>\r\n]+)>|([^\s)\r\n]+))/g,
@@ -410,16 +414,46 @@ function findMarkdownDestinations(value: string) {
   return destinations
 }
 
-function hasDangerousProtocol(value: string) {
-  const normalized = value
+export function normalizeMarkdownDestination(value: string) {
+  const namedEntities: Record<string, string> = {
+    amp: '&',
+    apos: "'",
+    bsol: '\\',
+    colon: ':',
+    newline: '\n',
+    num: '#',
+    percnt: '%',
+    period: '.',
+    quest: '?',
+    quot: '"',
+    sol: '/',
+    tab: '\t',
+  }
+
+  return value
     .replace(/\\([^\s])/g, '$1')
-    .replace(/&#(?:x([0-9a-f]+)|([0-9]+));?/gi, (_, hex, decimal) => {
+    .replace(/&#(?:x([0-9a-f]+)|([0-9]+));?/gi, (match, hex, decimal) => {
       const codePoint = Number.parseInt(hex || decimal, hex ? 16 : 10)
 
-      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : ''
+      if (
+        !Number.isFinite(codePoint) ||
+        codePoint < 0 ||
+        codePoint > 0x10ffff ||
+        (codePoint >= 0xd800 && codePoint <= 0xdfff)
+      ) {
+        return match
+      }
+
+      return String.fromCodePoint(codePoint)
     })
-    .replace(/&colon;/gi, ':')
-    .replace(/&(tab|newline);/gi, '')
+    .replace(
+      /&(amp|apos|bsol|colon|newline|num|percnt|period|quest|quot|sol|tab);/gi,
+      (match, name: string) => namedEntities[name.toLowerCase()] ?? match,
+    )
+}
+
+function hasDangerousProtocol(value: string) {
+  const normalized = normalizeMarkdownDestination(value)
     .replace(/[\u0000-\u0020\u007f]+/g, '')
     .toLowerCase()
 
@@ -430,42 +464,121 @@ function hasDangerousProtocol(value: string) {
   )
 }
 
-function isPng(bytes: Uint8Array) {
+async function isPng(bytes: Uint8Array) {
   if (!matches(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
     return false
   }
 
   let offset = 8
   let firstChunk = true
+  let bitDepth = 0
+  let colorType = 0
+  let interlaceMethod = 0
+  let width = 0
+  let height = 0
+  let hasPalette = false
   let hasImageData = false
+  let imageDataEnded = false
+  let chunkCount = 0
+  let imageDataChunkCount = 0
+  const imageDataChunks: Uint8Array[] = []
 
   while (offset + 12 <= bytes.byteLength) {
+    chunkCount += 1
+    if (chunkCount > MAX_RASTER_BLOCKS) return false
+
     const length = readUint32BigEndian(bytes, offset)
     const typeOffset = offset + 4
     const dataOffset = offset + 8
-    const chunkEnd = dataOffset + length + 4
+    const dataEnd = dataOffset + length
+    const chunkEnd = dataEnd + 4
 
-    if (chunkEnd > bytes.byteLength) return false
-
-    if (firstChunk) {
-      if (
-        !matchesAscii(bytes, 'IHDR', typeOffset) ||
-        length !== 13 ||
-        readUint32BigEndian(bytes, dataOffset) === 0 ||
-        readUint32BigEndian(bytes, dataOffset + 4) === 0
-      ) {
-        return false
-      }
-    } else if (matchesAscii(bytes, 'IHDR', typeOffset)) {
+    if (
+      length > bytes.byteLength - dataOffset - 4 ||
+      chunkEnd > bytes.byteLength ||
+      !isValidPngChunkType(bytes, typeOffset) ||
+      calculateCrc32(bytes.subarray(typeOffset, dataEnd)) !==
+        readUint32BigEndian(bytes, dataEnd)
+    ) {
       return false
     }
 
-    if (matchesAscii(bytes, 'IDAT', typeOffset) && length > 0) {
-      hasImageData = true
+    const type = ascii(bytes, typeOffset, 4)
+
+    if (firstChunk) {
+      if (
+        type !== 'IHDR' ||
+        length !== 13 ||
+        !isValidPngHeader(bytes, dataOffset)
+      ) {
+        return false
+      }
+
+      width = readUint32BigEndian(bytes, dataOffset)
+      height = readUint32BigEndian(bytes, dataOffset + 4)
+      bitDepth = bytes[dataOffset + 8]
+      colorType = bytes[dataOffset + 9]
+      interlaceMethod = bytes[dataOffset + 12]
+    } else if (type === 'IHDR') {
+      return false
     }
 
-    if (matchesAscii(bytes, 'IEND', typeOffset)) {
-      return length === 0 && hasImageData && chunkEnd === bytes.byteLength
+    if (type === 'PLTE') {
+      if (
+        hasPalette ||
+        hasImageData ||
+        colorType === 0 ||
+        colorType === 4 ||
+        length === 0 ||
+        length % 3 !== 0 ||
+        length > 256 * 3 ||
+        (colorType === 3 && length / 3 > 2 ** bitDepth)
+      ) {
+        return false
+      }
+
+      hasPalette = true
+    } else if (type === 'IDAT') {
+      if (imageDataEnded) return false
+
+      imageDataChunkCount += 1
+      if (imageDataChunkCount > MAX_PNG_IDAT_CHUNKS) return false
+
+      hasImageData = true
+      if (length > 0) imageDataChunks.push(bytes.subarray(dataOffset, dataEnd))
+    } else if (hasImageData) {
+      imageDataEnded = true
+    }
+
+    if (
+      isCriticalPngChunk(bytes[typeOffset]) &&
+      !isKnownPngCriticalChunk(type)
+    ) {
+      return false
+    }
+
+    if (type === 'IEND') {
+      if (
+        length !== 0 ||
+        !hasImageData ||
+        imageDataChunks.length === 0 ||
+        (colorType === 3 && !hasPalette) ||
+        chunkEnd !== bytes.byteLength
+      ) {
+        return false
+      }
+
+      const layout = getPngScanLayout({
+        bitDepth,
+        colorType,
+        height,
+        interlaceMethod,
+        width,
+      })
+
+      return (
+        layout !== null && (await validatePngImageData(imageDataChunks, layout))
+      )
     }
 
     firstChunk = false
@@ -475,12 +588,247 @@ function isPng(bytes: Uint8Array) {
   return false
 }
 
+type PngScanSegment = {
+  rowBytes: number
+  rows: number
+}
+
+type PngScanLayout = {
+  expectedBytes: number
+  segments: PngScanSegment[]
+}
+
+function isValidPngHeader(bytes: Uint8Array, offset: number) {
+  const width = readUint32BigEndian(bytes, offset)
+  const height = readUint32BigEndian(bytes, offset + 4)
+  const bitDepth = bytes[offset + 8]
+  const colorType = bytes[offset + 9]
+  const compressionMethod = bytes[offset + 10]
+  const filterMethod = bytes[offset + 11]
+  const interlaceMethod = bytes[offset + 12]
+  const validBitDepths = new Map<number, readonly number[]>([
+    [0, [1, 2, 4, 8, 16]],
+    [2, [8, 16]],
+    [3, [1, 2, 4, 8]],
+    [4, [8, 16]],
+    [6, [8, 16]],
+  ])
+
+  return (
+    width > 0 &&
+    width <= 0x7fffffff &&
+    height > 0 &&
+    height <= 0x7fffffff &&
+    (validBitDepths.get(colorType)?.includes(bitDepth) ?? false) &&
+    compressionMethod === 0 &&
+    filterMethod === 0 &&
+    (interlaceMethod === 0 || interlaceMethod === 1)
+  )
+}
+
+function getPngScanLayout({
+  bitDepth,
+  colorType,
+  height,
+  interlaceMethod,
+  width,
+}: {
+  bitDepth: number
+  colorType: number
+  height: number
+  interlaceMethod: number
+  width: number
+}): PngScanLayout | null {
+  if (
+    !Number.isSafeInteger(width * height) ||
+    width * height > MAX_PNG_PIXELS
+  ) {
+    return null
+  }
+
+  const channelsByColorType = new Map([
+    [0, 1],
+    [2, 3],
+    [3, 1],
+    [4, 2],
+    [6, 4],
+  ])
+  const channels = channelsByColorType.get(colorType)
+
+  if (!channels) return null
+
+  const bitsPerPixel = channels * bitDepth
+  const passes =
+    interlaceMethod === 0
+      ? [{ startX: 0, startY: 0, stepX: 1, stepY: 1 }]
+      : [
+          { startX: 0, startY: 0, stepX: 8, stepY: 8 },
+          { startX: 4, startY: 0, stepX: 8, stepY: 8 },
+          { startX: 0, startY: 4, stepX: 4, stepY: 8 },
+          { startX: 2, startY: 0, stepX: 4, stepY: 4 },
+          { startX: 0, startY: 2, stepX: 2, stepY: 4 },
+          { startX: 1, startY: 0, stepX: 2, stepY: 2 },
+          { startX: 0, startY: 1, stepX: 1, stepY: 2 },
+        ]
+  const segments: PngScanSegment[] = []
+  let expectedBytes = 0
+
+  for (const pass of passes) {
+    if (width <= pass.startX || height <= pass.startY) continue
+
+    const passWidth = Math.ceil((width - pass.startX) / pass.stepX)
+    const rows = Math.ceil((height - pass.startY) / pass.stepY)
+    const rowBytes = Math.ceil((passWidth * bitsPerPixel) / 8)
+    const segmentBytes = rows * (rowBytes + 1)
+
+    if (
+      !Number.isSafeInteger(segmentBytes) ||
+      segmentBytes > MAX_PNG_INFLATED_BYTES - expectedBytes
+    ) {
+      return null
+    }
+
+    segments.push({ rowBytes, rows })
+    expectedBytes += segmentBytes
+  }
+
+  return expectedBytes > 0 ? { expectedBytes, segments } : null
+}
+
+async function validatePngImageData(
+  chunks: readonly Uint8Array[],
+  layout: PngScanLayout,
+) {
+  let chunkIndex = 0
+  const source = new ReadableStream<ArrayBuffer | ArrayBufferView>({
+    pull(controller) {
+      const chunk = chunks[chunkIndex]
+
+      if (chunk) {
+        chunkIndex += 1
+        controller.enqueue(chunk)
+      } else {
+        controller.close()
+      }
+    },
+  })
+  const reader = source
+    .pipeThrough(new DecompressionStream('deflate'))
+    .getReader()
+  let segmentIndex = 0
+  let rowsRemaining = layout.segments[0]?.rows ?? 0
+  let rowBytesRemaining = 0
+  let inflatedBytes = 0
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+
+      if (done) break
+
+      let offset = 0
+
+      while (offset < value.byteLength) {
+        if (rowBytesRemaining === 0) {
+          while (segmentIndex < layout.segments.length && rowsRemaining === 0) {
+            segmentIndex += 1
+            rowsRemaining = layout.segments[segmentIndex]?.rows ?? 0
+          }
+
+          if (segmentIndex >= layout.segments.length || value[offset] > 4) {
+            await reader.cancel()
+            return false
+          }
+
+          rowBytesRemaining = layout.segments[segmentIndex].rowBytes
+          rowsRemaining -= 1
+          offset += 1
+          inflatedBytes += 1
+        }
+
+        const available = value.byteLength - offset
+        const consumed = Math.min(rowBytesRemaining, available)
+
+        rowBytesRemaining -= consumed
+        offset += consumed
+        inflatedBytes += consumed
+
+        if (inflatedBytes > layout.expectedBytes) {
+          await reader.cancel()
+          return false
+        }
+      }
+    }
+  } catch {
+    return false
+  }
+
+  return (
+    inflatedBytes === layout.expectedBytes &&
+    rowBytesRemaining === 0 &&
+    segmentIndex === layout.segments.length - 1 &&
+    rowsRemaining === 0
+  )
+}
+
+function isValidPngChunkType(bytes: Uint8Array, offset: number) {
+  for (let index = 0; index < 4; index += 1) {
+    const value = bytes[offset + index]
+
+    if (!(
+      (value >= 0x41 && value <= 0x5a) ||
+      (value >= 0x61 && value <= 0x7a)
+    )) {
+      return false
+    }
+  }
+
+  return bytes[offset + 2] >= 0x41 && bytes[offset + 2] <= 0x5a
+}
+
+function isCriticalPngChunk(firstTypeByte: number) {
+  return firstTypeByte >= 0x41 && firstTypeByte <= 0x5a
+}
+
+function isKnownPngCriticalChunk(type: string) {
+  return (
+    type === 'IHDR' || type === 'PLTE' || type === 'IDAT' || type === 'IEND'
+  )
+}
+
+function calculateCrc32(bytes: Uint8Array) {
+  let crc = 0xffffffff
+
+  for (const byte of bytes) {
+    crc = CRC32_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8)
+  }
+
+  return (crc ^ 0xffffffff) >>> 0
+}
+
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256)
+
+  for (let index = 0; index < table.length; index += 1) {
+    let value = index
+
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = (value & 1) !== 0 ? 0xedb88320 ^ (value >>> 1) : value >>> 1
+    }
+
+    table[index] = value >>> 0
+  }
+
+  return table
+})()
+
 function isJpeg(bytes: Uint8Array) {
   if (!matches(bytes, [0xff, 0xd8]) || bytes.byteLength < 4) return false
 
   let offset = 2
   let hasFrame = false
   let hasScan = false
+  let markerCount = 0
 
   while (offset < bytes.byteLength) {
     if (bytes[offset] !== 0xff) return false
@@ -490,6 +838,8 @@ function isJpeg(bytes: Uint8Array) {
 
     const marker = bytes[offset]
     offset += 1
+    markerCount += 1
+    if (markerCount > MAX_RASTER_BLOCKS) return false
 
     if (marker === 0x00 || marker === 0xd8) return false
     if (marker === 0xd9) {
@@ -547,6 +897,7 @@ function isJpeg(bytes: Uint8Array) {
       if (offset >= bytes.byteLength) return false
 
       const scanMarker = bytes[offset]
+
       if (
         scanMarker === 0x00 ||
         scanMarker === 0x01 ||
@@ -584,8 +935,11 @@ function isGif(bytes: Uint8Array) {
   }
 
   let hasImage = false
+  const blockBudget = { remaining: MAX_RASTER_BLOCKS }
 
   while (offset < bytes.byteLength) {
+    if (!consumeRasterBlock(blockBudget)) return false
+
     const blockType = bytes[offset]
     offset += 1
 
@@ -598,7 +952,7 @@ function isGif(bytes: Uint8Array) {
     if (blockType === 0x21) {
       if (offset >= bytes.byteLength) return false
       offset += 1
-      offset = skipGifSubBlocks(bytes, offset)
+      offset = skipGifSubBlocks(bytes, offset, blockBudget)
       if (offset === -1) return false
       continue
     }
@@ -628,7 +982,7 @@ function isGif(bytes: Uint8Array) {
       return false
     }
 
-    offset = skipGifSubBlocks(bytes, offset + 1)
+    offset = skipGifSubBlocks(bytes, offset + 1, blockBudget)
     if (offset === -1) return false
     hasImage = true
   }
@@ -648,8 +1002,10 @@ function isWebp(bytes: Uint8Array) {
 
   let offset = 12
   let hasImageData = false
+  const blockBudget = { remaining: MAX_RASTER_BLOCKS }
 
   while (offset < bytes.byteLength) {
+    if (!consumeRasterBlock(blockBudget)) return false
     if (offset + 8 > bytes.byteLength) return false
 
     const chunkSize = readUint32LittleEndian(bytes, offset + 4)
@@ -670,7 +1026,7 @@ function isWebp(bytes: Uint8Array) {
     } else if (matchesAscii(bytes, 'ANMF', offset)) {
       if (
         dataEnd - dataOffset < 24 ||
-        !hasValidWebpFrameChunks(bytes, dataOffset + 16, dataEnd)
+        !hasValidWebpFrameChunks(bytes, dataOffset + 16, dataEnd, blockBudget)
       ) {
         return false
       }
@@ -698,6 +1054,10 @@ function isAvif(bytes: Uint8Array) {
     matchesAscii(bytes, 'avif', fileType.dataOffset) ||
     matchesAscii(bytes, 'avis', fileType.dataOffset)
   let hasSequenceBrand = matchesAscii(bytes, 'avis', fileType.dataOffset)
+  const compatibleBrandCount =
+    (fileType.endOffset - fileType.dataOffset - 8) / 4
+
+  if (compatibleBrandCount > MAX_RASTER_BLOCKS) return false
 
   for (
     let offset = fileType.dataOffset + 8;
@@ -714,8 +1074,11 @@ function isAvif(bytes: Uint8Array) {
   let hasMeta = false
   let hasMovie = false
   let hasMediaData = false
+  const blockBudget = { remaining: MAX_RASTER_BLOCKS }
 
   while (offset < bytes.byteLength) {
+    if (!consumeRasterBlock(blockBudget)) return false
+
     const box = readIsoBox(bytes, offset, bytes.byteLength)
     if (!box) return false
 
@@ -728,13 +1091,19 @@ function isAvif(bytes: Uint8Array) {
         bytes,
         box.dataOffset + 4,
         box.endOffset,
+        blockBudget,
       )
       if (!children.valid || !children.hasChild) return false
 
       hasMeta = true
       hasMediaData ||= children.hasItemData
     } else if (box.type === 'moov') {
-      const children = inspectIsoChildren(bytes, box.dataOffset, box.endOffset)
+      const children = inspectIsoChildren(
+        bytes,
+        box.dataOffset,
+        box.endOffset,
+        blockBudget,
+      )
       if (!children.valid || !children.hasTrack) return false
       hasMovie = true
     }
@@ -761,10 +1130,16 @@ function isJpegStartOfFrame(marker: number) {
   )
 }
 
-function skipGifSubBlocks(bytes: Uint8Array, startOffset: number) {
+function skipGifSubBlocks(
+  bytes: Uint8Array,
+  startOffset: number,
+  blockBudget: { remaining: number },
+) {
   let offset = startOffset
 
   while (offset < bytes.byteLength) {
+    if (!consumeRasterBlock(blockBudget)) return -1
+
     const length = bytes[offset]
     offset += 1
 
@@ -806,11 +1181,13 @@ function hasValidWebpFrameChunks(
   bytes: Uint8Array,
   startOffset: number,
   endOffset: number,
+  blockBudget: { remaining: number },
 ) {
   let offset = startOffset
   let hasImageData = false
 
   while (offset < endOffset) {
+    if (!consumeRasterBlock(blockBudget)) return false
     if (offset + 8 > endOffset) return false
 
     const chunkSize = readUint32LittleEndian(bytes, offset + 4)
@@ -870,6 +1247,7 @@ function inspectIsoChildren(
   bytes: Uint8Array,
   startOffset: number,
   endOffset: number,
+  blockBudget: { remaining: number },
 ) {
   let offset = startOffset
   let hasChild = false
@@ -877,6 +1255,15 @@ function inspectIsoChildren(
   let hasTrack = false
 
   while (offset < endOffset) {
+    if (!consumeRasterBlock(blockBudget)) {
+      return {
+        valid: false,
+        hasChild,
+        hasItemData,
+        hasTrack,
+      }
+    }
+
     const box = readIsoBox(bytes, offset, endOffset)
     if (!box) {
       return {
@@ -899,6 +1286,13 @@ function inspectIsoChildren(
     hasItemData,
     hasTrack,
   }
+}
+
+function consumeRasterBlock(blockBudget: { remaining: number }) {
+  if (blockBudget.remaining <= 0) return false
+
+  blockBudget.remaining -= 1
+  return true
 }
 
 function readUint16BigEndian(bytes: Uint8Array, offset: number) {

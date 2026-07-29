@@ -74,7 +74,10 @@ GitHub App を新規作成または置換するときは `npm run setup:cms-app`
 ### 本番 CMS の保存と公開
 
 - 本番 CMS の publication branch は `main` です。`cms-content` のような恒久的な別本流 branch は使いません。
-- CMS の保存は Pages Functions proxy が共有content schema、Markdown、raster mediaを同期検証し、許可済みの画像とコンテンツを `main` の同じcommitへ直接保存します。`expectedHeadOid` が現在のHEADと一致しない場合は上書きせず、再読み込みを求めます。
+- CMS の保存は Pages Functions proxy が共有content schema、Markdown、raster mediaを同期検証し、許可済みの画像とコンテンツを `main` の同じcommitへ直接保存します。保存直前に照合した正確な `main` commit SHAからCMS対象を読み、同じ保存の追加・削除を反映したprojected stateで全contentを再検証します。記事のauthor・tagと `/uploads/hatt/` の画像参照は同じ保存で追加する対象を含めて存在確認し、欠損参照はGitHub送信前に拒否します。
+- CMS textはGitHub GraphQL readで本文が省略されない448 KiB以下に限定します。author id、tag slug、記事の実効slug（frontmatter `slug`、未指定時はfilename）へ共有route形式制約を適用し、tagと記事はprojected state全体で一意性も確認します。
+- CMS content collectionは各folder直下のファイルだけを許可し、下位directoryへは保存・削除・readできません。`public/uploads/hatt/**` のmediaだけは下位directoryを利用できます。
+- PNGは全chunkのCRC、IHDR、連結IDATのzlib展開、scanline長とfilterを確認し、JPEG / GIF / WebP / AVIFはcontainer、marker、宣言length、終端の構造を確認します。各形式のchunk、marker、sub-block、box数には上限を設け、極端な小block列を拒否します。`expectedHeadOid` が現在のHEADと一致しない場合は上書きせず、再読み込みを求めます。
 - 必須 `src/content/site/main.json`、author、tagと、コンテンツから参照され得る `public/uploads/hatt/**` はCMSから削除できません。
 - 保存後はGitHub連携のCloudflare Pagesがproduction deployを開始します。CIや手動mergeの完了をCMS保存リクエスト内で待ちません。
 - Functions、CMS設定、schema、workflow、サイトコードなどの変更は通常のbranch・PR・CIを通します。CMS用GitHub Appはこれらのpathへ書き込めません。

@@ -9,6 +9,9 @@
 - CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路として扱う。
 - Access は `hatt-cms-editors` 専用 group と完全一致メール allowlist に限定し、共有管理者 group やメールドメイン一括許可を CMS に流用しない。
 - CMS proxy は `createCommitOnBranch` の画像とコンテンツを、`expectedHeadOid` が一致するときだけ `main` の同じcommitへ直接保存し、Sveltia CMS が必要とするGitHub APIだけを許可する。
+- CMS contentは各collection直下のファイルだけを許可し、下位directoryはwrite・delete・reference state・readの全経路で拒否する。`public/uploads/hatt/**` の下位directoryだけは維持する。
+- CMS保存前は照合済みの正確な `main` commit SHAへ参照stateを束縛し、同じmutationを適用したprojected stateで全content、author・tag、local media参照を再検証する。
+- CMS textの448 KiB上限、author/tag/blog route keyの共有形式、tag/blogの一意性、raster parserのblock数上限を維持する。
 - CMS管理対象のコンテンツ・画像以外のコード、schema、CMS設定、workflow変更は通常のbranch・PR・CIを通す。
 - サイト出力に影響する変更では `npm run build` を実行する。
 - CMS/content/schema/route/link に関わる変更では `npm run format:check`、`npm run validate:content`、`npm run build` を確認する。

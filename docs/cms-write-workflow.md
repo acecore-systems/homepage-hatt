@@ -1,6 +1,6 @@
 # CMS 直接公開フロー
 
-最終更新日: 2026-07-28
+最終更新日: 2026-07-29
 
 ## 現在の方針
 
@@ -23,7 +23,7 @@
 3. Sveltia CMS が `/admin/api/github/*` と `/admin/api/graphql` を GitHub backend として使う。
 4. Pages Functions proxy が専用 GitHub App の短期 installation token で GitHub API を呼び出す。
 5. Sveltia CMS が画像とコンテンツをまとめた `createCommitOnBranch` mutation を送る。
-6. proxy がrepository、branch、変更path、件数、合計サイズ、共有content schema、Markdown、raster media、現在の `main` HEADを同期検証し、許可済みpathだけでmutationを組み立て直す。
+6. proxy がrepository、branch、変更path、件数、合計サイズ、共有content schema、Markdown、raster media、現在の `main` HEADを同期検証し、許可済みpathだけでmutationを組み立て直す。保存直前に照合した正確な `main` commit SHAからCMS対象treeとtext blobを取得し、同じ保存の追加・削除を反映したprojected stateで全CMS contentを再検証する。記事のauthor・tagと `/uploads/hatt/` の画像参照は、同じ保存で追加される対象を含めて存在を確認する。author id、tag slug、記事の実効slugは共有形式制約を使い、tagと記事はprojected全体での一意性を確認する。PNGは全chunkのCRC、IHDR、連結IDATのzlib展開、scanline長とfilterを確認する。JPEG / GIF / WebP / AVIFはcontainer、marker、宣言length、終端の構造を確認し、ブラウザ相当の完全decodeまでは保証しない。各形式のblock数には上限を設け、極端な小block列を拒否する。
 7. `expectedHeadOid` が現在のHEADと一致する場合だけ、画像とコンテンツを `main` の同じcommitへ原子的に保存する。
 8. GitHub応答が失われた場合は固有operation marker、親SHA、変更path、blob SHA、削除後treeを照合し、成功済み保存の重複や誤った失敗扱いを避ける。
 9. Cloudflare Pages がGitHub `main` pushを受けてproduction deployする。
@@ -71,16 +71,16 @@ GitHubではApp名が `Acecore Hatt CMS`、インストール先が `acecore-sys
 
 ## CMS で編集してよい範囲
 
-- `src/content/blog/**`
-- `src/content/art/**`
-- `src/content/modeling/**`
-- `src/content/tags/**`
-- `src/content/authors/**`
+- `src/content/blog/*.md`
+- `src/content/art/*.json`
+- `src/content/modeling/*.json`
+- `src/content/tags/*.json`
+- `src/content/authors/*.json`
 - `src/content/site/main.json`
-- `src/content/campaigns/**`
+- `src/content/campaigns/*.json`
 - `public/uploads/hatt/**`
 
-proxy は上記のCMS管理対象以外へのwriteを拒否します。Functions、CMS設定、schema、workflow、AstroコンポーネントなどはCMSから変更できず、通常のbranch・PR・CIを通します。
+proxy は上記のCMS管理対象以外へのwriteを拒否します。content collectionは各folder直下のファイルだけを許可し、下位directoryはwrite・delete・reference state・read treeの全経路から除外します。mediaだけは `public/uploads/hatt/**` の下位directoryを利用できます。Functions、CMS設定、schema、workflow、AstroコンポーネントなどはCMSから変更できず、通常のbranch・PR・CIを通します。
 
 必須 `src/content/site/main.json`、author、tagは削除を拒否します。コンテンツから参照され得る `public/uploads/hatt/**` も参照切れを防ぐため削除を拒否し、差し替え時は新しいraster画像の追加だけを許可します。
 
@@ -102,7 +102,11 @@ proxy は上記のCMS管理対象以外へのwriteを拒否します。Functions
 - REST read は recursive tree とblob取得だけを許可します。treeからCMS管理対象外のpathとblob SHAを除外し、除外済みtreeにないblobは取得できません。
 - 全API requestで Cloudflare Access JWT の署名、issuer、audience、有効期限を検証します。
 - 1回の保存は最大100ファイル、追加データ合計25 MiBまでです。
+- CMS text 1ファイルは最大448 KiBです。通常のCMS readが使うGitHub GraphQL `Blob.text`で省略されない範囲に固定し、追加時、現行state取得時、全content再検証時に同じ上限を適用します。
 - 保存前とmutation実行時に `main` のHEADを `expectedHeadOid` で照合します。編集開始後または同時保存中にHEADが更新された場合は上書きせず409を返し、CMSの再読み込みを求めます。
+- 参照整合性の検証は保存直前に照合した正確な `main` commit SHAへ束縛します。tree省略、blobの不正SHA・binary・truncated・byte size不一致、件数または合計size上限超過はfail closedします。
+- projected stateでは現行treeへ同じmutationの追加・削除を適用してから、全CMS contentのschemaと記事author・tag・local media参照を再検証します。Markdownのlocal media参照はcodeを除外し、backslash escape、HTML entity、percent encoding、dot-segment traversalを正規化して確認します。
+- author id、tag slug、記事の実効slugは `^[a-z0-9][a-z0-9_-]*$`、最大120文字に限定します。author idはJSON filenameとの一致も要求し、tagと記事のroute slugはprojected state全体で重複を拒否します。記事でfrontmatter `slug` を省略した場合は拡張子を除いたfilenameを同じ制約で検証します。
 - mutationの応答が失われた場合は、固有operation marker、親commit、最新履歴を照合します。保存済みと確認できた場合だけ成功応答を再構成し、判定できない場合は再保存せず再読み込みするよう案内します。
 
 ## 残る制約

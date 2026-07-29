@@ -12,13 +12,16 @@ import {
   CMS_REPOSITORY,
   isAllowedCmsDeletePath,
   isAllowedCmsWritePath,
+  isCmsReferenceStatePath,
   normalizeCmsPath,
 } from './_cms-policy.ts'
 import { validateCmsFileContents } from './_cms-content-validator.ts'
+import { validateProjectedCmsReferences } from './_cms-reference-validator.ts'
 import { getAccessIdentity, type CmsAccessEnv } from './_access-auth.ts'
 import {
   GitHubApiError,
   copyGitHubResponse,
+  fetchCmsReferenceState,
   fetchCmsTree,
   getAllowedCmsBlobShas,
   getGitHubToken,
@@ -157,7 +160,7 @@ async function handleCommitMutation({
     return json({ message: 'CMSで許可されていないGraphQL mutationです。' }, 403)
   }
 
-  const commitInput = parseCmsCommitInput(payload.variables.input)
+  const commitInput = await parseCmsCommitInput(payload.variables.input)
 
   if (!commitInput) {
     return json(
@@ -191,6 +194,17 @@ async function handleCommitMutation({
     ...commitInput.additions.map(({ path }) => path),
     ...commitInput.deletions.map(({ path }) => path),
   ]
+
+  if (changedPaths.some(isCmsReferenceStatePath)) {
+    const currentState = await fetchCmsReferenceState(token, mainSha)
+
+    await validateProjectedCmsReferences({
+      additions: commitInput.additions,
+      currentState,
+      deletions: commitInput.deletions,
+    })
+  }
+
   const operationMarker = `CMS-Operation: ${crypto.randomUUID()}`
   const mutation = buildCmsCommitMutation(commitInput.additions)
   let githubResult: Record<string, unknown>
@@ -568,7 +582,9 @@ function isCmsCommitOperation(
   return input?.kind === Kind.VARIABLE && input.name.value === 'input'
 }
 
-function parseCmsCommitInput(value: unknown): CmsCommitInput | null {
+async function parseCmsCommitInput(
+  value: unknown,
+): Promise<CmsCommitInput | null> {
   if (
     !isRecord(value) ||
     !hasOnlyKeys(value, [
@@ -640,7 +656,7 @@ function parseCmsCommitInput(value: unknown): CmsCommitInput | null {
     if (
       !contents ||
       contents.byteLength !== byteSize ||
-      !validateCmsFileContents(path, contents).ok
+      !(await validateCmsFileContents(path, contents)).ok
     ) {
       return null
     }
