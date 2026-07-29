@@ -10,13 +10,18 @@ import {
 
 import {
   CMS_REPOSITORY,
+  isAllowedCmsDeletePath,
   isAllowedCmsWritePath,
+  isCmsReferenceStatePath,
   normalizeCmsPath,
 } from './_cms-policy.ts'
+import { validateCmsFileContents } from './_cms-content-validator.ts'
+import { validateProjectedCmsReferences } from './_cms-reference-validator.ts'
 import { getAccessIdentity, type CmsAccessEnv } from './_access-auth.ts'
 import {
   GitHubApiError,
   copyGitHubResponse,
+  fetchCmsReferenceState,
   fetchCmsTree,
   getAllowedCmsBlobShas,
   getGitHubToken,
@@ -66,7 +71,6 @@ export const onRequestPost: PagesFunction<CmsAccessEnv> = async ({
   }
 
   try {
-    const token = await getGitHubToken(env)
     const bodyText = await readRequestText(request)
 
     if (bodyText === null) {
@@ -86,11 +90,13 @@ export const onRequestPost: PagesFunction<CmsAccessEnv> = async ({
     }
 
     if (operation.operation === 'query') {
+      const token = await getGitHubToken(env)
+
       return await handleReadQuery({ operation, payload, token })
     }
 
     if (operation.operation === 'mutation') {
-      return await handleCommitMutation({ operation, payload, token })
+      return await handleCommitMutation({ env, operation, payload })
     }
 
     return json(
@@ -142,19 +148,19 @@ async function handleReadQuery({
 }
 
 async function handleCommitMutation({
+  env,
   operation,
   payload,
-  token,
 }: {
+  env: CmsAccessEnv
   operation: OperationDefinitionNode
   payload: GraphqlPayload
-  token: string
 }) {
   if (!isCmsCommitOperation(operation, payload.variables)) {
     return json({ message: 'CMSで許可されていないGraphQL mutationです。' }, 403)
   }
 
-  const commitInput = parseCmsCommitInput(payload.variables.input)
+  const commitInput = await parseCmsCommitInput(payload.variables.input)
 
   if (!commitInput) {
     return json(
@@ -163,6 +169,7 @@ async function handleCommitMutation({
     )
   }
 
+  const token = await getGitHubToken(env, { fresh: true })
   const mainRef = await githubJson<unknown>({
     path: `/repos/${CMS_REPOSITORY.owner}/${CMS_REPOSITORY.name}/git/ref/heads/${CMS_REPOSITORY.branch}`,
     token,
@@ -187,6 +194,17 @@ async function handleCommitMutation({
     ...commitInput.additions.map(({ path }) => path),
     ...commitInput.deletions.map(({ path }) => path),
   ]
+
+  if (changedPaths.some(isCmsReferenceStatePath)) {
+    const currentState = await fetchCmsReferenceState(token, mainSha)
+
+    await validateProjectedCmsReferences({
+      additions: commitInput.additions,
+      currentState,
+      deletions: commitInput.deletions,
+    })
+  }
+
   const operationMarker = `CMS-Operation: ${crypto.randomUUID()}`
   const mutation = buildCmsCommitMutation(commitInput.additions)
   let githubResult: Record<string, unknown>
@@ -224,6 +242,7 @@ async function handleCommitMutation({
     ensureCommitSucceeded(githubResult)
   } catch (error) {
     githubResult = await reconcileAmbiguousCommit({
+      commitInput,
       expectedHeadOid: mainSha,
       operationMarker,
       originalError: error,
@@ -563,7 +582,9 @@ function isCmsCommitOperation(
   return input?.kind === Kind.VARIABLE && input.name.value === 'input'
 }
 
-function parseCmsCommitInput(value: unknown): CmsCommitInput | null {
+async function parseCmsCommitInput(
+  value: unknown,
+): Promise<CmsCommitInput | null> {
   if (
     !isRecord(value) ||
     !hasOnlyKeys(value, [
@@ -630,6 +651,15 @@ function parseCmsCommitInput(value: unknown): CmsCommitInput | null {
     }
 
     const byteSize = getBase64ByteSize(addition.contents)
+    const contents = decodeBase64(addition.contents)
+
+    if (
+      !contents ||
+      contents.byteLength !== byteSize ||
+      !(await validateCmsFileContents(path, contents)).ok
+    ) {
+      return null
+    }
 
     totalContentBytes += byteSize
 
@@ -653,7 +683,7 @@ function parseCmsCommitInput(value: unknown): CmsCommitInput | null {
     if (
       !path ||
       path !== deletion.path ||
-      !isAllowedCmsWritePath(path) ||
+      !isAllowedCmsDeletePath(path) ||
       paths.has(path)
     ) {
       return null
@@ -670,12 +700,29 @@ function parseCmsCommitInput(value: unknown): CmsCommitInput | null {
   }
 }
 
+function decodeBase64(value: string) {
+  try {
+    const decoded = atob(value)
+    const bytes = new Uint8Array(decoded.length)
+
+    for (let index = 0; index < decoded.length; index += 1) {
+      bytes[index] = decoded.charCodeAt(index)
+    }
+
+    return bytes
+  } catch {
+    return null
+  }
+}
+
 async function reconcileAmbiguousCommit({
+  commitInput,
   expectedHeadOid,
   operationMarker,
   originalError,
   token,
 }: {
+  commitInput: CmsCommitInput
   expectedHeadOid: string
   operationMarker: string
   originalError: unknown
@@ -745,6 +792,34 @@ async function reconcileAmbiguousCommit({
     )
   }
 
+  let verified: boolean
+
+  try {
+    verified = await verifyCmsOperationCommit({
+      commit: committed,
+      commitInput,
+      token,
+    })
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        message: 'Failed to reconcile CMS commit content',
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    )
+    throw new GitHubApiError(
+      'CMSの保存結果を確認できません。再保存せず、CMSを再読み込みして内容を確認してください。',
+      503,
+    )
+  }
+
+  if (!verified) {
+    throw new GitHubApiError(
+      'mainが更新されています。CMSを再読み込みしてから、もう一度保存してください。',
+      409,
+    )
+  }
+
   return {
     data: {
       createCommitOnBranch: {
@@ -752,6 +827,104 @@ async function reconcileAmbiguousCommit({
       },
     },
   }
+}
+
+async function verifyCmsOperationCommit({
+  commit,
+  commitInput,
+  token,
+}: {
+  commit: { oid: string; committedDate?: string }
+  commitInput: CmsCommitInput
+  token: string
+}) {
+  const details = await githubJson<unknown>({
+    path: `/repos/${CMS_REPOSITORY.owner}/${CMS_REPOSITORY.name}/commits/${commit.oid}?per_page=100`,
+    token,
+  })
+
+  if (
+    !isRecord(details) ||
+    details.sha !== commit.oid ||
+    !Array.isArray(details.files)
+  ) {
+    throw new GitHubApiError('GitHub commit response が不正です。', 502)
+  }
+
+  const actualPaths = new Set<string>()
+
+  for (const file of details.files) {
+    if (
+      !isRecord(file) ||
+      typeof file.filename !== 'string' ||
+      normalizeCmsPath(file.filename) !== file.filename
+    ) {
+      throw new GitHubApiError('GitHub commit files response が不正です。', 502)
+    }
+
+    actualPaths.add(file.filename)
+
+    if (file.status === 'renamed') {
+      if (
+        typeof file.previous_filename !== 'string' ||
+        normalizeCmsPath(file.previous_filename) !== file.previous_filename
+      ) {
+        throw new GitHubApiError(
+          'GitHub renamed file response が不正です。',
+          502,
+        )
+      }
+
+      actualPaths.add(file.previous_filename)
+    }
+  }
+
+  const expectedPaths = new Set([
+    ...commitInput.additions.map(({ path }) => path),
+    ...commitInput.deletions.map(({ path }) => path),
+  ])
+
+  if (
+    actualPaths.size !== expectedPaths.size ||
+    Array.from(expectedPaths).some((path) => !actualPaths.has(path))
+  ) {
+    return false
+  }
+
+  const tree = await fetchCmsTree(token, commit.oid)
+  const blobs = new Map(
+    tree.tree
+      .filter((item) => item.type === 'blob')
+      .map((item) => [item.path, item.sha]),
+  )
+
+  for (const addition of commitInput.additions) {
+    if (blobs.get(addition.path) !== (await getGitBlobOid(addition))) {
+      return false
+    }
+  }
+
+  return commitInput.deletions.every(({ path }) => !blobs.has(path))
+}
+
+async function getGitBlobOid(addition: CmsAddition) {
+  const contents = decodeBase64(addition.contents)
+
+  if (!contents || contents.byteLength !== addition.byteSize) {
+    throw new GitHubApiError('CMS base64 data が不正です。', 400)
+  }
+
+  const header = new TextEncoder().encode(`blob ${addition.byteSize}\0`)
+  const object = new Uint8Array(header.byteLength + contents.byteLength)
+
+  object.set(header)
+  object.set(contents, header.byteLength)
+
+  const digest = await crypto.subtle.digest('SHA-1', object)
+
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('')
 }
 
 function findCmsOperationCommit(

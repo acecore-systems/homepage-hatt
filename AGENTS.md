@@ -23,7 +23,9 @@
 - CMS画面からのコンテンツ・画像保存だけは同期allowlist検証後に `main` へ直接入れ、Cloudflare Pagesの公開を開始する。CIやレビューの完了を保存リクエスト内で待たない。
 - Functions、CMS設定、schema、workflow、サイトコードなどの変更は従来どおりbranch・PR・CIを通し、CMS用GitHub Appからは書き込ませない。
 - CMS 保存は repository 限定の GitHub App installation token を短期発行し、編集者個人 OAuth を保存 actor にしない。
-- GitHub proxy の書き込み可能 path は `src/content/**` と `public/uploads/hatt/**` の CMS 管理対象に限定する。
+- GitHub proxy の書き込み可能 path はCMS設定にある各 `src/content/<collection>/*` の直下ファイルと `public/uploads/hatt/**` に限定する。content collectionの下位directoryはwrite・delete・reference state・readの全経路で拒否し、mediaの下位directoryだけを許可する。
+- CMS保存前は、照合済みの正確な `main` commit SHAから現行stateを取得し、同じmutationの追加・削除を適用したprojected stateで全CMS content、author・tag、local media参照を再検証する。可変のbranch名から参照stateを取得しない。
+- CMS textは448 KiB以下、author id・tag slug・blog effective slugは共有slug制約を使い、tag/blogはprojected全体で一意とする。画像parserのchunk、marker、sub-block、box数上限を外さない。
 
 ## 検証
 

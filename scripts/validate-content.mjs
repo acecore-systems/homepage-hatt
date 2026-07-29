@@ -92,7 +92,95 @@ async function validateCmsConfig() {
   }
 }
 
+async function validateCmsProxyWiring() {
+  const scope = 'CMS proxy wiring'
+  const [graphql, githubApi, policy, references, contentValidator, schemas] =
+    await Promise.all(
+      [
+        'functions/admin/api/graphql.ts',
+        'functions/admin/api/_github-api.ts',
+        'functions/admin/api/_cms-policy.ts',
+        'functions/admin/api/_cms-reference-validator.ts',
+        'functions/admin/api/_cms-content-validator.ts',
+        'src/content-schemas.ts',
+      ].map((relativePath) => readFile(path.join(root, relativePath), 'utf8')),
+    )
+  const checks = [
+    {
+      source: graphql,
+      pattern: /fetchCmsReferenceState\(token,\s*mainSha\)/,
+      message:
+        'reference state must be fetched from the exact preflight main SHA',
+    },
+    {
+      source: graphql,
+      pattern: /validateProjectedCmsReferences\(\{/,
+      message: 'projected reference validation must run before CMS commit',
+    },
+    {
+      source: githubApi,
+      pattern:
+        /value\.isBinary !== false[\s\S]*value\.isTruncated !== false[\s\S]*value\.byteSize/,
+      message:
+        'reference blobs must fail closed on binary/truncated/size drift',
+    },
+    {
+      source: policy,
+      pattern:
+        /CONTENT_RULES\.some\(\(rule\) => matchesDirectContentPath\(path, rule\)\)/,
+      message: 'CMS collection writes must stay direct-child only',
+    },
+    {
+      source: policy,
+      pattern: /path\.startsWith\(`\$\{MEDIA_DIRECTORY_ROOT\}\/`\)/,
+      message: 'nested directories must remain available for CMS media',
+    },
+    {
+      source: references,
+      pattern:
+        /authorIds[\s\S]*tagIds[\s\S]*resolveLocalMediaPath[\s\S]*findMarkdownDestinations/,
+      message:
+        'projected state must validate author, tag, local media, and Markdown references',
+    },
+    {
+      source: references,
+      pattern:
+        /registerUniqueRouteSlug\('tag'[\s\S]*registerUniqueRouteSlug\('blog'/,
+      message: 'projected state must reject duplicate tag and blog route slugs',
+    },
+    {
+      source: contentValidator,
+      pattern: /MAX_CMS_TEXT_FILE_BYTES = 448 \* 1024/,
+      message: 'CMS text must remain within the 448 KiB GraphQL read limit',
+    },
+    {
+      source: contentValidator,
+      pattern:
+        /MAX_RASTER_BLOCKS[\s\S]*MAX_PNG_IDAT_CHUNKS[\s\S]*consumeRasterBlock/,
+      message: 'raster parser block-count limits must remain wired',
+    },
+    {
+      source: schemas,
+      pattern:
+        /contentRouteSlugSchema[\s\S]*tagRouteSlugSchema[\s\S]*value !== 'index'[\s\S]*slug: contentRouteSlugSchema\.optional\(\)[\s\S]*slug: tagRouteSlugSchema/,
+      message: 'tag and blog slugs must share the safe route schema',
+    },
+    {
+      source: schemas,
+      pattern: /authorContentSchema[\s\S]*id: contentRouteSlugSchema/,
+      message: 'author ids must use the shared safe route schema',
+    },
+  ]
+
+  for (const check of checks) {
+    if (!check.pattern.test(check.source)) {
+      fail(scope, check.message)
+    }
+  }
+}
+
 await validateCmsConfig()
+await validateCmsProxyWiring()
 
 if (errors.length > 0) {
   console.error('Content validation failed:')

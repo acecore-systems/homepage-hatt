@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 
 import {
+  CMS_GITHUB_APP_SECRET_ENVIRONMENTS,
   buildGithubAppManifest,
   convertPrivateKeyToPkcs8,
   parseOptions,
@@ -25,6 +26,10 @@ test('セットアップに必要なWranglerを開発依存関係として固定
   )
 
   assert.match(packageJson.devDependencies?.wrangler ?? '', /^\^4\./)
+})
+
+test('main書込鍵はCloudflare Pages productionだけへ設定する', () => {
+  assert.deepEqual(CMS_GITHUB_APP_SECRET_ENVIRONMENTS, ['production'])
 })
 
 test('GitHub App manifestは最小権限かつwebhook無効で生成する', () => {
