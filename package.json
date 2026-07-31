@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/audit-image-alts.mjs && pagefind --site dist",
+    "build": "npm run test:turnstile && astro build && node scripts/audit-image-alts.mjs && pagefind --site dist",
     "audit:image-alts": "node scripts/audit-image-alts.mjs",
     "preview": "astro preview",
     "sync:external": "node scripts/sync-external-feeds.mjs",
@@ -13,6 +13,7 @@
     "format:check": "prettier . --check",
     "test:cms": "node --test tests/cms-admin-init.test.mjs tests/cms-proxy.test.mjs tests/cms-content-validation.test.mjs tests/cms-reference-validation.test.mjs tests/cms-github-app-setup.test.mjs tests/safe-json.test.mjs",
     "test:sitemap": "node --test tests/sitemap-lastmod.test.mjs",
+    "test:turnstile": "node --test tests/turnstile-retry.test.mjs",
     "setup:cms-app": "node scripts/setup-cms-github-app.mjs --owner acecore-systems --repo homepage-hatt --app-name \"Acecore Hatt CMS\" --site-url https://hatt.acecore.net --pages-project homepage-hatt",
     "typecheck:functions": "tsc --project tsconfig.functions.json",
     "validate:content": "node scripts/validate-content.mjs"
