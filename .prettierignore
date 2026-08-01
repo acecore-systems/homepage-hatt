@@ -8,3 +8,5 @@ public/pagefind
 .wrangler
 test-results
 playwright-report
+functions/worker-configuration.d.ts
+workers/course-email-service/worker-configuration.d.ts

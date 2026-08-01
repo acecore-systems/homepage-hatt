@@ -3,6 +3,16 @@
   "name": "homepage-hatt",
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-06-07",
+  "secrets": {
+    "required": [
+      "CMS_ACCESS_ALLOWED_EMAILS",
+      "CMS_GITHUB_APP_CLIENT_ID",
+      "CMS_GITHUB_APP_INSTALLATION_ID",
+      "CMS_GITHUB_APP_PRIVATE_KEY",
+      "COMMENT_HASH_SALT",
+      "TURNSTILE_SECRET_KEY",
+    ],
+  },
   "d1_databases": [
     {
       "binding": "COMMENTS_DB",
@@ -24,6 +34,16 @@
   ],
   "env": {
     "preview": {
+      "secrets": {
+        "required": [
+          "CMS_ACCESS_ALLOWED_EMAILS",
+          "CMS_GITHUB_APP_CLIENT_ID",
+          "CMS_GITHUB_APP_INSTALLATION_ID",
+          "CMS_GITHUB_APP_PRIVATE_KEY",
+          "COMMENT_HASH_SALT",
+          "TURNSTILE_SECRET_KEY",
+        ],
+      },
       "d1_databases": [
         {
           "binding": "COMMENTS_DB",
@@ -45,6 +65,16 @@
       ],
     },
     "production": {
+      "secrets": {
+        "required": [
+          "CMS_ACCESS_ALLOWED_EMAILS",
+          "CMS_GITHUB_APP_CLIENT_ID",
+          "CMS_GITHUB_APP_INSTALLATION_ID",
+          "CMS_GITHUB_APP_PRIVATE_KEY",
+          "COMMENT_HASH_SALT",
+          "TURNSTILE_SECRET_KEY",
+        ],
+      },
       "d1_databases": [
         {
           "binding": "COMMENTS_DB",

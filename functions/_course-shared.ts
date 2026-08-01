@@ -1,10 +1,11 @@
-export type Env = {
-  TURNSTILE_SECRET_KEY?: string
-  COMMENT_ALLOWED_HOSTNAMES?: string
-  COURSE_SIGNUP_EMAIL_TO?: string
-  COURSE_SIGNUP_EMAIL_FROM?: string
-  COURSE_EMAIL_SERVICE?: Fetcher
-}
+export type Env = Pick<
+  Cloudflare.Env,
+  | 'TURNSTILE_SECRET_KEY'
+  | 'COMMENT_ALLOWED_HOSTNAMES'
+  | 'COURSE_SIGNUP_EMAIL_TO'
+  | 'COURSE_SIGNUP_EMAIL_FROM'
+  | 'COURSE_EMAIL_SERVICE'
+>
 
 export type PagesContext = {
   request: Request

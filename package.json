@@ -16,6 +16,12 @@
     "test:turnstile": "node --test tests/turnstile-retry.test.mjs",
     "setup:cms-app": "node scripts/setup-cms-github-app.mjs --owner acecore-systems --repo homepage-hatt --app-name \"Acecore Hatt CMS\" --site-url https://hatt.acecore.net --pages-project homepage-hatt",
     "typecheck:functions": "tsc --project tsconfig.functions.json",
+    "types:functions": "wrangler types functions/worker-configuration.d.ts --config wrangler.jsonc --include-runtime false",
+    "types:functions:check": "wrangler types functions/worker-configuration.d.ts --config wrangler.jsonc --include-runtime false --check",
+    "types:course-email": "wrangler types workers/course-email-service/worker-configuration.d.ts --config workers/course-email-service/wrangler.jsonc --include-runtime false",
+    "types:course-email:check": "wrangler types workers/course-email-service/worker-configuration.d.ts --config workers/course-email-service/wrangler.jsonc --include-runtime false --check",
+    "typecheck:course-email": "tsc --project workers/course-email-service/tsconfig.json",
+    "test:course-email": "node --experimental-strip-types --test workers/course-email-service/test/index.test.mjs",
     "validate:content": "node scripts/validate-content.mjs"
   },
   "dependencies": {

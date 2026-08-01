@@ -19,11 +19,12 @@ const MAX_REFERENCE_TEXT_BYTES = 32 * 1024 * 1024
 const REFERENCE_BLOB_BATCH_SIZE = 100
 const SHA_PATTERN = /^[a-f0-9]{40}$/i
 
-type GitHubAuthEnv = {
-  CMS_GITHUB_APP_CLIENT_ID?: string
-  CMS_GITHUB_APP_INSTALLATION_ID?: string
-  CMS_GITHUB_APP_PRIVATE_KEY?: string
-}
+type GitHubAuthEnv = Pick<
+  Cloudflare.Env,
+  | 'CMS_GITHUB_APP_CLIENT_ID'
+  | 'CMS_GITHUB_APP_INSTALLATION_ID'
+  | 'CMS_GITHUB_APP_PRIVATE_KEY'
+>
 
 const installationTokenCache = new Map<
   string,

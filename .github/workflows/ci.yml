@@ -42,8 +42,20 @@ jobs:
       - name: Test sitemap modification dates
         run: npm run test:sitemap
 
+      - name: Check Pages Function bindings
+        run: npm run types:functions:check
+
       - name: Type-check Pages Functions
         run: npm run typecheck:functions
+
+      - name: Check Course email Worker bindings
+        run: npm run types:course-email:check
+
+      - name: Type-check Course email Worker
+        run: npm run typecheck:course-email
+
+      - name: Test Course email Worker
+        run: npm run test:course-email
 
       - name: Build site
         run: npm run build

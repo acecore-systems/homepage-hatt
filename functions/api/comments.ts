@@ -9,12 +9,13 @@ type D1Database = {
   prepare(query: string): D1PreparedStatement
 }
 
-type Env = {
-  COMMENTS_DB?: D1Database
-  TURNSTILE_SECRET_KEY?: string
-  COMMENT_HASH_SALT?: string
-  COMMENT_ALLOWED_HOSTNAMES?: string
-}
+type Env = Pick<
+  Cloudflare.Env,
+  | 'COMMENTS_DB'
+  | 'TURNSTILE_SECRET_KEY'
+  | 'COMMENT_HASH_SALT'
+  | 'COMMENT_ALLOWED_HOSTNAMES'
+>
 
 type PagesContext = {
   request: Request
