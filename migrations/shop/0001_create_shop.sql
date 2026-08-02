@@ -5,10 +5,14 @@ CREATE TABLE IF NOT EXISTS shop_orders (
   customer_email TEXT,
   customer_name TEXT,
   currency TEXT NOT NULL DEFAULT 'JPY',
+  stripe_connected_account_id TEXT,
   subtotal_jpy INTEGER NOT NULL,
   shipping_jpy INTEGER NOT NULL DEFAULT 0,
   tax_jpy INTEGER NOT NULL DEFAULT 0,
   total_jpy INTEGER NOT NULL,
+  platform_fee_jpy INTEGER NOT NULL DEFAULT 0,
+  platform_fee_basis_points INTEGER NOT NULL DEFAULT 0,
+  platform_fee_fixed_jpy INTEGER NOT NULL DEFAULT 0,
   payment_status TEXT NOT NULL,
   fulfillment_status TEXT NOT NULL,
   shipping_address_json TEXT,
@@ -27,6 +31,9 @@ CREATE INDEX IF NOT EXISTS idx_shop_orders_created
 
 CREATE INDEX IF NOT EXISTS idx_shop_orders_payment
   ON shop_orders (payment_status, fulfillment_status);
+
+CREATE INDEX IF NOT EXISTS idx_shop_orders_connected_account
+  ON shop_orders (stripe_connected_account_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS shop_order_items (
   id TEXT PRIMARY KEY,

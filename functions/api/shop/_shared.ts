@@ -1,6 +1,6 @@
 import { SHOP_PRODUCTS, SHOP_SETTINGS } from './_catalog.generated.ts'
 import { getShopAccessIdentity, type ShopAccessEnv } from './_access-auth.ts'
-import type { FormEnv } from '../../_form-shared.ts'
+import type { Fetcher, FormEnv } from '../../_form-shared.ts'
 
 type D1PreparedStatement = {
   bind(...values: unknown[]): D1PreparedStatement
@@ -34,10 +34,11 @@ export type ShopEnv = ShopAccessEnv &
     SHOP_CONTACT_EMAIL_FROM?: string
     COURSE_SIGNUP_EMAIL_FROM?: string
     SHOP_DISCLOSURE_ENABLED?: string
-    SHOP_SELLER_DISCLOSURE_PROFILE?: string
     SHOP_DISCLOSURE_HMAC_SECRET?: string
+    SHOP_DISCLOSURE_SERVICE_TOKEN?: string
     SHOP_DISCLOSURE_ALLOWED_HOSTNAMES?: string
     SHOP_DISCLOSURE_TURNSTILE_SITE_KEY?: string
+    DISCLOSURE_EMAIL_SERVICE?: Fetcher
   }
 
 export type PagesContext = {
@@ -176,20 +177,20 @@ const DEFAULT_DISCLOSURE_HOSTNAMES = [
   'www.hatt.acecore.net',
 ]
 
-export type SellerAddressDisclosureProfile = {
-  version: 1
+export type SellerAddressDisclosurePublicProfile = {
   profileVersion: string
   businessName: string
   sellerName: string
-  address: string
   phone: string
 }
 
 export type SellerAddressDisclosureRuntime = {
-  profile: SellerAddressDisclosureProfile
+  publicProfile: SellerAddressDisclosurePublicProfile
   hmacSecret: string
+  serviceToken: string
   allowedHostnames: string[]
   turnstileSiteKey: string
+  emailService: Fetcher
 }
 
 export function jsonResponse(
@@ -338,33 +339,32 @@ export function getSellerAddressDisclosureRuntime(
     return null
   }
 
-  const profile = parseSellerAddressDisclosureProfile(
-    env.SHOP_SELLER_DISCLOSURE_PROFILE,
-  )
+  const publicProfile = getSellerAddressDisclosurePublicProfile()
   const hmacSecret = String(env.SHOP_DISCLOSURE_HMAC_SECRET || '').trim()
+  const serviceToken = String(env.SHOP_DISCLOSURE_SERVICE_TOKEN || '').trim()
   const turnstileSiteKey = String(
     env.SHOP_DISCLOSURE_TURNSTILE_SITE_KEY || '',
   ).trim()
+  const emailService = getSellerAddressDisclosureEmailService(env)
 
   if (
-    !profile ||
-    hmacSecret.length < 16 ||
+    !publicProfile ||
+    hmacSecret.length < 32 ||
+    serviceToken.length < 32 ||
     turnstileSiteKey.length < 10 ||
     turnstileSiteKey.length > 256 ||
-    !profileMatchesPublicSettings(profile) ||
-    !(env.SITE_EMAIL_SERVICE || env.COURSE_EMAIL_SERVICE) ||
-    !String(
-      env.SHOP_CONTACT_EMAIL_FROM || env.COURSE_SIGNUP_EMAIL_FROM || '',
-    ).trim()
+    !emailService
   ) {
     return null
   }
 
   return {
-    profile,
+    publicProfile,
     hmacSecret,
+    serviceToken,
     allowedHostnames: getSellerAddressDisclosureHostnames(env),
     turnstileSiteKey,
+    emailService,
   }
 }
 
@@ -375,7 +375,47 @@ export async function isSellerAddressDisclosureReady(
   const runtime = getSellerAddressDisclosureRuntime(env, request)
   if (!runtime || !env.SHOP_DB || !env.TURNSTILE_SECRET_KEY) return false
 
-  return hasSellerAddressDisclosureSchema(env.SHOP_DB)
+  const [schemaReady, emailServiceReady] = await Promise.all([
+    hasSellerAddressDisclosureSchema(env.SHOP_DB),
+    isSellerAddressDisclosureEmailServiceReady(runtime),
+  ])
+  return schemaReady && emailServiceReady
+}
+
+export async function isSellerAddressDisclosureEmailServiceReady(
+  runtime: SellerAddressDisclosureRuntime,
+): Promise<boolean> {
+  try {
+    const response = await runtime.emailService.fetch(
+      createSellerAddressDisclosureServiceRequest(
+        runtime,
+        '/v1/ready',
+        runtime.publicProfile,
+      ),
+    )
+    if (!response.ok) return false
+    const payload = (await response.json()) as { ok?: unknown }
+    return payload.ok === true
+  } catch {
+    return false
+  }
+}
+
+export function createSellerAddressDisclosureServiceRequest(
+  runtime: SellerAddressDisclosureRuntime,
+  path: '/v1/ready' | '/v1/disclosures',
+  body: unknown,
+) {
+  return new Request(`https://disclosure-email.internal${path}`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${runtime.serviceToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(8_000),
+  })
 }
 
 export async function hasSellerAddressDisclosureSchema(
@@ -428,53 +468,31 @@ export function isSellerAddressDisclosureRequestHostAllowed(
   )
 }
 
-function parseSellerAddressDisclosureProfile(
-  serialized: string | undefined,
-): SellerAddressDisclosureProfile | null {
-  try {
-    const value = JSON.parse(String(serialized || '')) as Record<
-      string,
-      unknown
-    >
-    const profileVersion = secretText(value.profileVersion, 64)
-    const businessName = secretText(value.businessName, 200)
-    const sellerName = secretText(value.sellerName, 200)
-    const address = secretText(value.address, 500)
-    const phone = secretText(value.phone, 80)
+export function getSellerAddressDisclosurePublicProfile(): SellerAddressDisclosurePublicProfile | null {
+  const profileVersion = normalizedText(
+    settings.sellerAddressDisclosureProfileVersion,
+    64,
+  )
+  const businessName = normalizedText(settings.businessName, 200)
+  const sellerName = normalizedText(settings.sellerName, 200)
+  const phone = normalizedText(settings.sellerPhone, 80)
 
-    if (
-      value.version !== 1 ||
-      !profileVersion ||
-      !SELLER_DISCLOSURE_PROFILE_VERSION_PATTERN.test(profileVersion) ||
-      !businessName ||
-      !sellerName ||
-      !address ||
-      !phone
-    ) {
-      return null
-    }
-
-    return {
-      version: 1,
-      profileVersion,
-      businessName,
-      sellerName,
-      address,
-      phone,
-    }
-  } catch {
+  if (
+    !profileVersion ||
+    !SELLER_DISCLOSURE_PROFILE_VERSION_PATTERN.test(profileVersion) ||
+    !businessName ||
+    !sellerName ||
+    !phone
+  ) {
     return null
   }
+
+  return { profileVersion, businessName, sellerName, phone }
 }
 
-function profileMatchesPublicSettings(profile: SellerAddressDisclosureProfile) {
-  return (
-    profile.profileVersion ===
-      String(settings.sellerAddressDisclosureProfileVersion || '').trim() &&
-    profile.businessName === String(settings.businessName || '').trim() &&
-    profile.sellerName === String(settings.sellerName || '').trim() &&
-    profile.phone === String(settings.sellerPhone || '').trim()
-  )
+function getSellerAddressDisclosureEmailService(env: ShopEnv): Fetcher | null {
+  const service = env.DISCLOSURE_EMAIL_SERVICE
+  return service && typeof service.fetch === 'function' ? service : null
 }
 
 function getSellerAddressDisclosureHostnames(env: ShopEnv): string[] {
@@ -493,7 +511,7 @@ function isShopRelativePath(value: string | undefined) {
   return path.startsWith('/') && !path.startsWith('//') && !path.includes('\\')
 }
 
-function secretText(value: unknown, maxLength: number) {
+function normalizedText(value: unknown, maxLength: number) {
   const normalized = String(value || '').trim()
   return normalized.length > 0 && normalized.length <= maxLength
     ? normalized

@@ -1,16 +1,14 @@
+import { getClientIp } from '../../_form-shared.ts'
 import {
-  getClientIp,
-  parseEmailAddress,
-  sendTransactionalEmail,
-} from '../../_form-shared.ts'
-import {
+  createSellerAddressDisclosureServiceRequest,
   getDb,
   getSellerAddressDisclosureRuntime,
   hasSellerAddressDisclosureSchema,
+  isSellerAddressDisclosureEmailServiceReady,
   isSellerAddressDisclosureRequestHostAllowed,
   ShopApiError,
   type D1Database,
-  type SellerAddressDisclosureProfile,
+  type SellerAddressDisclosureRuntime,
   type ShopEnv,
 } from './_shared.ts'
 
@@ -70,6 +68,10 @@ export async function getSellerDisclosurePublicConfig(
     }
 
     if (!(await hasSellerAddressDisclosureSchema(env.SHOP_DB))) {
+      return { enabled: false }
+    }
+
+    if (!(await isSellerAddressDisclosureEmailServiceReady(runtime))) {
       return { enabled: false }
     }
 
@@ -232,7 +234,7 @@ export async function processSellerDisclosureRequest(
 
   let messageId: string
   try {
-    messageId = await sendSellerDisclosureEmail(env, runtime.profile, input)
+    messageId = await sendSellerDisclosureEmail(runtime, input)
   } catch {
     await markDisclosureDeliveryUnknown(db, input.requestId, emailHash)
     throw deliveryStatusUnknown()
@@ -471,42 +473,28 @@ async function cleanupExpiredDisclosureData(db: D1Database, now: Date) {
 }
 
 async function sendSellerDisclosureEmail(
-  env: ShopEnv,
-  profile: SellerAddressDisclosureProfile,
+  runtime: SellerAddressDisclosureRuntime,
   input: DisclosureRequestPayload,
 ) {
-  const from = parseEmailAddress(
-    env.SHOP_CONTACT_EMAIL_FROM || env.COURSE_SIGNUP_EMAIL_FROM,
+  const response = await runtime.emailService.fetch(
+    createSellerAddressDisclosureServiceRequest(runtime, '/v1/disclosures', {
+      requestId: input.requestId,
+      recipientEmail: input.email,
+      ...runtime.publicProfile,
+    }),
   )
-  if (!from) throw disclosureUnavailable()
+  if (!response.ok) throw disclosureUnavailable()
 
-  return sendTransactionalEmail(env, {
-    from,
-    to: input.email,
-    subject: '【Hatt shop】販売者情報の開示',
-    text: buildSellerDisclosureEmail(profile, input.requestId),
-  })
-}
+  const payload = (await response.json().catch(() => null)) as {
+    ok?: unknown
+    messageId?: unknown
+  } | null
+  const messageId = String(payload?.messageId || '').trim()
+  if (!payload?.ok || !messageId || messageId.length > 500) {
+    throw disclosureUnavailable()
+  }
 
-export function buildSellerDisclosureEmail(
-  profile: SellerAddressDisclosureProfile,
-  requestId: string,
-) {
-  return [
-    'Hatt shop 販売者情報の開示をご請求いただき、ありがとうございます。',
-    '',
-    '特定商取引法に基づく販売者情報は次のとおりです。',
-    '',
-    `販売業者: ${profile.businessName}`,
-    `販売責任者: ${profile.sellerName}`,
-    `所在地: ${profile.address}`,
-    `電話番号: ${profile.phone}`,
-    '',
-    `受付番号: ${requestId}`,
-    '',
-    'このメールは開示請求を受け付けた方へ自動送信しています。',
-    'このメールへの返信は受け付けていません。',
-  ].join('\n')
+  return messageId
 }
 
 async function hmacHex(secret: string, value: string) {

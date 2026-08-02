@@ -117,7 +117,8 @@ Cloudflare Pages 側で以下を設定してください。
 - Variable: `SHOP_DISCLOSURE_TURNSTILE_SITE_KEY`（サイト設定のTurnstile公開Site Keyと同じ値）
 - Optional variable: `SHOP_DISCLOSURE_ALLOWED_HOSTNAMES`（既定値は`hatt.acecore.net,www.hatt.acecore.net`）
 - Secret: `SHOP_DISCLOSURE_HMAC_SECRET`（ランダムな32文字以上の値）
-- Secret: `SHOP_SELLER_DISCLOSURE_PROFILE`（実住所を含むJSON。CMS、Git、`wrangler.jsonc`には保存しない）
+- Secret: `SHOP_DISCLOSURE_SERVICE_TOKEN`（専用Workerの`DISCLOSURE_SERVICE_TOKEN`と同じランダムな32文字以上の値）
+- Service binding: `DISCLOSURE_EMAIL_SERVICE` -> `homepage-hatt-disclosure-email`
 - Variable: `SHOP_CONTACT_EMAIL_FROM=Hatt shop <noreply@hatt.acecore.net>`
 - Variable: `SHOP_CONTACT_EMAIL_TO=borubin@outlook.jp`
 - Service binding: `COURSE_EMAIL_SERVICE` -> `homepage-hatt-course-email`
@@ -125,9 +126,11 @@ Cloudflare Pages 側で以下を設定してください。
 - Variable: `SHOP_ACCESS_AUD=12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84`
 - Variable: `SHOP_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev`
 
-ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` から順に適用します。請求時開示には `migrations/shop/0003_add_seller_disclosure_requests.sql` が必要です。コメント用 D1 とは migration directory を分けています。
+ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` から順に適用します。請求時開示には `migrations/shop/0002_add_seller_disclosure_requests.sql` が必要です。コメント用 D1 とは migration directory を分けています。
 
-所在地を請求時開示にする場合は、CMSで`所在地の表示方法`を`請求時にメールで開示する`にして、`所在地の開示請求URL`を`/shop/legal/disclosure-request/`、`所在地開示プロファイル版`を例えば`v1`に設定します。次にCloudflareのSecretへ以下の形式で`SHOP_SELLER_DISCLOSURE_PROFILE`を登録し、公開済みの事業者名、販売責任者、電話番号と完全に一致させます。
+所在地を請求時開示にする場合は、CMSで`所在地の表示方法`を`請求時にメールで開示する`にして、`所在地の開示請求URL`を`/shop/legal/disclosure-request/`、`所在地開示プロファイル版`を例えば`v1`に設定します。実住所はPages・CMS・Git・`wrangler.jsonc`に保存せず、専用WorkerのSecretだけに保存します。Workerは公開済みの事業者名、販売責任者、電話番号、プロファイル版と完全に一致しない限り、メールを送信しません。
+
+専用Workerには`DISCLOSURE_SERVICE_TOKEN`と、次の形式の`DISCLOSURE_LEGAL_DETAILS_JSON`をSecretとして設定します。`workers.dev` URLは無効にし、Pagesからの`DISCLOSURE_EMAIL_SERVICE`だけを受け付けます。
 
 ```json
 {

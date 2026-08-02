@@ -27,6 +27,10 @@
     "types:course-email:check": "wrangler types workers/course-email-service/worker-configuration.d.ts --config workers/course-email-service/wrangler.jsonc --include-runtime false --check",
     "typecheck:course-email": "tsc --project workers/course-email-service/tsconfig.json",
     "test:course-email": "node --experimental-strip-types --test workers/course-email-service/test/index.test.mjs",
+    "types:disclosure-email": "wrangler types workers/disclosure-email-service/worker-configuration.d.ts --config workers/disclosure-email-service/wrangler.jsonc --include-runtime false",
+    "types:disclosure-email:check": "wrangler types workers/disclosure-email-service/worker-configuration.d.ts --config workers/disclosure-email-service/wrangler.jsonc --include-runtime false --check",
+    "typecheck:disclosure-email": "tsc --project workers/disclosure-email-service/tsconfig.json",
+    "test:disclosure-email": "node --experimental-strip-types --test workers/disclosure-email-service/test/index.test.mjs",
     "validate:content": "node scripts/validate-content.mjs"
   },
   "dependencies": {
