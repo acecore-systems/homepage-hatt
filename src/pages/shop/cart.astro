@@ -5,6 +5,8 @@ import { getShopSettings } from '@/lib/shop/content'
 
 const settings = await getShopSettings()
 const checkoutReady = canCheckout(settings)
+const requiresSellerDisclosure =
+  checkoutReady && settings.sellerAddressDisclosureMode === 'on_request'
 ---
 
 <BaseLayout
@@ -38,6 +40,9 @@ const checkoutReady = canCheckout(settings)
           </p>
         )
       }
+      <p class="shop-alert" data-shop-runtime-disclosure-alert hidden>
+        所在地の開示窓口を確認できないため、購入手続きを停止しています。
+      </p>
       <div class="shop-cart-list" data-shop-cart-list aria-live="polite">
         <p class="empty-state">カートを読み込んでいます。</p>
       </div>
@@ -63,7 +68,11 @@ const checkoutReady = canCheckout(settings)
           class="primary-button"
           type="button"
           data-shop-checkout
-          disabled={!checkoutReady}
+          disabled={!checkoutReady || requiresSellerDisclosure}
+          data-shop-checkout-configured={checkoutReady ? 'true' : 'false'}
+          data-shop-disclosure-required={requiresSellerDisclosure
+            ? 'true'
+            : undefined}
           data-hatt-event="shop_checkout_start"
           data-hatt-label="cart"
           data-hatt-location="shop_cart"
@@ -79,10 +88,12 @@ const checkoutReady = canCheckout(settings)
   <script is:inline>
     ;(() => {
       const SHOP_CART_KEY = 'hattShopCart:v1'
-      const checkoutReady = Boolean(
-        document.querySelector('[data-shop-checkout]') &&
-        !document.querySelector('[data-shop-checkout]').disabled,
-      )
+      const checkoutReady =
+        document.querySelector('[data-shop-checkout]')?.dataset
+          .shopCheckoutConfigured === 'true'
+      let disclosureReady =
+        document.querySelector('[data-shop-checkout]')?.dataset
+          .shopDisclosureRequired !== 'true'
       const list = document.querySelector('[data-shop-cart-list]')
       const subtotal = document.querySelector('[data-shop-cart-subtotal]')
       const checkoutButton = document.querySelector('[data-shop-checkout]')
@@ -195,7 +206,7 @@ const checkoutReady = canCheckout(settings)
         })
 
         subtotal.textContent = formatJpy(subtotalAmount)
-        checkoutButton.disabled = !checkoutReady
+        checkoutButton.disabled = !checkoutAvailable()
       }
 
       function updateQuantity(productId, delta) {
@@ -227,6 +238,12 @@ const checkoutReady = canCheckout(settings)
       }
 
       async function checkout() {
+        if (!checkoutAvailable()) {
+          setStatus(
+            '所在地の開示窓口を確認できないため、決済を開始できません。',
+          )
+          return
+        }
         setStatus('決済を準備しています...')
         checkoutButton.disabled = true
         try {
@@ -242,11 +259,24 @@ const checkoutReady = canCheckout(settings)
           window.location.href = payload.url
         } catch (error) {
           setStatus(error instanceof Error ? error.message : String(error))
-          checkoutButton.disabled = !checkoutReady
+          checkoutButton.disabled = !checkoutAvailable()
         }
       }
 
+      function checkoutAvailable() {
+        return checkoutReady && disclosureReady
+      }
+
       checkoutButton?.addEventListener('click', checkout)
+      window.addEventListener('hatt-shop:disclosure-readiness', (event) => {
+        disclosureReady = event.detail?.enabled === true
+        renderCart()
+        if (!disclosureReady) {
+          setStatus(
+            '所在地の開示窓口を確認できないため、決済を停止しています。',
+          )
+        }
+      })
       loadCatalog().catch(() => {
         list.replaceChildren()
         const error = document.createElement('p')

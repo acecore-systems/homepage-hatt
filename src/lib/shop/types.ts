@@ -1,6 +1,7 @@
 export type ShopCategory = 'picture' | 'novel' | 'modeling' | 'goods'
 export type ShopStatus = 'draft' | 'published' | 'sold_out'
 export type FulfillmentType = 'digital' | 'manual' | 'physical'
+export type SellerAddressDisclosureMode = 'public' | 'on_request'
 
 export type ShopImage = {
   src: string
@@ -54,6 +55,9 @@ export type ShopSettings = {
   businessName?: string
   sellerName?: string
   sellerAddress?: string
+  sellerAddressDisclosureMode?: SellerAddressDisclosureMode
+  sellerAddressDisclosureUrl?: string
+  sellerAddressDisclosureProfileVersion?: string
   sellerPhone?: string
   sellerEmail?: string
   contactUrl?: string
@@ -101,16 +105,36 @@ export function toPublicProduct(product: ShopProduct): PublicShopProduct {
 }
 
 export function hasRequiredLegalFields(settings: ShopSettings) {
-  return [
-    settings.businessName,
-    settings.sellerName,
-    settings.sellerAddress,
-    settings.sellerPhone,
-    settings.sellerEmail,
-    settings.returnsPolicy,
-    settings.privacyPolicy,
-    settings.terms,
-  ].every((value) => String(value || '').trim().length > 0)
+  return (
+    [
+      settings.businessName,
+      settings.sellerName,
+      settings.sellerPhone,
+      settings.sellerEmail,
+      settings.returnsPolicy,
+      settings.privacyPolicy,
+      settings.terms,
+    ].every((value) => String(value || '').trim().length > 0) &&
+    hasSellerAddressDisclosure(settings)
+  )
+}
+
+export function hasSellerAddressDisclosure(settings: ShopSettings) {
+  if (settings.sellerAddressDisclosureMode === 'on_request') {
+    return (
+      isShopRelativePath(settings.sellerAddressDisclosureUrl) &&
+      /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(
+        String(settings.sellerAddressDisclosureProfileVersion || '').trim(),
+      )
+    )
+  }
+
+  return String(settings.sellerAddress || '').trim().length > 0
+}
+
+function isShopRelativePath(value: string | undefined) {
+  const path = String(value || '').trim()
+  return path.startsWith('/') && !path.startsWith('//') && !path.includes('\\')
 }
 
 export function hasRequiredStripeConnectFields(settings: ShopSettings) {

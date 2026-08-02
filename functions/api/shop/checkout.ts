@@ -26,7 +26,7 @@ type CheckoutPayload = {
 export const onRequestPost = async ({ request, env }: PagesContext) => {
   try {
     assertSameOriginRequest(request)
-    assertCheckoutReady()
+    await assertCheckoutReady(env, request)
 
     const db = getDb(env)
     await ensureStockRows(db)

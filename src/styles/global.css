@@ -3957,6 +3957,7 @@ button:disabled {
 }
 
 .shop-legal a,
+.shop-alert a,
 .shop-cart-policy a,
 .shop-contact-copy a,
 .shop-contact-consent a {
@@ -3997,6 +3998,10 @@ button:disabled {
   gap: 18px;
   border-top: 1px solid rgba(21, 26, 36, 0.16);
   padding-top: 22px;
+}
+
+.shop-contact-form[hidden] {
+  display: none;
 }
 
 .shop-contact-fields {

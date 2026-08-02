@@ -1,0 +1,129 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="販売者情報の開示"
+  description="Hatt shopにおける所在地の開示方法をご案内します。"
+  canonicalPath="/shop/legal/disclosure-request/"
+>
+  <section class="page-hero">
+    <div class="section-inner narrow-page">
+      <p class="hero-note">
+        <span class="i-lucide-file-text" aria-hidden="true"></span>
+        Seller disclosure
+      </p>
+      <h1>販売者情報の開示</h1>
+      <p class="lead">
+        所在地は、購入前の請求に対して遅滞なく電子メールで開示します。
+      </p>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="section-inner shop-contact-grid">
+      <div class="shop-contact-copy">
+        <h2>所在地の開示方法</h2>
+        <ul>
+          <li>請求理由を入力する必要はありません。</li>
+          <li>開示内容は入力いただいたメールアドレスへ送信します。</li>
+          <li>
+            送信確認と不正利用防止のため、メールアドレスとIPアドレスをHMACで仮名化した識別子と送信状態を90日間保持します。
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="shop-alert" data-shop-disclosure-availability>
+          開示請求窓口の利用可否を確認しています。
+        </p>
+
+        <form
+          class="shop-contact-form"
+          data-shop-disclosure-form
+          action="/api/shop/disclosure-request"
+          novalidate
+          hidden
+        >
+          <div class="shop-contact-fields">
+            <div class="shop-contact-wide">
+              <label for="shop-disclosure-email">メールアドレス</label>
+              <input
+                id="shop-disclosure-email"
+                name="email"
+                type="email"
+                maxlength="254"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+
+          <label class="shop-contact-consent">
+            <input name="consent" type="checkbox" value="yes" required />
+            <span>
+              開示情報の送信にメールアドレスを利用することと、HMACで仮名化した識別子・送信状態を不正利用防止と送信確認のため90日間保持することに同意します。
+              <a href="/shop/legal/#privacy-policy">プライバシーポリシー</a
+              >もご確認ください。
+            </span>
+          </label>
+
+          <input
+            type="text"
+            name="website"
+            value=""
+            autocomplete="off"
+            tabindex="-1"
+            aria-hidden="true"
+            hidden
+          />
+
+          <div
+            class="comments-turnstile"
+            data-shop-disclosure-turnstile
+            data-theme="light"
+          >
+          </div>
+
+          <div class="shop-contact-actions">
+            <button
+              type="submit"
+              class="primary-button"
+              data-shop-disclosure-submit
+              disabled
+            >
+              所在地をメールで受け取る
+              <span class="i-lucide-send" aria-hidden="true"></span>
+            </button>
+            <p>送信後、同じ画面で受付番号をお知らせします。</p>
+          </div>
+          <p
+            class="comments-feedback"
+            data-shop-disclosure-feedback
+            role="status"
+            aria-live="polite"
+          >
+          </p>
+        </form>
+
+        <p class="shop-alert" data-shop-disclosure-unavailable hidden>
+          現在は専用の開示請求フォームを利用できません。<a href="/shop/contact/"
+            >ショップのお問い合わせ</a
+          >から所在地の開示をご請求ください。
+        </p>
+
+        <noscript>
+          <p class="shop-alert">
+            開示請求フォームの利用にはJavaScriptが必要です。<a
+              href="/shop/contact/">ショップのお問い合わせ</a
+            >から所在地の開示をご請求ください。
+          </p>
+        </noscript>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import '@/scripts/shop-disclosure-request'
+  </script>
+</BaseLayout>

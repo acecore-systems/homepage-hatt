@@ -791,6 +791,25 @@ collections:
             label: 所在地
             widget: text
             required: false
+          - name: sellerAddressDisclosureMode
+            label: 所在地の表示方法
+            widget: select
+            options:
+              - label: 公開ページに掲載する
+                value: public
+              - label: 請求時にメールで開示する
+                value: on_request
+            default: public
+          - name: sellerAddressDisclosureUrl
+            label: 所在地の開示請求URL
+            hint: 請求時開示では /shop/legal/disclosure-request/ を指定します。実住所はここに入力しません。
+            widget: string
+            required: false
+          - name: sellerAddressDisclosureProfileVersion
+            label: 所在地開示プロファイル版
+            hint: 'Cloudflare SecretのprofileVersionと完全に一致させます。例: v1'
+            widget: string
+            required: false
           - name: sellerPhone
             label: 電話番号
             widget: string

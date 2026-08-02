@@ -104,7 +104,7 @@ CMS では以下を編集できます。
 - 商品: `src/content/products/*.json`
 - ショップ設定: `src/content/shop-settings/main.json`
 
-決済は `shop-settings/main.json` の `checkoutEnabled` が `true` で、販売者情報・返品・プライバシー・利用条件が埋まっている場合だけ開始できます。無料配布品は一覧に表示しますが、Stripe Checkout の対象外です。
+決済は `shop-settings/main.json` の `checkoutEnabled` が `true` で、販売者情報・返品・プライバシー・利用条件が埋まっている場合だけ開始できます。所在地は公開掲載のほか、請求時開示を選べます。請求時開示ではCMSのURL・プロファイル版、CloudflareのSecret、D1 migrationがすべて揃わない限り、Pages Functionがcheckoutを停止します。無料配布品は一覧に表示しますが、Stripe Checkout の対象外です。
 
 Cloudflare Pages 側で以下を設定してください。
 
@@ -113,6 +113,11 @@ Cloudflare Pages 側で以下を設定してください。
 - Secret: `STRIPE_SECRET_KEY`
 - Secret: `STRIPE_WEBHOOK_SECRET`
 - Secret: `SHOP_DOWNLOAD_TOKEN_SECRET`
+- Variable: `SHOP_DISCLOSURE_ENABLED=true`（所在地の請求時開示を有効化するProduction環境だけ）
+- Variable: `SHOP_DISCLOSURE_TURNSTILE_SITE_KEY`（サイト設定のTurnstile公開Site Keyと同じ値）
+- Optional variable: `SHOP_DISCLOSURE_ALLOWED_HOSTNAMES`（既定値は`hatt.acecore.net,www.hatt.acecore.net`）
+- Secret: `SHOP_DISCLOSURE_HMAC_SECRET`（ランダムな32文字以上の値）
+- Secret: `SHOP_SELLER_DISCLOSURE_PROFILE`（実住所を含むJSON。CMS、Git、`wrangler.jsonc`には保存しない）
 - Variable: `SHOP_CONTACT_EMAIL_FROM=Hatt shop <noreply@hatt.acecore.net>`
 - Variable: `SHOP_CONTACT_EMAIL_TO=borubin@outlook.jp`
 - Service binding: `COURSE_EMAIL_SERVICE` -> `homepage-hatt-course-email`
@@ -120,7 +125,22 @@ Cloudflare Pages 側で以下を設定してください。
 - Variable: `SHOP_ACCESS_AUD=12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84`
 - Variable: `SHOP_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev`
 
-ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` です。コメント用 D1 とは migration directory を分けています。
+ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` から順に適用します。請求時開示には `migrations/shop/0003_add_seller_disclosure_requests.sql` が必要です。コメント用 D1 とは migration directory を分けています。
+
+所在地を請求時開示にする場合は、CMSで`所在地の表示方法`を`請求時にメールで開示する`にして、`所在地の開示請求URL`を`/shop/legal/disclosure-request/`、`所在地開示プロファイル版`を例えば`v1`に設定します。次にCloudflareのSecretへ以下の形式で`SHOP_SELLER_DISCLOSURE_PROFILE`を登録し、公開済みの事業者名、販売責任者、電話番号と完全に一致させます。
+
+```json
+{
+  "version": 1,
+  "profileVersion": "v1",
+  "businessName": "公開済みの事業者名",
+  "sellerName": "公開済みの販売責任者名",
+  "address": "実住所",
+  "phone": "公開済みの電話番号"
+}
+```
+
+開示請求は`/shop/legal/disclosure-request/`で受け付けます。メールアドレスとIPアドレスは平文保存せずHMAC化した識別子だけをD1へ記録し、送信状態とともに90日後に削除します。専用フォームは本番カスタムドメインでのみ有効にし、Previewでは問い合わせ窓口へフォールバックします。
 
 デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
 

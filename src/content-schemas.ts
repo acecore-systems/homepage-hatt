@@ -287,3 +287,73 @@ export const siteContentSchema = z
     ),
   })
   .strict()
+
+const shopRichImageSchema = z
+  .object({
+    src: z.string(),
+    alt: z.string().trim().min(1),
+    caption: z.string().optional(),
+  })
+  .strict()
+const shopShippingProfileSchema = z
+  .object({
+    id: z.string(),
+    label: z.string(),
+    description: z.string().optional(),
+    amountJpy: z.number().int().nonnegative().default(0),
+    freeAboveJpy: z.number().int().nonnegative().optional(),
+    countries: z.array(z.string()).default(['JP']),
+  })
+  .strict()
+
+export const shopProductContentSchema = z
+  .object({
+    slug: z.string(),
+    title: z.string(),
+    category: z.enum(['picture', 'novel', 'modeling', 'goods']),
+    summary: z.string(),
+    description: z.string().optional(),
+    images: z.array(shopRichImageSchema).default([]),
+    priceJpy: z.number().int().nonnegative(),
+    status: z.enum(['draft', 'published', 'sold_out']).default('draft'),
+    fulfillmentType: z.enum(['digital', 'manual', 'physical']),
+    stock: z.number().int().nonnegative().default(0),
+    maxQuantity: z.number().int().positive().default(1),
+    r2ObjectKey: z.string().optional(),
+    shippingProfileId: z.string().optional(),
+    taxCode: z.string().optional(),
+    externalUrl: z.string().optional(),
+    features: z.array(z.string()).default([]),
+    order: z.number().default(100),
+    featured: z.boolean().default(false),
+  })
+  .strict()
+
+export const shopSettingsContentSchema = z
+  .object({
+    id: z.string().default('main'),
+    enabled: z.boolean().default(true),
+    checkoutEnabled: z.boolean().default(false),
+    currency: z.literal('JPY').default('JPY'),
+    stripeTaxEnabled: z.boolean().default(true),
+    stripeConnectedAccountId: z.string().optional(),
+    platformFeeBasisPoints: z.number().int().min(0).max(9999).default(0),
+    platformFeeFixedJpy: z.number().int().nonnegative().default(0),
+    allowedCountries: z.array(z.string()).default(['JP']),
+    shippingProfiles: z.array(shopShippingProfileSchema).default([]),
+    businessName: z.string().optional(),
+    sellerName: z.string().optional(),
+    sellerAddress: z.string().optional(),
+    sellerAddressDisclosureMode: z
+      .enum(['public', 'on_request'])
+      .default('public'),
+    sellerAddressDisclosureUrl: z.string().optional(),
+    sellerAddressDisclosureProfileVersion: z.string().optional(),
+    sellerPhone: z.string().optional(),
+    sellerEmail: z.string().optional(),
+    contactUrl: z.string().optional(),
+    returnsPolicy: z.string().optional(),
+    privacyPolicy: z.string().optional(),
+    terms: z.string().optional(),
+  })
+  .strict()

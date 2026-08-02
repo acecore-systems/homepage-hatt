@@ -6,6 +6,8 @@ import {
   blogContentSchema,
   campaignContentSchema,
   modelingContentSchema,
+  shopProductContentSchema,
+  shopSettingsContentSchema,
   siteContentSchema,
   tagContentSchema,
 } from '../../../src/content-schemas.ts'
@@ -33,6 +35,7 @@ const JSON_SCHEMAS = [
   { prefix: 'src/content/authors/', schema: authorContentSchema },
   { prefix: 'src/content/campaigns/', schema: campaignContentSchema },
   { prefix: 'src/content/modeling/', schema: modelingContentSchema },
+  { prefix: 'src/content/products/', schema: shopProductContentSchema },
   { prefix: 'src/content/tags/', schema: tagContentSchema },
 ] as const
 const PATH_DERIVED_ID_PREFIXES = new Set([
@@ -47,6 +50,10 @@ export async function validateCmsFileContents(
 ): Promise<CmsContentValidation> {
   if (path === 'src/content/site/main.json') {
     return validateJson(path, bytes, siteContentSchema)
+  }
+
+  if (path === 'src/content/shop-settings/main.json') {
+    return validateJson(path, bytes, shopSettingsContentSchema)
   }
 
   const jsonRule = JSON_SCHEMAS.find(({ prefix }) => path.startsWith(prefix))
@@ -69,7 +76,10 @@ export async function validateCmsFileContents(
 function validateJson(
   path: string,
   bytes: Uint8Array,
-  schema: (typeof JSON_SCHEMAS)[number]['schema'] | typeof siteContentSchema,
+  schema:
+    | (typeof JSON_SCHEMAS)[number]['schema']
+    | typeof siteContentSchema
+    | typeof shopSettingsContentSchema,
 ): CmsContentValidation {
   const text = decodeText(path, bytes)
 

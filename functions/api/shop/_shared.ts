@@ -1,5 +1,6 @@
-import { SHOP_PRODUCTS, SHOP_SETTINGS } from './_catalog.generated'
-import { getShopAccessIdentity, type ShopAccessEnv } from './_access-auth'
+import { SHOP_PRODUCTS, SHOP_SETTINGS } from './_catalog.generated.ts'
+import { getShopAccessIdentity, type ShopAccessEnv } from './_access-auth.ts'
+import type { FormEnv } from '../../_form-shared.ts'
 
 type D1PreparedStatement = {
   bind(...values: unknown[]): D1PreparedStatement
@@ -23,13 +24,21 @@ export type R2Bucket = {
   get(key: string): Promise<R2ObjectBody | null>
 }
 
-export type ShopEnv = ShopAccessEnv & {
-  SHOP_DB?: D1Database
-  SHOP_FILES?: R2Bucket
-  STRIPE_SECRET_KEY?: string
-  STRIPE_WEBHOOK_SECRET?: string
-  SHOP_DOWNLOAD_TOKEN_SECRET?: string
-}
+export type ShopEnv = ShopAccessEnv &
+  FormEnv & {
+    SHOP_DB?: D1Database
+    SHOP_FILES?: R2Bucket
+    STRIPE_SECRET_KEY?: string
+    STRIPE_WEBHOOK_SECRET?: string
+    SHOP_DOWNLOAD_TOKEN_SECRET?: string
+    SHOP_CONTACT_EMAIL_FROM?: string
+    COURSE_SIGNUP_EMAIL_FROM?: string
+    SHOP_DISCLOSURE_ENABLED?: string
+    SHOP_SELLER_DISCLOSURE_PROFILE?: string
+    SHOP_DISCLOSURE_HMAC_SECRET?: string
+    SHOP_DISCLOSURE_ALLOWED_HOSTNAMES?: string
+    SHOP_DISCLOSURE_TURNSTILE_SITE_KEY?: string
+  }
 
 export type PagesContext = {
   request: Request
@@ -83,6 +92,9 @@ export type ShopSettings = {
   businessName?: string
   sellerName?: string
   sellerAddress?: string
+  sellerAddressDisclosureMode?: 'public' | 'on_request'
+  sellerAddressDisclosureUrl?: string
+  sellerAddressDisclosureProfileVersion?: string
   sellerPhone?: string
   sellerEmail?: string
   returnsPolicy?: string
@@ -157,6 +169,28 @@ export const productBySlug = new Map(
 )
 
 const DOWNLOAD_TOKEN_TTL_SECONDS = 24 * 60 * 60
+const SELLER_DISCLOSURE_PROFILE_VERSION_PATTERN =
+  /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/
+const DEFAULT_DISCLOSURE_HOSTNAMES = [
+  'hatt.acecore.net',
+  'www.hatt.acecore.net',
+]
+
+export type SellerAddressDisclosureProfile = {
+  version: 1
+  profileVersion: string
+  businessName: string
+  sellerName: string
+  address: string
+  phone: string
+}
+
+export type SellerAddressDisclosureRuntime = {
+  profile: SellerAddressDisclosureProfile
+  hmacSecret: string
+  allowedHostnames: string[]
+  turnstileSiteKey: string
+}
 
 export function jsonResponse(
   body: unknown,
@@ -191,11 +225,11 @@ export function getFiles(env: ShopEnv) {
 }
 
 export class ShopApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
+  public status: number
+
+  constructor(status: number, message: string) {
     super(message)
+    this.status = status
   }
 }
 
@@ -229,7 +263,7 @@ export function assertSameOriginRequest(request: Request) {
   }
 }
 
-export function assertCheckoutReady() {
+export async function assertCheckoutReady(env: ShopEnv, request: Request) {
   if (!settings.enabled) {
     throw new ShopApiError(503, 'ショップは現在利用できません。')
   }
@@ -247,19 +281,223 @@ export function assertCheckoutReady() {
       '決済は準備中です。Stripe Connectの販売者アカウントを設定してください。',
     )
   }
+
+  if (
+    isSellerAddressDisclosedOnRequest(settings) &&
+    !(await isSellerAddressDisclosureReady(env, request))
+  ) {
+    throw new ShopApiError(
+      503,
+      '決済は準備中です。所在地の開示窓口を設定してください。',
+    )
+  }
 }
 
 function hasRequiredLegalFields(shopSettings: ShopSettings) {
-  return [
-    shopSettings.businessName,
-    shopSettings.sellerName,
-    shopSettings.sellerAddress,
-    shopSettings.sellerPhone,
-    shopSettings.sellerEmail,
-    shopSettings.returnsPolicy,
-    shopSettings.privacyPolicy,
-    shopSettings.terms,
-  ].every((value) => String(value || '').trim().length > 0)
+  return (
+    [
+      shopSettings.businessName,
+      shopSettings.sellerName,
+      shopSettings.sellerPhone,
+      shopSettings.sellerEmail,
+      shopSettings.returnsPolicy,
+      shopSettings.privacyPolicy,
+      shopSettings.terms,
+    ].every((value) => String(value || '').trim().length > 0) &&
+    hasSellerAddressDisclosure(shopSettings)
+  )
+}
+
+function hasSellerAddressDisclosure(shopSettings: ShopSettings) {
+  if (isSellerAddressDisclosedOnRequest(shopSettings)) {
+    return (
+      isShopRelativePath(shopSettings.sellerAddressDisclosureUrl) &&
+      SELLER_DISCLOSURE_PROFILE_VERSION_PATTERN.test(
+        String(shopSettings.sellerAddressDisclosureProfileVersion || '').trim(),
+      )
+    )
+  }
+
+  return String(shopSettings.sellerAddress || '').trim().length > 0
+}
+
+export function isSellerAddressDisclosedOnRequest(shopSettings: ShopSettings) {
+  return shopSettings.sellerAddressDisclosureMode === 'on_request'
+}
+
+export function getSellerAddressDisclosureRuntime(
+  env: ShopEnv,
+  request: Request,
+): SellerAddressDisclosureRuntime | null {
+  if (
+    !isSellerAddressDisclosedOnRequest(settings) ||
+    !hasSellerAddressDisclosure(settings) ||
+    String(env.SHOP_DISCLOSURE_ENABLED || '').trim() !== 'true' ||
+    !isSellerAddressDisclosureRequestHostAllowed(request, env)
+  ) {
+    return null
+  }
+
+  const profile = parseSellerAddressDisclosureProfile(
+    env.SHOP_SELLER_DISCLOSURE_PROFILE,
+  )
+  const hmacSecret = String(env.SHOP_DISCLOSURE_HMAC_SECRET || '').trim()
+  const turnstileSiteKey = String(
+    env.SHOP_DISCLOSURE_TURNSTILE_SITE_KEY || '',
+  ).trim()
+
+  if (
+    !profile ||
+    hmacSecret.length < 16 ||
+    turnstileSiteKey.length < 10 ||
+    turnstileSiteKey.length > 256 ||
+    !profileMatchesPublicSettings(profile) ||
+    !(env.SITE_EMAIL_SERVICE || env.COURSE_EMAIL_SERVICE) ||
+    !String(
+      env.SHOP_CONTACT_EMAIL_FROM || env.COURSE_SIGNUP_EMAIL_FROM || '',
+    ).trim()
+  ) {
+    return null
+  }
+
+  return {
+    profile,
+    hmacSecret,
+    allowedHostnames: getSellerAddressDisclosureHostnames(env),
+    turnstileSiteKey,
+  }
+}
+
+export async function isSellerAddressDisclosureReady(
+  env: ShopEnv,
+  request: Request,
+): Promise<boolean> {
+  const runtime = getSellerAddressDisclosureRuntime(env, request)
+  if (!runtime || !env.SHOP_DB || !env.TURNSTILE_SECRET_KEY) return false
+
+  return hasSellerAddressDisclosureSchema(env.SHOP_DB)
+}
+
+export async function hasSellerAddressDisclosureSchema(
+  db: D1Database,
+): Promise<boolean> {
+  try {
+    const [, , metadata] = await Promise.all([
+      db
+        .prepare(
+          `SELECT bucket_key, request_count, expires_at, updated_at
+           FROM shop_disclosure_rate_limits
+           LIMIT 0`,
+        )
+        .all(),
+      db
+        .prepare(
+          `SELECT id, email_hash, ip_hash, status, processing_token,
+                  email_message_id, failure_code, expires_at, sent_at,
+                  created_at, updated_at
+           FROM shop_disclosure_requests
+           LIMIT 0`,
+        )
+        .all(),
+      db
+        .prepare(
+          'SELECT version FROM shop_disclosure_schema_metadata WHERE id = 1',
+        )
+        .first<{ version: number }>(),
+    ])
+
+    return metadata?.version === 1
+  } catch {
+    return false
+  }
+}
+
+export function isSellerAddressDisclosureRequestHostAllowed(
+  request: Request,
+  env: ShopEnv,
+) {
+  const url = new URL(request.url)
+  const hostname = url.hostname.toLowerCase()
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
+
+  if (isLocal) return url.protocol === 'http:' || url.protocol === 'https:'
+
+  return (
+    url.protocol === 'https:' &&
+    getSellerAddressDisclosureHostnames(env).includes(hostname)
+  )
+}
+
+function parseSellerAddressDisclosureProfile(
+  serialized: string | undefined,
+): SellerAddressDisclosureProfile | null {
+  try {
+    const value = JSON.parse(String(serialized || '')) as Record<
+      string,
+      unknown
+    >
+    const profileVersion = secretText(value.profileVersion, 64)
+    const businessName = secretText(value.businessName, 200)
+    const sellerName = secretText(value.sellerName, 200)
+    const address = secretText(value.address, 500)
+    const phone = secretText(value.phone, 80)
+
+    if (
+      value.version !== 1 ||
+      !profileVersion ||
+      !SELLER_DISCLOSURE_PROFILE_VERSION_PATTERN.test(profileVersion) ||
+      !businessName ||
+      !sellerName ||
+      !address ||
+      !phone
+    ) {
+      return null
+    }
+
+    return {
+      version: 1,
+      profileVersion,
+      businessName,
+      sellerName,
+      address,
+      phone,
+    }
+  } catch {
+    return null
+  }
+}
+
+function profileMatchesPublicSettings(profile: SellerAddressDisclosureProfile) {
+  return (
+    profile.profileVersion ===
+      String(settings.sellerAddressDisclosureProfileVersion || '').trim() &&
+    profile.businessName === String(settings.businessName || '').trim() &&
+    profile.sellerName === String(settings.sellerName || '').trim() &&
+    profile.phone === String(settings.sellerPhone || '').trim()
+  )
+}
+
+function getSellerAddressDisclosureHostnames(env: ShopEnv): string[] {
+  const configured = String(env.SHOP_DISCLOSURE_ALLOWED_HOSTNAMES || '')
+    .split(',')
+    .map((hostname) => hostname.trim().toLowerCase())
+    .filter(Boolean)
+
+  return configured.length > 0
+    ? [...new Set(configured)]
+    : DEFAULT_DISCLOSURE_HOSTNAMES
+}
+
+function isShopRelativePath(value: string | undefined) {
+  const path = String(value || '').trim()
+  return path.startsWith('/') && !path.startsWith('//') && !path.includes('\\')
+}
+
+function secretText(value: unknown, maxLength: number) {
+  const normalized = String(value || '').trim()
+  return normalized.length > 0 && normalized.length <= maxLength
+    ? normalized
+    : null
 }
 
 function hasRequiredStripeConnectFields(shopSettings: ShopSettings) {

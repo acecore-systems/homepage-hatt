@@ -20,6 +20,8 @@ export async function getStaticPaths() {
 const { product } = Astro.props
 const settings = await getShopSettings()
 const checkoutReady = canCheckout(settings)
+const requiresSellerDisclosure =
+  checkoutReady && settings.sellerAddressDisclosureMode === 'on_request'
 const heroImage = product.images[0]
 ---
 
@@ -67,6 +69,9 @@ const heroImage = product.images[0]
             </p>
           )
         }
+        <p class="shop-alert" data-shop-runtime-disclosure-alert hidden>
+          所在地の開示窓口を確認できないため、購入手続きを停止しています。
+        </p>
         <div class="button-row">
           {
             product.priceJpy > 0 ? (
@@ -74,7 +79,17 @@ const heroImage = product.images[0]
                 class="primary-button"
                 type="button"
                 data-shop-add={product.slug}
-                disabled={!checkoutReady || product.status !== 'published'}
+                disabled={
+                  !checkoutReady ||
+                  requiresSellerDisclosure ||
+                  product.status !== 'published'
+                }
+                data-shop-disclosure-required={
+                  requiresSellerDisclosure && product.status === 'published'
+                    ? 'true'
+                    : undefined
+                }
+                data-shop-disclosure-enable-on-ready
                 data-hatt-event="shop_add_to_cart"
                 data-hatt-label={product.slug}
                 data-hatt-location="shop_detail"

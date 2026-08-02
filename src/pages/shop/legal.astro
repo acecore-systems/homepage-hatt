@@ -3,10 +3,23 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 import { getShopSettings } from '@/lib/shop/content'
 
 const settings = await getShopSettings()
+const disclosureUrl = String(settings.sellerAddressDisclosureUrl || '').trim()
+const hasOnRequestDisclosure =
+  settings.sellerAddressDisclosureMode === 'on_request' &&
+  disclosureUrl.startsWith('/') &&
+  !disclosureUrl.startsWith('//') &&
+  String(settings.sellerAddressDisclosureProfileVersion || '').trim()
+const sellerAddress = hasOnRequestDisclosure
+  ? '請求があった場合、遅滞なく電子メールで開示します。'
+  : settings.sellerAddress
 const rows = [
   { label: '事業者名', value: settings.businessName },
   { label: '販売責任者', value: settings.sellerName },
-  { label: '所在地', value: settings.sellerAddress },
+  {
+    label: '所在地',
+    value: sellerAddress,
+    ...(hasOnRequestDisclosure ? { href: disclosureUrl } : {}),
+  },
   { label: '電話番号', value: settings.sellerPhone },
   { label: 'メールアドレス', value: settings.sellerEmail },
   {

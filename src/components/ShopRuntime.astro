@@ -63,5 +63,61 @@
     window.addEventListener('storage', updateShopCartCount)
     window.addEventListener('hatt-shop:cart-change', updateShopCartCount)
     updateShopCartCount()
+
+    async function confirmSellerDisclosureReadiness() {
+      const controls = [
+        ...document.querySelectorAll('[data-shop-disclosure-required="true"]'),
+      ].filter((element) => element instanceof HTMLButtonElement)
+      if (controls.length === 0) return
+
+      controls.forEach((control) => {
+        control.dataset.shopDisclosureReady = 'pending'
+        control.disabled = true
+      })
+
+      let enabled = false
+      try {
+        const response = await fetch('/api/shop/disclosure-request', {
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(8_000),
+        })
+        const payload = await response.json().catch(() => ({}))
+        enabled = Boolean(response.ok && payload.ok && payload.enabled)
+      } catch {
+        enabled = false
+      }
+
+      controls.forEach((control) => {
+        control.dataset.shopDisclosureReady = enabled ? 'true' : 'false'
+        if (
+          enabled &&
+          control.hasAttribute('data-shop-disclosure-enable-on-ready')
+        ) {
+          control.disabled = false
+        }
+      })
+      document
+        .querySelectorAll('[data-shop-runtime-disclosure-alert]')
+        .forEach((alert) => {
+          alert.hidden = enabled
+        })
+      window.dispatchEvent(
+        new CustomEvent('hatt-shop:disclosure-readiness', {
+          detail: { enabled },
+        }),
+      )
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener(
+        'DOMContentLoaded',
+        confirmSellerDisclosureReadiness,
+        {
+          once: true,
+        },
+      )
+    } else {
+      void confirmSellerDisclosureReadiness()
+    }
   })()
 </script>
