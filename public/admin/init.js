@@ -31,12 +31,51 @@ async function initCms() {
       )
     }
 
-    window.location.hash =
-      '#access_token=cloudflare-access&token_type=bearer&provider=github'
-    window.CMS.init()
+    if (
+      !window.location.hash ||
+      window.location.hash === '#' ||
+      window.location.hash === '#/'
+    ) {
+      const payload = window.btoa(
+        JSON.stringify({
+          token: 'cloudflare-access',
+          prefs: { language: 'ja' },
+        }),
+      )
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}#/signin/${payload}`,
+      )
+    }
+
+    await window.CMS.init()
+    showPublishNotice()
   } catch (error) {
     showStatus(error instanceof Error ? error.message : String(error), true)
   }
+}
+
+function showPublishNotice() {
+  if (document.getElementById('cms-publish-notice')) return
+
+  const notice = document.createElement('aside')
+  const title = document.createElement('strong')
+  const body = document.createElement('span')
+  const close = document.createElement('button')
+
+  notice.id = 'cms-publish-notice'
+  notice.className = 'cms-publish-notice'
+  notice.setAttribute('aria-label', 'CMSの公開方法')
+  title.textContent = '保存すると自動で公開されます'
+  body.textContent = '保存後、Cloudflare Pagesに反映されます。'
+  close.className = 'cms-publish-notice__close'
+  close.type = 'button'
+  close.setAttribute('aria-label', '公開方法の案内を閉じる')
+  close.textContent = '×'
+  close.addEventListener('click', () => notice.remove())
+  notice.append(title, body, close)
+  document.body.append(notice)
 }
 
 function getErrorMessage(data) {

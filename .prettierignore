@@ -9,3 +9,5 @@ public/pagefind
 test-results
 playwright-report
 functions/api/shop/_catalog.generated.ts
+functions/worker-configuration.d.ts
+workers/course-email-service/worker-configuration.d.ts

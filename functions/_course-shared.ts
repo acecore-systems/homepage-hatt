@@ -16,10 +16,14 @@ export {
   verifyTurnstile,
 } from './_form-shared.ts'
 
-export type Env = FormEnv & {
-  COURSE_SIGNUP_EMAIL_TO?: string
-  COURSE_SIGNUP_EMAIL_FROM?: string
-}
+export type Env = Pick<
+  Cloudflare.Env,
+  | 'TURNSTILE_SECRET_KEY'
+  | 'COMMENT_ALLOWED_HOSTNAMES'
+  | 'COURSE_SIGNUP_EMAIL_TO'
+  | 'COURSE_SIGNUP_EMAIL_FROM'
+  | 'COURSE_EMAIL_SERVICE'
+>
 
 export type PagesContext = {
   request: Request

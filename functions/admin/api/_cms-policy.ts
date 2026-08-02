@@ -14,6 +14,12 @@ const CONTENT_RULES = [
 ] as const
 
 const CONTENT_FILES = new Set(['src/content/site/main.json'])
+const DELETABLE_CONTENT_PREFIXES = new Set([
+  'src/content/art/',
+  'src/content/blog/',
+  'src/content/campaigns/',
+  'src/content/modeling/',
+])
 
 const MEDIA_PREFIX = 'public/uploads/hatt/'
 const MAX_CMS_PATH_LENGTH = 240
@@ -22,20 +28,18 @@ const MEDIA_EXTENSIONS = new Set([
   '.gif',
   '.jpeg',
   '.jpg',
-  '.pdf',
   '.png',
-  '.svg',
   '.webp',
 ])
 
-const CMS_DIRECTORY_ROOTS = [
+const CONTENT_DIRECTORY_ROOTS = [
   ...CONTENT_RULES.map(({ prefix }) => prefix.slice(0, -1)),
   ...Array.from(CONTENT_FILES, (filePath) => getDirectoryName(filePath)),
-  MEDIA_PREFIX.slice(0, -1),
 ]
+const MEDIA_DIRECTORY_ROOT = MEDIA_PREFIX.slice(0, -1)
 
 export function normalizeCmsPath(path: string | null) {
-  if (path === null || path.includes('\0')) return null
+  if (path === null || /[\u0000-\u001f\u007f]/.test(path)) return null
 
   const normalized = path.replace(/\\/g, '/').replace(/^\/+/, '')
 
@@ -56,11 +60,7 @@ export function normalizeCmsPath(path: string | null) {
 export function isAllowedCmsWritePath(path: string) {
   if (CONTENT_FILES.has(path)) return true
 
-  if (
-    CONTENT_RULES.some(({ prefix, extension }) => {
-      return path.startsWith(prefix) && path.endsWith(extension)
-    })
-  ) {
+  if (CONTENT_RULES.some((rule) => matchesDirectContentPath(path, rule))) {
     return true
   }
 
@@ -69,26 +69,46 @@ export function isAllowedCmsWritePath(path: string) {
   return MEDIA_EXTENSIONS.has(getExtension(path))
 }
 
+export function isAllowedCmsDeletePath(path: string) {
+  return CONTENT_RULES.some(
+    (rule) =>
+      DELETABLE_CONTENT_PREFIXES.has(rule.prefix) &&
+      matchesDirectContentPath(path, rule),
+  )
+}
+
+export function isCmsReferenceTextPath(path: string) {
+  if (normalizeCmsPath(path) !== path) return false
+  if (CONTENT_FILES.has(path)) return true
+
+  return CONTENT_RULES.some((rule) => matchesDirectContentPath(path, rule))
+}
+
+export function isCmsReferenceStatePath(path: string) {
+  if (isCmsReferenceTextPath(path)) return true
+  if (normalizeCmsPath(path) !== path || !path.startsWith(MEDIA_PREFIX)) {
+    return false
+  }
+
+  return MEDIA_EXTENSIONS.has(getExtension(path))
+}
+
 export function isAllowedCmsDirectoryPath(path: string) {
   if (path === '') return true
 
-  return CMS_DIRECTORY_ROOTS.some((root) => {
-    return (
-      path === root ||
-      path.startsWith(`${root}/`) ||
-      root.startsWith(`${path}/`)
+  if (
+    CONTENT_DIRECTORY_ROOTS.some(
+      (root) => path === root || root.startsWith(`${path}/`),
     )
-  })
-}
+  ) {
+    return true
+  }
 
-export function sanitizeCmsBranchPart(path: string) {
-  const base = path
-    .replace(/\.[^.]+$/, '')
-    .replace(/[^A-Za-z0-9_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 48)
-
-  return base || 'content'
+  return (
+    path === MEDIA_DIRECTORY_ROOT ||
+    path.startsWith(`${MEDIA_DIRECTORY_ROOT}/`) ||
+    MEDIA_DIRECTORY_ROOT.startsWith(`${path}/`)
+  )
 }
 
 export function encodePathSegments(path: string) {
@@ -97,6 +117,23 @@ export function encodePathSegments(path: string) {
 
 function getDirectoryName(path: string) {
   return path.split('/').slice(0, -1).join('/')
+}
+
+function matchesDirectContentPath(
+  path: string,
+  {
+    extension,
+    prefix,
+  }: {
+    extension: string
+    prefix: string
+  },
+) {
+  if (!path.startsWith(prefix) || !path.endsWith(extension)) return false
+
+  const fileName = path.slice(prefix.length)
+
+  return fileName.length > extension.length && !fileName.includes('/')
 }
 
 function getExtension(path: string) {

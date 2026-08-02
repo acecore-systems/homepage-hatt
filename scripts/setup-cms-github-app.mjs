@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const GITHUB_API_VERSION = '2022-11-28'
+export const CMS_GITHUB_APP_SECRET_ENVIRONMENTS = Object.freeze(['production'])
 const SETUP_TIMEOUT_MS = 55 * 60 * 1000
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -80,7 +81,6 @@ export function buildGithubAppManifest(options, callbackBaseUrl) {
     default_events: [],
     default_permissions: {
       contents: 'write',
-      pull_requests: 'write',
     },
   }
 }
@@ -112,14 +112,11 @@ export function validateInstallationScope(
 
   if (
     permissions.contents !== 'write' ||
-    permissions.pull_requests !== 'write' ||
     permissions.metadata !== 'read' ||
-    permissionNames.some(
-      (name) => !['contents', 'metadata', 'pull_requests'].includes(name),
-    )
+    permissionNames.some((name) => !['contents', 'metadata'].includes(name))
   ) {
     throw new Error(
-      'GitHub App の権限は Contents / Pull requests の write と Metadata の read だけにしてください。',
+      'GitHub App の権限は Contents の write と Metadata の read だけにしてください。',
     )
   }
 
@@ -264,7 +261,7 @@ async function main() {
               setupStatus = {
                 state: 'complete',
                 message:
-                  'Production / preview の GitHub App 設定が完了しました。このタブを閉じて構いません。',
+                  'Production の GitHub App 設定が完了しました。このタブを閉じて構いません。',
               }
               appCredentials = null
               shutdownTimer = setTimeout(() => server.close(), 5000)
@@ -341,7 +338,6 @@ async function finishSetup({ appCredentials, installationId, options }) {
       body: {
         permissions: {
           contents: 'read',
-          pull_requests: 'read',
         },
       },
     },
@@ -366,7 +362,7 @@ async function finishSetup({ appCredentials, installationId, options }) {
     CMS_GITHUB_APP_PRIVATE_KEY: appCredentials.privateKey,
   }
 
-  for (const environment of ['production', 'preview']) {
+  for (const environment of CMS_GITHUB_APP_SECRET_ENVIRONMENTS) {
     for (const [name, value] of Object.entries(secrets)) {
       await putPagesSecret({
         environment,

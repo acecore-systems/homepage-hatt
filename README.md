@@ -25,7 +25,7 @@ npm install
 npm run dev
 ```
 
-Sveltia CMS の編集対象 branch は `main` 固定です。CMS 保存は `/admin/api/*` の Pages Functions proxy が受け、画像とコンテンツを同じ commit にまとめた短命な `cms/hatt/*` branch と PR として作成します。
+Sveltia CMS の編集対象 branch は `main` 固定です。CMS 保存は `/admin/api/*` の Pages Functions proxy が受け、許可済みの画像とコンテンツだけを `main` の同じ commit に直接保存します。
 
 ## ビルド
 
@@ -51,11 +51,14 @@ npm run typecheck:functions
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
 
-Cloudflare Pages 側で以下を設定してください。
+Cloudflare Pages のproductionだけに以下のGitHub App設定を置いてください。previewへmain書込鍵を配布してはいけません。
 
 - Variable: `CMS_GITHUB_APP_CLIENT_ID`
 - Variable: `CMS_GITHUB_APP_INSTALLATION_ID`
 - Secret: `CMS_GITHUB_APP_PRIVATE_KEY`（PKCS#8 PEM）
+
+Access検証設定は必要なproduction / preview環境に設定できます。
+
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
 - Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com`
@@ -65,15 +68,21 @@ Cloudflare Pages 側で以下を設定してください。
 
 `CMS_ACCESS_TEAM_DOMAIN` と `CMS_ACCESS_AUD` は上記の値を既定値として持ちます。Access application を作り直した場合だけ、新しい値で上書きしてください。
 
-GitHub App は `acecore-systems/homepage-hatt` だけへインストールし、Repository permissions は `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read-only` にします。proxy は秘密鍵で9分以内のApp JWTを署名し、repositoryと権限を再指定した1時間以内のinstallation tokenを発行します。
+GitHub App は `acecore-systems/homepage-hatt` だけへインストールし、Repository permissions は `Contents: Read and write`、`Metadata: Read-only` にします。proxy は秘密鍵で9分以内のApp JWTを署名し、repositoryと権限を再指定した1時間以内のinstallation tokenを発行します。
 
-GitHub App を新規作成または置換するときは `npm run setup:cms-app` を実行します。セットアップ画面では `homepage-hatt` だけを選択してください。補助スクリプトはAppの所有者、権限、対象repositoryが1件だけであることを検証し、秘密鍵をファイルへ保存せず、production / preview の両方へ必要な3 secretを登録します。
+GitHub App を新規作成または置換するときは `npm run setup:cms-app` を実行します。セットアップ画面では `homepage-hatt` だけを選択してください。補助スクリプトはAppの所有者、権限、対象repositoryが1件だけであることを検証し、秘密鍵をファイルへ保存せず、productionだけへ必要な3 secretを登録します。preview FunctionsはGitHub App設定不足で書込みをfail closedします。
 
-### 本番 CMS の保存と PR 反映
+### 本番 CMS の保存と公開
 
 - 本番 CMS の publication branch は `main` です。`cms-content` のような恒久的な別本流 branch は使いません。
-- CMS の保存は Pages Functions proxy により、画像とコンテンツを同じ commit に含む短命な `cms/hatt/*` branch と PR として作成されます。
-- CMS 由来の PR は通常の PR と同じく review し、`.github/workflows/ci.yml` の `npm run format:check`、`npm run validate:content`、`npm run test:cms`、`npm run typecheck:functions`、`npm run build` を通してから `main` に merge します。
+- CMS の保存は Pages Functions proxy が共有content schema、Markdown、raster mediaを同期検証し、許可済みの画像とコンテンツを `main` の同じcommitへ直接保存します。保存直前に照合した正確な `main` commit SHAからCMS対象を読み、同じ保存の追加・削除を反映したprojected stateで全contentを再検証します。記事のauthor・tagと `/uploads/hatt/` の画像参照は同じ保存で追加する対象を含めて存在確認し、欠損参照はGitHub送信前に拒否します。
+- CMS textはGitHub GraphQL readで本文が省略されない448 KiB以下に限定します。author id、tag slug、記事の実効slug（frontmatter `slug`、未指定時はfilename）へ共有route形式制約を適用し、tagと記事はprojected state全体で一意性も確認します。tagの `index` は静的一覧routeとの衝突を避けるため予約済みです。
+- CMS content collectionは各folder直下のファイルだけを許可し、下位directoryへは保存・削除・readできません。`public/uploads/hatt/**` のmediaだけは下位directoryを利用できます。
+- PNGは全chunkのCRC、IHDR、連結IDATのzlib展開、scanline長とfilterを確認し、JPEG / GIF / WebP / AVIFはcontainer、marker、宣言length、終端の構造を確認します。各形式のchunk、marker、sub-block、box数には上限を設け、極端な小block列を拒否します。`expectedHeadOid` が現在のHEADと一致しない場合は上書きせず、再読み込みを求めます。
+- 必須 `src/content/site/main.json`、author、tagと、コンテンツから参照され得る `public/uploads/hatt/**` はCMSから削除できません。
+- 保存後はGitHub連携のCloudflare Pagesがproduction deployを開始します。CIや手動mergeの完了をCMS保存リクエスト内で待ちません。
+- Functions、CMS設定、schema、workflow、サイトコードなどの変更は通常のbranch・PR・CIを通します。CMS用GitHub Appはこれらのpathへ書き込めません。
+- `main` のrepository rulesetでは通常のPR・CI要件を維持し、repository限定の `Acecore Hatt CMS` Appだけをbypass actorに指定します。
 - Cloudflare Pages の production deploy 元は GitHub 連携の `main` にします。
 - 詳細は `docs/cms-write-workflow.md` を参照してください。
 - 旧 remote `cms-content` branch は未反映差分がないことを確認して削除済みです。

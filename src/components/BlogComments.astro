@@ -201,6 +201,7 @@ const sitekey = site.turnstileSiteKey?.trim() ?? ''
           sitekey,
           language: 'ja',
           theme: turnstileEl.dataset.theme || 'light',
+          'expired-callback': resetTurnstile,
         })
         turnstileEl.dataset.widgetId = String(widgetId)
       }
@@ -294,6 +295,7 @@ const sitekey = site.turnstileSiteKey?.trim() ?? ''
 
         const turnstileToken = getTurnstileToken()
         if (!turnstileToken) {
+          resetTurnstile()
           setFeedback('送信前の確認を完了してください。', 'error')
           return
         }

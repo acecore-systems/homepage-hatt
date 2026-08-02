@@ -1,14 +1,18 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 
-export type CmsAccessEnv = {
-  CMS_ACCESS_ALLOWED_EMAILS?: string
-  CMS_ACCESS_HOSTNAMES?: string
-  CMS_ACCESS_TEAM_DOMAIN?: string
-  CMS_ACCESS_AUD?: string
-  CMS_GITHUB_APP_CLIENT_ID?: string
-  CMS_GITHUB_APP_INSTALLATION_ID?: string
-  CMS_GITHUB_APP_PRIVATE_KEY?: string
-}
+export type CmsAccessEnv = Pick<
+  Cloudflare.Env,
+  | 'CMS_ACCESS_ALLOWED_EMAILS'
+  | 'CMS_GITHUB_APP_CLIENT_ID'
+  | 'CMS_GITHUB_APP_INSTALLATION_ID'
+  | 'CMS_GITHUB_APP_PRIVATE_KEY'
+> &
+  Partial<
+    Record<
+      'CMS_ACCESS_HOSTNAMES' | 'CMS_ACCESS_TEAM_DOMAIN' | 'CMS_ACCESS_AUD',
+      string
+    >
+  >
 
 type AccessIdentity =
   { ok: true; email: string } | { ok: false; status: number; message: string }

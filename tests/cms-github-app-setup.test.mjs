@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 
 import {
+  CMS_GITHUB_APP_SECRET_ENVIRONMENTS,
   buildGithubAppManifest,
   convertPrivateKeyToPkcs8,
   parseOptions,
@@ -27,6 +28,10 @@ test('セットアップに必要なWranglerを開発依存関係として固定
   assert.match(packageJson.devDependencies?.wrangler ?? '', /^\^4\./)
 })
 
+test('main書込鍵はCloudflare Pages productionだけへ設定する', () => {
+  assert.deepEqual(CMS_GITHUB_APP_SECRET_ENVIRONMENTS, ['production'])
+})
+
 test('GitHub App manifestは最小権限かつwebhook無効で生成する', () => {
   const manifest = buildGithubAppManifest(options, 'http://127.0.0.1:12345')
 
@@ -35,7 +40,6 @@ test('GitHub App manifestは最小権限かつwebhook無効で生成する', () 
   assert.deepEqual(manifest.default_events, [])
   assert.deepEqual(manifest.default_permissions, {
     contents: 'write',
-    pull_requests: 'write',
   })
   assert.deepEqual(manifest.hook_attributes, {
     active: false,
@@ -76,7 +80,6 @@ test('GitHub Appのインストール先を対象repositoryだけに制限する
     permissions: {
       contents: 'write',
       metadata: 'read',
-      pull_requests: 'write',
     },
     repository_selection: 'selected',
   }
@@ -113,7 +116,22 @@ test('GitHub Appのインストール先を対象repositoryだけに制限する
         repositories,
         options,
       ),
-    /Contents \/ Pull requests/,
+    /Contents/,
+  )
+  assert.throws(
+    () =>
+      validateInstallationScope(
+        {
+          ...installation,
+          permissions: {
+            ...installation.permissions,
+            pull_requests: 'write',
+          },
+        },
+        repositories,
+        options,
+      ),
+    /Contents/,
   )
 })
 
