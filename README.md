@@ -86,6 +86,7 @@ GitHub App を新規作成または置換するときは `npm run setup:cms-app`
 - 詳細は [CMS直接公開運用](docs/04_運用設計/01_CMS直接公開運用.md) を参照してください。
 
 設計文書の入口は [docs/README.md](docs/README.md) です。
+
 - 旧 remote `cms-content` branch は未反映差分がないことを確認して削除済みです。
 
 ## キャンペーン通知
