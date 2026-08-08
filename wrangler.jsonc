@@ -47,6 +47,9 @@
     "SHOP_ACCESS_TEAM_DOMAIN": "https://acecore.cloudflareaccess.com",
     "SHOP_ACCESS_AUD": "12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84",
     "SHOP_ACCESS_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev",
+    "SHOP_DISCLOSURE_ENABLED": "true",
+    "SHOP_DISCLOSURE_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net",
+    "SHOP_DISCLOSURE_TURNSTILE_SITE_KEY": "0x4AAAAAADgFdX0i7Etno1bL",
   },
   "services": [
     {
@@ -104,6 +107,9 @@
         "SHOP_ACCESS_TEAM_DOMAIN": "https://acecore.cloudflareaccess.com",
         "SHOP_ACCESS_AUD": "12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84",
         "SHOP_ACCESS_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev",
+        "SHOP_DISCLOSURE_ENABLED": "true",
+        "SHOP_DISCLOSURE_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net",
+        "SHOP_DISCLOSURE_TURNSTILE_SITE_KEY": "0x4AAAAAADgFdX0i7Etno1bL",
       },
       "services": [
         {
@@ -161,6 +167,9 @@
         "SHOP_ACCESS_TEAM_DOMAIN": "https://acecore.cloudflareaccess.com",
         "SHOP_ACCESS_AUD": "12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84",
         "SHOP_ACCESS_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev",
+        "SHOP_DISCLOSURE_ENABLED": "true",
+        "SHOP_DISCLOSURE_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net",
+        "SHOP_DISCLOSURE_TURNSTILE_SITE_KEY": "0x4AAAAAADgFdX0i7Etno1bL",
       },
       "services": [
         {
