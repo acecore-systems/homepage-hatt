@@ -36,11 +36,11 @@
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.1.5",
+    "astro": "^7.1.6",
     "fast-xml-parser": "^5.10.1",
     "graphql": "^17.0.2",
     "js-yaml": "^5.2.2",
-    "jose": "^6.2.4",
+    "jose": "^6.2.5",
     "rehype-external-links": "^3.0.0",
     "satori": "^0.29.0",
     "sharp": "^0.35.3",
@@ -57,7 +57,7 @@
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^7.0.2",
     "unocss": "^66.7.5",
-    "wrangler": "^4.115.0"
+    "wrangler": "^4.116.0"
   },
   "overrides": {
     "sharp": "$sharp"
