@@ -83,7 +83,10 @@ GitHub App を新規作成または置換するときは `npm run setup:cms-app`
 - Functions、CMS設定、schema、workflow、サイトコードなどの変更は通常のbranch・PR・CIを通します。CMS用GitHub Appはこれらのpathへ書き込めません。
 - `main` のrepository rulesetでは通常のPR・CI要件を維持し、repository限定の `Acecore Hatt CMS` Appだけをbypass actorに指定します。
 - Cloudflare Pages の production deploy 元は GitHub 連携の `main` にします。
-- 詳細は `docs/cms-write-workflow.md` を参照してください。
+- 詳細は [CMS直接公開運用](docs/04_運用設計/01_CMS直接公開運用.md) を参照してください。
+
+設計文書の入口は [docs/README.md](docs/README.md) です。
+
 - 旧 remote `cms-content` branch は未反映差分がないことを確認して削除済みです。
 
 ## キャンペーン通知
