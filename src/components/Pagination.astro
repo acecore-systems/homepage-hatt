@@ -19,7 +19,7 @@ const nextPage = currentPage < totalPages ? currentPage + 1 : undefined
         href={previousPage ? getBlogPagePath(previousPage) : undefined}
         aria-disabled={!previousPage}
       >
-        <span class="i-lucide-chevron-left" aria-hidden="true" />
+        <span class="icon-[lucide--chevron-left]" aria-hidden="true" />
         前へ
       </a>
       <ol>
@@ -44,7 +44,7 @@ const nextPage = currentPage < totalPages ? currentPage + 1 : undefined
         aria-disabled={!nextPage}
       >
         次へ
-        <span class="i-lucide-chevron-right" aria-hidden="true" />
+        <span class="icon-[lucide--chevron-right]" aria-hidden="true" />
       </a>
     </nav>
   )

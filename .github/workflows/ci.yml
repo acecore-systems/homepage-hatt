@@ -36,6 +36,9 @@ jobs:
       - name: Validate CMS content
         run: npm run validate:content
 
+      - name: Test UI foundation
+        run: npm run test:ui-foundation
+
       - name: Test CMS proxy
         run: npm run test:cms
 

@@ -14,7 +14,10 @@ const { title = 'よくある質問', items = [] } = Astro.props as {
           <details>
             <summary>
               <span>{item.question}</span>
-              <span class="i-lucide-chevron-down" aria-hidden="true" />
+              <span
+                class="faq-chevron icon-[lucide--chevron-down]"
+                aria-hidden="true"
+              />
             </summary>
             <p>{item.answer}</p>
           </details>
