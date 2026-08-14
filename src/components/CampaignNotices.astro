@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import { normalizeIconClass } from '@/utils/icon-class'
 import { isWithinPublicationWindow } from '@/utils/publication-window'
 import { externalAttrs } from '@/utils/routes'
 
@@ -24,10 +25,10 @@ const notices = campaigns
   )
 
 const toneIcon = {
-  cyan: 'i-lucide-sparkles',
-  ember: 'i-lucide-flame',
-  mint: 'i-lucide-leaf',
-  pollen: 'i-lucide-star',
+  cyan: 'icon-[lucide--sparkles]',
+  ember: 'icon-[lucide--flame]',
+  mint: 'icon-[lucide--leaf]',
+  pollen: 'icon-[lucide--star]',
 }
 ---
 
@@ -35,7 +36,8 @@ const toneIcon = {
   notices.map((notice) => {
     const isBanner = notice.data.kind === 'banner' || placement === 'global'
     const href = notice.data.href?.trim()
-    const icon = notice.data.icon?.trim() || toneIcon[notice.data.tone]
+    const icon =
+      normalizeIconClass(notice.data.icon) ?? toneIcon[notice.data.tone]
     const startsAt = notice.data.startsAt?.trim() || undefined
     const endsAt = notice.data.endsAt?.trim() || undefined
     const isPublished = isWithinPublicationWindow(startsAt, endsAt)
@@ -76,7 +78,7 @@ const toneIcon = {
               data-hatt-location={placement}
             >
               {notice.data.ctaLabel}
-              <span class="i-lucide-arrow-right" aria-hidden="true" />
+              <span class="icon-[lucide--arrow-right]" aria-hidden="true" />
             </a>
           )}
         </div>
