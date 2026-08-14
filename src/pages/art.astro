@@ -100,4 +100,43 @@ const getArtTileClass = (index: number): string | undefined => {
       }
     </div>
   </section>
+  <section
+    class="section-band art-live-section"
+    aria-labelledby="art-live-title"
+  >
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="art-live-title">Xの最新投稿</h2>
+        </div>
+        <p>最新の公開投稿をXの公式タイムラインから直接表示しています。</p>
+      </div>
+      <div class="art-live-feed">
+        <div class="art-live-feed-bar">
+          <strong>@borubin</strong>
+          <a href={profileUrl} {...externalAttrs(profileUrl)}>
+            Xで開く
+            <span class="i-lucide-external-link" aria-hidden="true"></span>
+          </a>
+        </div>
+        <a
+          class="twitter-timeline"
+          data-dnt="true"
+          data-theme="light"
+          data-lang="ja"
+          data-height="900"
+          data-chrome="noheader nofooter noborders transparent"
+          href={profileUrl}
+          {...externalAttrs(profileUrl)}
+        >
+          HattのX最新投稿を見る
+        </a>
+      </div>
+    </div>
+  </section>
+  <script
+    is:inline
+    async
+    src="https://platform.x.com/widgets.js"
+    charset="utf-8"></script>
 </BaseLayout>

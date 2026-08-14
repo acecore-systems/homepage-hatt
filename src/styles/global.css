@@ -737,6 +737,51 @@ main {
   text-decoration: none;
 }
 
+.art-live-section {
+  border-top: 1px solid rgba(21, 26, 36, 0.08);
+  background: rgba(159, 216, 227, 0.08);
+}
+
+.art-live-feed {
+  width: min(720px, 100%);
+  overflow: hidden;
+  margin-inline: auto;
+  border: 1px solid rgba(21, 26, 36, 0.1);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: 0 16px 42px rgba(21, 26, 36, 0.07);
+}
+
+.art-live-feed-bar {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(21, 26, 36, 0.08);
+  padding: 12px 16px;
+}
+
+.art-live-feed-bar a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-700);
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.art-live-feed .twitter-timeline {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  padding: 24px;
+  color: var(--ink-700);
+  font-weight: 800;
+  text-align: center;
+}
+
 .external-card {
   display: grid;
   align-content: start;
