@@ -1,0 +1,28 @@
+{
+  "slug": "harushiyu-avatar",
+  "title": "【オリジナル3Dモデル】ハルシユ",
+  "category": "modeling",
+  "summary": "カマキリエイリアンをモチーフにしたVRChat想定3Dモデルです。",
+  "description": "関節が一つ多い鎌を持つカマキリエイリアンの3Dモデルです。スルメの耳飾りが付属します。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/harushiyu-avatar.jpg",
+      "alt": "ハルシユの紹介画像"
+    }
+  ],
+  "priceJpy": 1500,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/harushiyu-avatar.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/6898442",
+  "features": [
+    "VRChatでの使用を想定した3Dモデルです。",
+    "カマキリエイリアンをモチーフにしています。",
+    "スルメの耳飾りが同梱されています。"
+  ],
+  "order": 30,
+  "featured": true
+}

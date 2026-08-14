@@ -1,0 +1,26 @@
+{
+  "slug": "cheer-beetle-set",
+  "title": "【3Dアバター】応援する「クワガタ＆カブト」セット【無料】",
+  "category": "modeling",
+  "summary": "チアリーディングクワガタとセコンドカブトの無料3Dアバターセットです。",
+  "description": "VRChat向け3Dアバターデータです。BOOTHでは無料配布されています。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/cheer-beetle-set.jpg",
+      "alt": "応援するクワガタ＆カブトセットの紹介画像"
+    }
+  ],
+  "priceJpy": 0,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "externalUrl": "https://vetumheberehama.booth.pm/items/7219631",
+  "features": [
+    "チアリーディングクワガタとセコンドカブトのセットです。",
+    "それぞれ別のフォルダに入ったVRChat向けアバターです。",
+    "無料配布品のためStripe決済対象外です。"
+  ],
+  "order": 60,
+  "featured": false
+}

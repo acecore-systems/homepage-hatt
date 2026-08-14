@@ -6,6 +6,8 @@ import {
   blogContentSchema,
   campaignContentSchema,
   modelingContentSchema,
+  shopProductContentSchema,
+  shopSettingsContentSchema,
   siteContentSchema,
   tagContentSchema,
 } from './content-schemas'
@@ -65,6 +67,22 @@ const campaigns = defineCollection({
   schema: campaignContentSchema,
 })
 
+const products = defineCollection({
+  loader: glob({
+    base: './src/content/products',
+    pattern: '**/*.json',
+  }),
+  schema: shopProductContentSchema,
+})
+
+const shopSettings = defineCollection({
+  loader: glob({
+    base: './src/content/shop-settings',
+    pattern: '**/*.json',
+  }),
+  schema: shopSettingsContentSchema,
+})
+
 const site = defineCollection({
   loader: glob({
     base: './src/content/site',
@@ -89,6 +107,8 @@ export const collections = {
   blog,
   campaigns,
   modeling,
+  products,
   site,
+  shopSettings,
   tags,
 }

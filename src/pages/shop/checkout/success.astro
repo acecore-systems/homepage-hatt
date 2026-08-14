@@ -1,0 +1,100 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="購入完了"
+  description="ショップの購入完了ページです。"
+  canonicalPath="/shop/checkout/success/"
+  robots="noindex,nofollow"
+>
+  <section class="page-hero">
+    <div class="section-inner narrow-page shop-result" data-shop-success>
+      <p class="hero-note">
+        <span class="i-lucide-circle-check" aria-hidden="true"></span>
+        Checkout
+      </p>
+      <h1>購入ありがとうございます</h1>
+      <p class="lead" data-shop-success-message>注文情報を確認しています。</p>
+      <div class="shop-order-detail" data-shop-order-detail></div>
+      <div class="button-row">
+        <a class="secondary-button" href="/shop/">ショップへ戻る</a>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    ;(() => {
+      const message = document.querySelector('[data-shop-success-message]')
+      const detail = document.querySelector('[data-shop-order-detail]')
+
+      function formatJpy(amount) {
+        return new Intl.NumberFormat('ja-JP', {
+          style: 'currency',
+          currency: 'JPY',
+          maximumFractionDigits: 0,
+        }).format(amount)
+      }
+
+      function appendText(tag, text, className) {
+        const element = document.createElement(tag)
+        if (className) element.className = className
+        element.textContent = text
+        detail.append(element)
+        return element
+      }
+
+      async function loadOrder() {
+        const sessionId = new URLSearchParams(window.location.search).get(
+          'session_id',
+        )
+        if (!sessionId) throw new Error('注文情報が見つかりません。')
+
+        const response = await fetch(
+          `/api/shop/order?session_id=${encodeURIComponent(sessionId)}`,
+        )
+        const payload = await response.json()
+        if (!response.ok || !payload.order) {
+          throw new Error(payload.message || '注文情報を取得できませんでした。')
+        }
+
+        localStorage.removeItem('hattShopCart:v1')
+        window.dispatchEvent(new CustomEvent('hatt-shop:cart-change'))
+
+        const order = payload.order
+        message.textContent =
+          '支払いが完了しました。受け渡し方法を確認してください。'
+        detail.replaceChildren()
+        appendText('h2', `注文番号 ${order.id}`)
+        appendText('p', `合計 ${formatJpy(order.totalJpy)}`)
+
+        const list = document.createElement('div')
+        list.className = 'shop-download-list'
+        order.items.forEach((item) => {
+          const row = document.createElement('article')
+          const title = document.createElement('h3')
+          title.textContent = item.title
+          const state = document.createElement('p')
+          state.textContent = item.itemStatus
+          row.append(title, state)
+
+          if (item.downloadUrl) {
+            const link = document.createElement('a')
+            link.className = 'primary-button'
+            link.href = item.downloadUrl
+            link.textContent = 'ダウンロード'
+            row.append(link)
+          }
+
+          list.append(row)
+        })
+        detail.append(list)
+      }
+
+      loadOrder().catch((error) => {
+        message.textContent =
+          error instanceof Error ? error.message : String(error)
+      })
+    })()
+  </script>
+</BaseLayout>

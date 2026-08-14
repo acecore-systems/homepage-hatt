@@ -1,0 +1,28 @@
+{
+  "slug": "kachatori-avatar",
+  "title": "カチャトリ3Dモデル【給食調理員フクロウ】",
+  "category": "modeling",
+  "summary": "ベンガルワシミミズクの給食調理員をモチーフにしたVRChat向け3Dアバターです。",
+  "description": "VRChat向けオリジナル3Dアバターデータです。調理器具、表情シェイプキー、目をかっぴらく動作が特徴です。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/kachatori-avatar.jpg",
+      "alt": "カチャトリ3Dモデルの紹介画像"
+    }
+  ],
+  "priceJpy": 1500,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/kachatori-avatar.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/7084066",
+  "features": [
+    "VRChat向けオリジナル3Dアバターです。",
+    "給食調理員のフクロウをモチーフにしています。",
+    "調理器具と表情シェイプキーを収録しています。"
+  ],
+  "order": 50,
+  "featured": true
+}

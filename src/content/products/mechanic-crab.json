@@ -1,0 +1,28 @@
+{
+  "slug": "mechanic-crab",
+  "title": "メカニックカニ3Dモデル（ペットギミックミニカニックミニ付属）",
+  "category": "modeling",
+  "summary": "機械のカニと子供のミニカニックミニが付属するVRChat向けアバターです。",
+  "description": "Avatar 3.0、PhysBone対応のPC向けオリジナルアバターデータです。ペットギミック、スパナ、ポケット開閉を収録しています。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/mechanic-crab.jpg",
+      "alt": "メカニックカニ3Dモデルの紹介画像"
+    }
+  ],
+  "priceJpy": 2000,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/mechanic-crab.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/7551795",
+  "features": [
+    "機械のカニ本体と子供のミニカニックミニが付属します。",
+    "目を掴んで変形できるシェイプキーがあります。",
+    "ペットギミック、スパナ、ポケット開閉に対応しています。"
+  ],
+  "order": 80,
+  "featured": true
+}

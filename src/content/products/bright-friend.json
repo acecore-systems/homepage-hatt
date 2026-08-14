@@ -1,0 +1,28 @@
+{
+  "slug": "bright-friend",
+  "title": "【VRC想定】あかるい友達【アバターライト】3タイプセット",
+  "category": "modeling",
+  "summary": "手乗り、カンテラ、杖付きカンテラの3タイプを収録したVRChat想定アバターライトです。",
+  "description": "大抵のアバターで使えるVRC想定アバターライトです。通常版は手乗り、カンテラ、杖付きカンテラの3タイプを収録しています。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/bright-friend.jpg",
+      "alt": "あかるい友達の紹介画像"
+    }
+  ],
+  "priceJpy": 800,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/bright-friend.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/8122132",
+  "features": [
+    "手乗り、カンテラ、杖付きカンテラの3タイプを収録しています。",
+    "呼び出し、光量調整、収納、ワールド固定に対応しています。",
+    "Modular AvatarとlilToonを前提にしたVRChat向け小道具です。"
+  ],
+  "order": 140,
+  "featured": true
+}

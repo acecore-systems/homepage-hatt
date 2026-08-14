@@ -10,15 +10,20 @@ const CONTENT_RULES = [
   { prefix: 'src/content/blog/', extension: '.md' },
   { prefix: 'src/content/campaigns/', extension: '.json' },
   { prefix: 'src/content/modeling/', extension: '.json' },
+  { prefix: 'src/content/products/', extension: '.json' },
   { prefix: 'src/content/tags/', extension: '.json' },
 ] as const
 
-const CONTENT_FILES = new Set(['src/content/site/main.json'])
+const CONTENT_FILES = new Set([
+  'src/content/site/main.json',
+  'src/content/shop-settings/main.json',
+])
 const DELETABLE_CONTENT_PREFIXES = new Set([
   'src/content/art/',
   'src/content/blog/',
   'src/content/campaigns/',
   'src/content/modeling/',
+  'src/content/products/',
 ])
 
 const MEDIA_PREFIX = 'public/uploads/hatt/'

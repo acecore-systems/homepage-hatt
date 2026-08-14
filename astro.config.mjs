@@ -21,6 +21,9 @@ export default defineConfig({
           /\/blog\/archive\//,
           /\/blog\/author\//,
           /\/blog\/search\//,
+          /\/shop\/admin\//,
+          /\/shop\/checkout\//,
+          /\/shop\/catalog\.json/,
         ].some((pattern) => pattern.test(page)),
       serialize(item) {
         const lastmod = sitemapLastmod(item.url)

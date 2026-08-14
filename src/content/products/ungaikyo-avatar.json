@@ -1,0 +1,28 @@
+{
+  "slug": "ungaikyo-avatar",
+  "title": "【オリジナル3Dモデル】雲外鏡【顔奪いギミック付き】",
+  "category": "modeling",
+  "summary": "鏡の妖怪とムラサキカガミをモチーフにしたVRChat向け3Dモデルです。",
+  "description": "雲外鏡をモチーフに、顔奪いギミックを備えたオリジナル3Dモデルです。通常版です。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/ungaikyo-avatar.jpg",
+      "alt": "雲外鏡の紹介画像"
+    }
+  ],
+  "priceJpy": 500,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/ungaikyo-avatar.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/6898514",
+  "features": [
+    "江戸時代の妖怪と都市伝説を合わせたモチーフです。",
+    "顔奪いギミック付きの3Dモデルです。",
+    "BOOTHの通常版と同等の商品です。"
+  ],
+  "order": 40,
+  "featured": true
+}

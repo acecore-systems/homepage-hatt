@@ -67,6 +67,7 @@ dist
 
 # Astro
 .astro
+functions/api/shop/_catalog.generated.ts
 
 # Local coding assistant state
 .serena/

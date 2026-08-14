@@ -1,0 +1,26 @@
+{
+  "slug": "paper-cutting-mantis",
+  "title": "紙切り虫（カマキリ）",
+  "category": "picture",
+  "summary": "紙を切ってカマキリの形にするための設計図です。",
+  "description": "紙切り虫シリーズのカマキリ設計図です。BOOTHでは無料配布されています。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/paper-cutting-mantis.jpg",
+      "alt": "紙切り虫（カマキリ）の紹介画像"
+    }
+  ],
+  "priceJpy": 0,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "externalUrl": "https://vetumheberehama.booth.pm/items/2763392",
+  "features": [
+    "紙を切って昆虫の形にするための設計図です。",
+    "難易度は低めです。",
+    "無料配布品のためStripe決済対象外です。"
+  ],
+  "order": 10,
+  "featured": false
+}

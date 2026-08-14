@@ -14,6 +14,7 @@
 | ホスティング | Cloudflare Pages                      |
 | 広告         | Google AdSense                        |
 | コメント     | Cloudflare Pages Functions + D1       |
+| ショップ     | Stripe Checkout + D1 + R2             |
 
 ## 開発
 
@@ -96,6 +97,60 @@ GitHub App を新規作成または置換するときは `npm run setup:cms-app`
 - `種別: トップ告知バナー` はサイト上部に表示されます。
 - `種別: ページ内キャンペーン通知` は選択した表示位置に表示されます。
 - `表示する`、`表示開始日時`、`表示終了日時` で公開期間を制御します。日時は日本時間として扱われ、デプロイ済みのページ上でも訪問者の表示時刻で自動的に切り替わります。
+
+## ショップ
+
+`/shop/` で絵・小説・3D作品・グッズを横断する商品カタログを表示します。BOOTH で公開中のエースコア商品は `products` に移し、サイト側のカートから Stripe Checkout に進む構成です。カートはブラウザの `localStorage` に `productId` と `quantity` だけを保存し、価格・在庫・受け渡し方法は `/api/shop/checkout` でサーバー側再検証します。
+
+CMS では以下を編集できます。
+
+- 商品: `src/content/products/*.json`
+- ショップ設定: `src/content/shop-settings/main.json`
+
+決済は `shop-settings/main.json` の `checkoutEnabled` が `true` で、販売者情報・返品・プライバシー・利用条件が埋まっている場合だけ開始できます。所在地は公開掲載のほか、請求時開示を選べます。請求時開示ではCMSのURL・プロファイル版、CloudflareのSecret、D1 migrationがすべて揃わない限り、Pages Functionがcheckoutを停止します。無料配布品は一覧に表示しますが、Stripe Checkout の対象外です。
+
+Cloudflare Pages 側で以下を設定してください。
+
+- D1 binding: `SHOP_DB` (`homepage-hatt-shop`)
+- R2 binding: `SHOP_FILES` (`homepage-hatt-shop-files`)
+- Secret: `STRIPE_SECRET_KEY`
+- Secret: `STRIPE_WEBHOOK_SECRET`
+- Secret: `SHOP_DOWNLOAD_TOKEN_SECRET`
+- Variable: `SHOP_DISCLOSURE_ENABLED=true`（所在地の請求時開示を有効化するProduction環境だけ）
+- Variable: `SHOP_DISCLOSURE_TURNSTILE_SITE_KEY`（サイト設定のTurnstile公開Site Keyと同じ値）
+- Optional variable: `SHOP_DISCLOSURE_ALLOWED_HOSTNAMES`（既定値は`hatt.acecore.net,www.hatt.acecore.net`）
+- Secret: `SHOP_DISCLOSURE_HMAC_SECRET`（ランダムな32文字以上の値）
+- Secret: `SHOP_DISCLOSURE_SERVICE_TOKEN`（専用Workerの`DISCLOSURE_SERVICE_TOKEN`と同じランダムな32文字以上の値）
+- Service binding: `DISCLOSURE_EMAIL_SERVICE` -> `homepage-hatt-disclosure-email`
+- Variable: `SHOP_CONTACT_EMAIL_FROM=Hatt shop <noreply@hatt.acecore.net>`
+- Variable: `SHOP_CONTACT_EMAIL_TO=borubin@outlook.jp`
+- Service binding: `COURSE_EMAIL_SERVICE` -> `homepage-hatt-course-email`
+- Variable: `SHOP_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
+- Variable: `SHOP_ACCESS_AUD=12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84`
+- Variable: `SHOP_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev`
+
+ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` から順に適用します。請求時開示には `migrations/shop/0002_add_seller_disclosure_requests.sql` が必要です。コメント用 D1 とは migration directory を分けています。
+
+所在地を請求時開示にする場合は、CMSで`所在地の表示方法`を`請求時にメールで開示する`にして、`所在地の開示請求URL`を`/shop/legal/disclosure-request/`、`所在地開示プロファイル版`を例えば`v1`に設定します。実住所はPages・CMS・Git・`wrangler.jsonc`に保存せず、専用WorkerのSecretだけに保存します。Workerは公開済みの事業者名、販売責任者、電話番号、プロファイル版と完全に一致しない限り、メールを送信しません。
+
+専用Workerには`DISCLOSURE_SERVICE_TOKEN`と、次の形式の`DISCLOSURE_LEGAL_DETAILS_JSON`をSecretとして設定します。`workers.dev` URLは無効にし、Pagesからの`DISCLOSURE_EMAIL_SERVICE`だけを受け付けます。
+
+```json
+{
+  "version": 1,
+  "profileVersion": "v1",
+  "businessName": "公開済みの事業者名",
+  "sellerName": "公開済みの販売責任者名",
+  "address": "実住所",
+  "phone": "公開済みの電話番号"
+}
+```
+
+開示請求は`/shop/legal/disclosure-request/`で受け付けます。メールアドレスとIPアドレスは平文保存せずHMAC化した識別子だけをD1へ記録し、送信状態とともに90日後に削除します。専用フォームは本番カスタムドメインでのみ有効にし、Previewでは問い合わせ窓口へフォールバックします。
+
+デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
+
+管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、Pages Functions でも Access JWT の署名・発行元・audience を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。
 
 ## ブログコメント
 

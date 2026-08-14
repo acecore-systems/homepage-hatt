@@ -1,0 +1,27 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "homepage-hatt-disclosure-email",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-02",
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["noreply@hatt.acecore.net"],
+    },
+  ],
+  "vars": {
+    "DISCLOSURE_FROM_ADDRESS": "noreply@hatt.acecore.net",
+  },
+  "secrets": {
+    "required": ["DISCLOSURE_SERVICE_TOKEN", "DISCLOSURE_LEGAL_DETAILS_JSON"],
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+    },
+  },
+}

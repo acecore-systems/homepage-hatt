@@ -1,0 +1,28 @@
+{
+  "slug": "bright-friend-support",
+  "title": "あかるい友達 COCOS食べ放題作者応援版",
+  "category": "modeling",
+  "summary": "あかるい友達の作者応援版です。内容物は通常版と同じです。",
+  "description": "BOOTHの「COCOS食べ放題作者応援版（内容物は同じ）」に合わせた商品です。配布内容は通常版と同じです。",
+  "images": [
+    {
+      "src": "/uploads/hatt/shop/bright-friend.jpg",
+      "alt": "あかるい友達 作者応援版の紹介画像"
+    }
+  ],
+  "priceJpy": 1205,
+  "status": "published",
+  "fulfillmentType": "digital",
+  "stock": 999,
+  "maxQuantity": 1,
+  "r2ObjectKey": "products/bright-friend.zip",
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/8122132",
+  "features": [
+    "内容物は通常版と同じです。",
+    "作者応援用の価格設定です。",
+    "購入後は通常版と同じ配布ファイルを受け取ります。"
+  ],
+  "order": 141,
+  "featured": false
+}

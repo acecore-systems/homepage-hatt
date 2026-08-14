@@ -1,0 +1,123 @@
+<script is:inline>
+  ;(() => {
+    const SHOP_CART_KEY = 'hattShopCart:v1'
+
+    function readShopCart() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(SHOP_CART_KEY) || '[]')
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+
+    function writeShopCart(items) {
+      localStorage.setItem(SHOP_CART_KEY, JSON.stringify(items))
+      window.dispatchEvent(new CustomEvent('hatt-shop:cart-change'))
+    }
+
+    function updateShopCartCount() {
+      const count = readShopCart().reduce(
+        (sum, item) => sum + Math.max(0, Number(item.quantity || 0)),
+        0,
+      )
+      document.querySelectorAll('[data-shop-cart-count]').forEach((element) => {
+        element.textContent = String(count)
+        element.hidden = count === 0
+      })
+    }
+
+    function addToShopCart(productId, quantity = 1) {
+      const cart = readShopCart()
+      const existing = cart.find((item) => item.productId === productId)
+
+      if (existing) {
+        existing.quantity = Math.max(
+          1,
+          Number(existing.quantity || 0) + quantity,
+        )
+      } else {
+        cart.push({ productId, quantity })
+      }
+
+      writeShopCart(cart)
+      updateShopCartCount()
+    }
+
+    document.addEventListener('click', (event) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+
+      const button = target.closest('[data-shop-add]')
+      if (!button) return
+
+      const productId = button.getAttribute('data-shop-add')
+      if (!productId) return
+
+      addToShopCart(productId)
+      button.dispatchEvent(
+        new CustomEvent('hatt-shop:item-added', { bubbles: true }),
+      )
+    })
+
+    window.addEventListener('storage', updateShopCartCount)
+    window.addEventListener('hatt-shop:cart-change', updateShopCartCount)
+    updateShopCartCount()
+
+    async function confirmSellerDisclosureReadiness() {
+      const controls = [
+        ...document.querySelectorAll('[data-shop-disclosure-required="true"]'),
+      ].filter((element) => element instanceof HTMLButtonElement)
+      if (controls.length === 0) return
+
+      controls.forEach((control) => {
+        control.dataset.shopDisclosureReady = 'pending'
+        control.disabled = true
+      })
+
+      let enabled = false
+      try {
+        const response = await fetch('/api/shop/disclosure-request', {
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(8_000),
+        })
+        const payload = await response.json().catch(() => ({}))
+        enabled = Boolean(response.ok && payload.ok && payload.enabled)
+      } catch {
+        enabled = false
+      }
+
+      controls.forEach((control) => {
+        control.dataset.shopDisclosureReady = enabled ? 'true' : 'false'
+        if (
+          enabled &&
+          control.hasAttribute('data-shop-disclosure-enable-on-ready')
+        ) {
+          control.disabled = false
+        }
+      })
+      document
+        .querySelectorAll('[data-shop-runtime-disclosure-alert]')
+        .forEach((alert) => {
+          alert.hidden = enabled
+        })
+      window.dispatchEvent(
+        new CustomEvent('hatt-shop:disclosure-readiness', {
+          detail: { enabled },
+        }),
+      )
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener(
+        'DOMContentLoaded',
+        confirmSellerDisclosureReadiness,
+        {
+          once: true,
+        },
+      )
+    } else {
+      void confirmSellerDisclosureReadiness()
+    }
+  })()
+</script>

@@ -39,6 +39,9 @@ jobs:
       - name: Test CMS proxy
         run: npm run test:cms
 
+      - name: Test shop administration access
+        run: npm run test:shop
+
       - name: Test sitemap modification dates
         run: npm run test:sitemap
 
@@ -56,6 +59,15 @@ jobs:
 
       - name: Test Course email Worker
         run: npm run test:course-email
+
+      - name: Check disclosure email Worker bindings
+        run: npm run types:disclosure-email:check
+
+      - name: Type-check disclosure email Worker
+        run: npm run typecheck:disclosure-email
+
+      - name: Test disclosure email Worker
+        run: npm run test:disclosure-email
 
       - name: Build site
         run: npm run build
