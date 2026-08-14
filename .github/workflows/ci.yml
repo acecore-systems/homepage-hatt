@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - src/data/external/novels.json
+      - src/data/external/youtube-videos.json
   push:
     branches:
       - main
@@ -41,6 +44,9 @@ jobs:
 
       - name: Test sitemap modification dates
         run: npm run test:sitemap
+
+      - name: Test external feed snapshots
+        run: npm run test:external-feed
 
       - name: Check Pages Function bindings
         run: npm run types:functions:check

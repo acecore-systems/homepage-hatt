@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { XMLParser } from 'fast-xml-parser'
 
 const root = process.cwd()
@@ -14,6 +15,15 @@ const youtubeXmlParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
 })
+
+// These values change independently of the site's actual catalog content and
+// should not trigger a commit or a Cloudflare Pages build on their own.
+const volatileComparisonKeys = new Set([
+  'globalPoint',
+  'syncedAt',
+  'updatedAt',
+  'views',
+])
 
 function asArray(value) {
   if (!value) return []
@@ -57,18 +67,17 @@ async function syncNovels() {
     story: item.story,
     firstPublishedAt: formatNarouDate(item.general_firstup),
     lastUpdatedAt: formatNarouDate(item.general_lastup),
-    updatedAt: formatNarouDate(item.updated_at),
     totalParts: item.general_all_no,
     length: item.length,
     readingMinutes: item.time,
     isCompleted: item.end === 1,
     isStopped: item.isstop === 1,
     type: item.novel_type === 2 ? 'short' : 'serial',
-    globalPoint: item.global_point,
   }))
 
   return {
     source: 'syosetu',
+    schemaVersion: 1,
     userId: narouUserId,
     authorUrl: narouAuthorUrl,
     syncedAt: new Date().toISOString(),
@@ -89,9 +98,6 @@ async function syncYoutubeVideos() {
       const url =
         entry.link?.['@_href'] ?? `https://www.youtube.com/watch?v=${videoId}`
       const description = mediaGroup['media:description'] ?? ''
-      const views = Number(
-        mediaGroup['media:community']?.['media:statistics']?.['@_views'] ?? 0,
-      )
 
       return {
         videoId,
@@ -104,9 +110,7 @@ async function syncYoutubeVideos() {
         authorName: entry.author?.name ?? 'Hatt',
         authorUrl: entry.author?.uri ?? youtubeChannelUrl,
         publishedAt: entry.published ?? '',
-        updatedAt: entry.updated ?? '',
         description,
-        views,
       }
     })
     .filter((video) => video.videoId && video.title)
@@ -114,6 +118,7 @@ async function syncYoutubeVideos() {
 
   return {
     source: 'youtube-rss',
+    schemaVersion: 1,
     channelId: youtubeChannelId,
     channelUrl: youtubeChannelUrl,
     feedUrl: youtubeFeedUrl,
@@ -125,22 +130,90 @@ async function syncYoutubeVideos() {
   }
 }
 
-async function writeJson(fileName, data) {
-  await fs.mkdir(outDir, { recursive: true })
-  await fs.writeFile(
-    path.join(outDir, fileName),
-    `${JSON.stringify(data, null, 2)}\n`,
+function comparableContent(value) {
+  if (Array.isArray(value)) {
+    return value.map(comparableContent)
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([key]) => !volatileComparisonKeys.has(key))
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, comparableContent(item)]),
+    )
+  }
+
+  return value
+}
+
+export function hasMeaningfulChanges(current, next) {
+  return (
+    JSON.stringify(comparableContent(current)) !==
+    JSON.stringify(comparableContent(next))
   )
 }
 
-const [novels, youtubeVideos] = await Promise.all([
-  syncNovels(),
-  syncYoutubeVideos(),
-])
+export async function writeJsonIfChanged(
+  fileName,
+  data,
+  { outputDirectory = outDir, now = () => new Date().toISOString() } = {},
+) {
+  const filePath = path.join(outputDirectory, fileName)
+  let current
 
-await writeJson('novels.json', novels)
-await writeJson('youtube-videos.json', youtubeVideos)
+  try {
+    current = JSON.parse(await fs.readFile(filePath, 'utf8'))
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error
+  }
 
-console.log(
-  `Synced ${novels.works.length} novels and ${youtubeVideos.videos.length} YouTube videos.`,
-)
+  if (current && !hasMeaningfulChanges(current, data)) {
+    return false
+  }
+
+  await fs.mkdir(outputDirectory, { recursive: true })
+  await fs.writeFile(
+    filePath,
+    `${JSON.stringify({ ...data, syncedAt: now() }, null, 2)}\n`,
+  )
+
+  return true
+}
+
+async function main() {
+  const [novels, youtubeVideos] = await Promise.all([
+    syncNovels(),
+    syncYoutubeVideos(),
+  ])
+  const syncedAt = new Date().toISOString()
+  const [novelsChanged, youtubeVideosChanged] = await Promise.all([
+    writeJsonIfChanged('novels.json', novels, { now: () => syncedAt }),
+    writeJsonIfChanged('youtube-videos.json', youtubeVideos, {
+      now: () => syncedAt,
+    }),
+  ])
+  const changedFeeds = [
+    novelsChanged && 'novels',
+    youtubeVideosChanged && 'YouTube videos',
+  ].filter(Boolean)
+
+  if (changedFeeds.length === 0) {
+    console.log(
+      `External content is already current (${novels.works.length} novels and ${youtubeVideos.videos.length} YouTube videos).`,
+    )
+    return
+  }
+
+  console.log(
+    `Updated ${changedFeeds.join(' and ')} (${novels.works.length} novels and ${youtubeVideos.videos.length} YouTube videos).`,
+  )
+}
+
+const isEntryPoint = process.argv[1]
+  ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  : false
+
+if (isEntryPoint) {
+  await main()
+}
