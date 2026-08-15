@@ -5,6 +5,21 @@ import path from 'node:path'
 import test from 'node:test'
 import { writeJsonIfChanged } from '../scripts/sync-external-feeds.mjs'
 
+test('絵ページはX公式タイムラインを作品ギャラリーより先に表示する', async () => {
+  const source = await fs.readFile(
+    new URL('../src/pages/art.astro', import.meta.url),
+    'utf8',
+  )
+  const liveSectionIndex = source.indexOf('art-live-section')
+  const gallerySectionIndex = source.indexOf('art-gallery-section')
+
+  assert.notEqual(liveSectionIndex, -1)
+  assert.notEqual(gallerySectionIndex, -1)
+  assert.ok(liveSectionIndex < gallerySectionIndex)
+  assert.match(source, /class="twitter-timeline"/)
+  assert.match(source, /src="https:\/\/platform\.x\.com\/widgets\.js"/)
+})
+
 test('外部フィードは表示内容が変わった場合だけ書き換える', async (t) => {
   const outputDirectory = await fs.mkdtemp(
     path.join(os.tmpdir(), 'homepage-hatt-external-feed-'),

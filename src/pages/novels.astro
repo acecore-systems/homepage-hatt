@@ -19,7 +19,7 @@ const formatDate = (value: string) =>
     <div class="section-inner external-feature">
       <div>
         <p class="hero-note">
-          <span class="i-lucide-book-open" aria-hidden="true"></span>
+          <span class="icon-[lucide--book-open]" aria-hidden="true"></span>
           小説家になろう
         </p>
         <h1>小説</h1>
@@ -54,7 +54,7 @@ const formatDate = (value: string) =>
         </div>
       </div>
       <div class="external-preview external-preview--novels">
-        <span class="i-lucide-pen-line" aria-hidden="true"></span>
+        <span class="icon-[lucide--pen-line]" aria-hidden="true"></span>
       </div>
     </div>
   </section>
@@ -98,7 +98,10 @@ const formatDate = (value: string) =>
                 {...externalAttrs(work.url)}
               >
                 読みに行く
-                <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                <span
+                  class="icon-[lucide--arrow-up-right]"
+                  aria-hidden="true"
+                />
               </a>
             </article>
           ))

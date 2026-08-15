@@ -10,15 +10,15 @@ type Site = {
 const { site } = Astro.props as { site: Site }
 
 const iconByLabel: Record<string, string> = {
-  絵: 'i-lucide-images',
-  小説: 'i-lucide-book-open',
-  '3D作品': 'i-lucide-box',
-  講座: 'i-lucide-graduation-cap',
-  動画: 'i-lucide-square-play',
-  Acecore: 'i-lucide-arrow-up-right',
-  ブログ: 'i-lucide-newspaper',
-  モデリング: 'i-lucide-box',
-  プロフィール: 'i-lucide-user-round',
+  絵: 'icon-[lucide--images]',
+  小説: 'icon-[lucide--book-open]',
+  '3D作品': 'icon-[lucide--box]',
+  講座: 'icon-[lucide--graduation-cap]',
+  動画: 'icon-[lucide--square-play]',
+  Acecore: 'icon-[lucide--arrow-up-right]',
+  ブログ: 'icon-[lucide--newspaper]',
+  モデリング: 'icon-[lucide--box]',
+  プロフィール: 'icon-[lucide--user-round]',
 }
 ---
 
@@ -26,7 +26,7 @@ const iconByLabel: Record<string, string> = {
   <nav class="site-nav" aria-label="メインナビゲーション">
     <a class="brand-link" href="/">
       <span class="brand-mark" aria-hidden="true">
-        <span class="i-lucide-feather"></span>
+        <span class="icon-[lucide--feather]"></span>
       </span>
       <span class="brand-copy">
         <span class="brand-name">{site.name}</span>
@@ -44,7 +44,7 @@ const iconByLabel: Record<string, string> = {
         aria-controls="site-search-modal"
         aria-label="検索"
       >
-        <span class="i-lucide-search" aria-hidden="true"></span>
+        <span class="icon-[lucide--search]" aria-hidden="true"></span>
       </button>
       {
         site.headerLinks.map((link) => {
@@ -60,7 +60,7 @@ const iconByLabel: Record<string, string> = {
               data-hatt-location="header"
             >
               <span
-                class={iconByLabel[link.label] ?? 'i-lucide-arrow-right'}
+                class={iconByLabel[link.label] ?? 'icon-[lucide--arrow-right]'}
                 aria-hidden="true"
               />
               <span>{link.label}</span>

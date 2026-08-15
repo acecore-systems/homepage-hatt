@@ -1,4 +1,4 @@
-import { optimizeImage } from './image'
+import { optimizeImage } from './image.ts'
 
 const IS_PROD = process.env.NODE_ENV === 'production'
 

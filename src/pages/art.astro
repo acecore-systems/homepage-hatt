@@ -65,9 +65,48 @@ const getArtTileClass = (index: number): string | undefined => {
   description="CMSで追加したHattの絵を、画像中心のギャラリーとして並べています。"
   showAnnouncement={false}
 >
-  <section class="section-band art-gallery-section" aria-labelledby="art-title">
+  <h1 id="art-title" class="sr-only">絵</h1>
+  <section
+    class="section-band art-live-section"
+    aria-labelledby="art-live-title"
+  >
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="art-live-title">Xの最新投稿</h2>
+        </div>
+        <p>最新の公開投稿をXの公式タイムラインから直接表示しています。</p>
+      </div>
+      <div class="art-live-feed">
+        <div class="art-live-feed-bar">
+          <strong>@borubin</strong>
+          <a href={profileUrl} {...externalAttrs(profileUrl)}>
+            Xで開く
+            <span class="icon-[lucide--external-link]" aria-hidden="true"
+            ></span>
+          </a>
+        </div>
+        <a
+          class="twitter-timeline"
+          data-dnt="true"
+          data-theme="light"
+          data-lang="ja"
+          data-height="900"
+          data-chrome="noheader nofooter noborders transparent"
+          href={profileUrl}
+          {...externalAttrs(profileUrl)}
+        >
+          HattのX最新投稿を見る
+        </a>
+      </div>
+    </div>
+  </section>
+  <section
+    class="section-band art-gallery-section"
+    aria-labelledby="art-gallery-title"
+  >
     <div class="section-inner art-gallery-inner">
-      <h1 id="art-title" class="sr-only">絵</h1>
+      <h2 id="art-gallery-title" class="sr-only">作品ギャラリー</h2>
       {
         artItems.length > 0 ? (
           <div class="art-grid">
@@ -89,7 +128,7 @@ const getArtTileClass = (index: number): string | undefined => {
           </div>
         ) : (
           <div class="art-empty">
-            <span class="i-lucide-image-plus" aria-hidden="true" />
+            <span class="icon-[lucide--image-plus]" aria-hidden="true" />
             <h2>まだ掲載する絵がありません</h2>
             <p>CMSでURLと画像を追加すると、ここに絵が並びます。</p>
             <a href={profileUrl} {...externalAttrs(profileUrl)}>
@@ -98,40 +137,6 @@ const getArtTileClass = (index: number): string | undefined => {
           </div>
         )
       }
-    </div>
-  </section>
-  <section
-    class="section-band art-live-section"
-    aria-labelledby="art-live-title"
-  >
-    <div class="section-inner">
-      <div class="section-heading">
-        <div>
-          <h2 id="art-live-title">Xの最新投稿</h2>
-        </div>
-        <p>最新の公開投稿をXの公式タイムラインから直接表示しています。</p>
-      </div>
-      <div class="art-live-feed">
-        <div class="art-live-feed-bar">
-          <strong>@borubin</strong>
-          <a href={profileUrl} {...externalAttrs(profileUrl)}>
-            Xで開く
-            <span class="i-lucide-external-link" aria-hidden="true"></span>
-          </a>
-        </div>
-        <a
-          class="twitter-timeline"
-          data-dnt="true"
-          data-theme="light"
-          data-lang="ja"
-          data-height="900"
-          data-chrome="noheader nofooter noborders transparent"
-          href={profileUrl}
-          {...externalAttrs(profileUrl)}
-        >
-          HattのX最新投稿を見る
-        </a>
-      </div>
     </div>
   </section>
   <script

@@ -37,18 +37,18 @@ const youtubeHomeLinks = [
   { label: 'ショート', href: `${youtubeFeed.channelUrl}/shorts` },
 ]
 const novelLinks = [
-  { label: '作品一覧', href: '/novels/', icon: 'i-lucide-library' },
+  { label: '作品一覧', href: '/novels/', icon: 'icon-[lucide--library]' },
   {
     label: '作者ページ',
     href: novelsFeed.authorUrl,
-    icon: 'i-lucide-user-round',
+    icon: 'icon-[lucide--user-round]',
   },
   ...(latestNovel
     ? [
         {
           label: '最新作',
           href: latestNovel.url,
-          icon: 'i-lucide-sparkles',
+          icon: 'icon-[lucide--sparkles]',
         },
       ]
     : []),
@@ -57,19 +57,19 @@ const modelingLinks = [
   {
     label: '無料体験',
     href: '/modeling-course/',
-    icon: 'i-lucide-graduation-cap',
+    icon: 'icon-[lucide--graduation-cap]',
   },
-  { label: '作品一覧', href: '/modeling/', icon: 'i-lucide-box' },
-  { label: '動画一覧', href: '/videos/', icon: 'i-lucide-square-play' },
+  { label: '作品一覧', href: '/modeling/', icon: 'icon-[lucide--box]' },
+  { label: '動画一覧', href: '/videos/', icon: 'icon-[lucide--square-play]' },
   {
     label: 'BOOTH',
     href: 'https://vetumheberehama.booth.pm/',
-    icon: 'i-lucide-shopping-bag',
+    icon: 'icon-[lucide--shopping-bag]',
   },
   {
     label: 'YouTube',
     href: 'https://www.youtube.com/@hatt9241',
-    icon: 'i-lucide-youtube',
+    icon: 'icon-[lucide--youtube]',
   },
 ]
 ---
@@ -97,7 +97,8 @@ const modelingLinks = [
               data-hatt-location="home_hero"
             >
               絵を見る
-              <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+              <span class="icon-[lucide--arrow-right]" aria-hidden="true"
+              ></span>
             </a>
           </div>
         </div>
@@ -123,10 +124,10 @@ const modelingLinks = [
                     <span
                       class={
                         pillar.id === 'picture'
-                          ? 'i-lucide-pencil'
+                          ? 'icon-[lucide--pencil]'
                           : pillar.id === 'novel'
-                            ? 'i-lucide-book-open'
-                            : 'i-lucide-box'
+                            ? 'icon-[lucide--book-open]'
+                            : 'icon-[lucide--box]'
                       }
                     />
                   </span>
@@ -216,7 +217,10 @@ const modelingLinks = [
                     data-hatt-location="home_pillars"
                   >
                     {pillar.cta}
-                    <span class="i-lucide-arrow-right" aria-hidden="true" />
+                    <span
+                      class="icon-[lucide--arrow-right]"
+                      aria-hidden="true"
+                    />
                   </a>
                 )}
               </div>
@@ -230,7 +234,7 @@ const modelingLinks = [
   <section class="home-course-strip" aria-labelledby="home-course-title">
     <div class="section-inner home-course-strip-inner">
       <div class="home-course-strip-copy">
-        <span class="i-lucide-graduation-cap" aria-hidden="true"></span>
+        <span class="icon-[lucide--graduation-cap]" aria-hidden="true"></span>
         <div>
           <p>VRChatモデル制作・Blender基礎・Unity導入</p>
           <h2 id="home-course-title">モデル制作の無料体験を受付中</h2>
@@ -248,7 +252,7 @@ const modelingLinks = [
           data-hatt-location="home_course_strip"
         >
           無料体験を見る
-          <span class="i-lucide-arrow-right" aria-hidden="true"></span>
+          <span class="icon-[lucide--arrow-right]" aria-hidden="true"></span>
         </a>
       </div>
     </div>
@@ -260,7 +264,7 @@ const modelingLinks = [
     <div class="section-inner home-video-layout">
       <div class="home-video-copy">
         <p class="hero-note">
-          <span class="i-lucide-youtube" aria-hidden="true"></span>
+          <span class="icon-[lucide--youtube]" aria-hidden="true"></span>
           YouTube
         </p>
         <h2 id="home-video-title">動画もここで見られます</h2>
@@ -301,7 +305,7 @@ const modelingLinks = [
         </div>
         <a class="chip-link" href="/blog/"
           >すべての記事を見る
-          <span class="i-lucide-arrow-right" aria-hidden="true"></span></a
+          <span class="icon-[lucide--arrow-right]" aria-hidden="true"></span></a
         >
       </div>
       <div class="home-latest-layout">
