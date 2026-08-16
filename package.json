@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@astrojs/markdown-remark": "^7.2.1",
-    "@cloudflare/workers-types": "^5.20260804.1",
+    "@cloudflare/workers-types": "^5.20260816.1",
     "@iconify-json/lucide": "^1.2.121",
     "@iconify/tailwind4": "^1.2.3",
     "@tailwindcss/vite": "^4.3.3",
@@ -50,7 +50,7 @@
     "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "wrangler": "^4.119.0"
+    "wrangler": "^4.123.0"
   },
   "overrides": {
     "sharp": "$sharp"
@@ -60,6 +60,6 @@
   },
   "allowScripts": {
     "esbuild@0.28.1": true,
-    "workerd@1.20260722.1": true
+    "workerd@1.20260811.1": true
   }
 }
