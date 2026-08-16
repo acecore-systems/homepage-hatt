@@ -44,6 +44,38 @@ function isAllowedCmsContentPath(contentPath) {
 async function validateCmsConfig() {
   const scope = 'public/admin/config.yml'
   const config = await readFile(path.join(root, scope), 'utf8')
+  const adminIndex = await readFile(
+    path.join(root, 'public/admin/index.html'),
+    'utf8',
+  )
+  const headers = await readFile(path.join(root, 'public/_headers'), 'utf8')
+
+  if (
+    !adminIndex.includes(
+      'src="https://unpkg.com/@sveltia/cms@0.191.1/dist/sveltia-cms.js"',
+    ) ||
+    !adminIndex.includes(
+      'integrity="sha384-1e+sEYxphmj/Z7BnuanO53c4BveZJ5fdJIkHSuHRO2T7jmC7Ih0BeJPK6x5XHxx6"',
+    )
+  ) {
+    fail(scope, 'CMS script must use the reviewed 0.191.1 bundle and SRI')
+  }
+  if (
+    !adminIndex.includes(
+      'https://fonts.googleapis.com/icon?family=Material+Icons',
+    ) ||
+    !adminIndex.includes('Material+Symbols+Outlined')
+  ) {
+    fail(scope, 'CMS entry must retain the Material icon font fallback')
+  }
+  if (
+    !/style-src[^;]*https:\/\/fonts\.googleapis\.com/u.test(headers) ||
+    !/font-src[^;]*https:\/\/fonts\.gstatic\.com/u.test(headers) ||
+    !/font-src[^;]*https:\/\/cdn\.jsdelivr\.net/u.test(headers) ||
+    !/connect-src[^;]*https:\/\/unpkg\.com/u.test(headers)
+  ) {
+    fail(scope, 'CMS CSP must allow icon fonts and localized CMS data')
+  }
 
   if (/^\s*-?\s*name:\s*path\b/m.test(config)) {
     fail(scope, 'path field must not be exposed in CMS')
