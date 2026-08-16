@@ -30,14 +30,8 @@ const summarize = (value = '', length = 120) => {
   const text = normalizeText(value)
   return text.length > length ? `${text.slice(0, length)}...` : text
 }
-const formatViews = (value?: number) =>
-  typeof value === 'number' && value > 0
-    ? `${new Intl.NumberFormat('ja-JP').format(value)}回再生`
-    : ''
 const getVideoMeta = (video: (typeof videos)[number]) =>
-  [formatDate(video.publishedAt), formatViews(video.views)]
-    .filter(Boolean)
-    .join(' / ')
+  formatDate(video.publishedAt)
 const videoLinks = [
   {
     label: '全公開動画',
