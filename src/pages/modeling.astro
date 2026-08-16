@@ -5,6 +5,7 @@ import YouTubeEmbed from '@/components/YouTubeEmbed.astro'
 import { getCollection } from 'astro:content'
 import { getSiteConfig } from '@/utils/blog'
 import { externalAttrs } from '@/utils/routes'
+import boothCatalog from '@/data/external/booth-products.json'
 
 const site = await getSiteConfig()
 const items = (await getCollection('modeling')).sort((a, b) => {
@@ -15,6 +16,13 @@ const items = (await getCollection('modeling')).sort((a, b) => {
     )
   return a.data.featured ? -1 : 1
 })
+const boothProducts = boothCatalog.products
+const boothAvatarCount = boothProducts.filter(
+  (product) => product.category === 'アバター',
+).length
+const boothGimmickCount = boothProducts.filter(
+  (product) => product.category === 'ギミック',
+).length
 
 function getYouTubeVideoId(value?: string) {
   if (!value) return undefined
@@ -51,15 +59,15 @@ function getYouTubeVideoId(value?: string) {
         <div class="modeling-stats" aria-label="公開中のモデリング活動">
           <div>
             <span>アバター</span>
-            <strong>9種</strong>
+            <strong>{boothAvatarCount}種</strong>
           </div>
           <div>
             <span>ギミック</span>
-            <strong>5種</strong>
+            <strong>{boothGimmickCount}種</strong>
           </div>
           <div>
             <span>BOOTH</span>
-            <strong>全14商品</strong>
+            <strong>全{boothProducts.length}商品</strong>
           </div>
         </div>
         <div class="social-row" style="margin-top: 24px;">
@@ -123,15 +131,78 @@ function getYouTubeVideoId(value?: string) {
     </div>
   </section>
 
+  <section
+    class="section-band booth-catalog-section"
+    aria-labelledby="booth-catalog-title"
+  >
+    <div class="section-inner">
+      <div class="section-heading">
+        <div>
+          <h2 id="booth-catalog-title">BOOTH掲載商品</h2>
+        </div>
+        <p>
+          BOOTHで現在公開中の全{boothProducts.length}商品です。
+          <a
+            href={boothCatalog.shopUrl}
+            {...externalAttrs(boothCatalog.shopUrl)}
+          >
+            ショップを開く
+          </a>
+        </p>
+      </div>
+      <div class="booth-catalog-grid">
+        {
+          boothProducts.map((product) => (
+            <article class="booth-catalog-card">
+              <a
+                class="booth-catalog-media"
+                href={product.url}
+                {...externalAttrs(product.url)}
+                aria-label={product.title + 'をBOOTHで見る'}
+              >
+                <img
+                  src={product.image}
+                  alt={product.title + 'のBOOTHサムネイル'}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+              <div class="booth-catalog-card-body">
+                <div class="booth-catalog-meta">
+                  <span class="price-label">{product.category}</span>
+                  <span>{product.priceLabel}</span>
+                </div>
+                <h3>
+                  <a href={product.url} {...externalAttrs(product.url)}>
+                    {product.title}
+                  </a>
+                </h3>
+                <a
+                  class="booth-catalog-link"
+                  href={product.url}
+                  {...externalAttrs(product.url)}
+                >
+                  BOOTHで見る
+                  <span
+                    class="icon-[lucide--arrow-up-right]"
+                    aria-hidden="true"
+                  />
+                </a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
   <section class="section-band" aria-labelledby="lineup-title">
     <div class="section-inner">
       <div class="section-heading">
         <div>
-          <h2 id="lineup-title">作品ラインアップ</h2>
+          <h2 id="lineup-title">作品をくわしく見る</h2>
         </div>
-        <p>
-          YouTube説明欄とBOOTH公開情報をもとに、作品ごとの特徴・価格・対応環境を並べています。
-        </p>
+        <p>動画、対応環境、関連作品まで紹介している作品を詳しく見られます。</p>
       </div>
       <div class="modeling-grid">
         {
