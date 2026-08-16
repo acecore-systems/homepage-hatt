@@ -115,6 +115,48 @@ test('絵ページは画像ギャラリーだけを表示しXタイムライン�
   assert.doesNotMatch(source, /platform\.x\.com\/widgets\.js/)
 })
 
+test('絵のスナップショットは最新の返信ツリーまで含み、同じ画像を重複させない', async () => {
+  const artFeed = JSON.parse(
+    await fs.readFile(
+      new URL('../src/data/external/art-posts.json', import.meta.url),
+      'utf8',
+    ),
+  )
+
+  assert.ok(artFeed.items.length >= 590)
+  assert.ok(artFeed.items.some((item) => item.id === 'x-2083839529904124029-1'))
+  assert.ok(artFeed.items.some((item) => item.id === 'x-2070436477117530128-1'))
+  assert.equal(
+    new Set(artFeed.items.map((item) => item.image)).size,
+    artFeed.items.length,
+  )
+})
+
+test('BOOTH公開カタログはアバター10件・ギミック4件を含む', async () => {
+  const catalog = JSON.parse(
+    await fs.readFile(
+      new URL('../src/data/external/booth-products.json', import.meta.url),
+      'utf8',
+    ),
+  )
+  const productIds = catalog.products.map((product) => product.id)
+
+  assert.equal(catalog.products.length, 14)
+  assert.equal(new Set(productIds).size, catalog.products.length)
+  assert.equal(
+    catalog.products.filter((product) => product.category === 'アバター')
+      .length,
+    10,
+  )
+  assert.equal(
+    catalog.products.filter((product) => product.category === 'ギミック')
+      .length,
+    4,
+  )
+  assert.ok(productIds.includes('8631449'))
+  assert.ok(productIds.includes('6073427'))
+})
+
 test('外部フィードは表示内容が変わった場合だけ書き換える', async (t) => {
   const outputDirectory = await fs.mkdtemp(
     path.join(os.tmpdir(), 'homepage-hatt-external-feed-'),

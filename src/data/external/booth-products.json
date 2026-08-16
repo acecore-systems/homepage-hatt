@@ -1,0 +1,151 @@
+{
+  "source": "booth-public-catalog",
+  "shopUrl": "https://vetumheberehama.booth.pm/",
+  "collectionUrls": {
+    "アバター": "https://vetumheberehama.booth.pm/item_lists/r1LT6q2w",
+    "ギミック": "https://vetumheberehama.booth.pm/item_lists/nZ6TXKVK"
+  },
+  "syncedAt": "2026-08-16T17:20:41.619Z",
+  "products": [
+    {
+      "id": "8087659",
+      "title": "リバーシ/オリジナル3Ｄモデル",
+      "category": "アバター",
+      "price": 4444,
+      "priceLabel": "¥4,444",
+      "url": "https://vetumheberehama.booth.pm/items/8087659",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/cf10f80e-a3b6-4314-894a-8080a61499de_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7759821",
+      "title": "母の概念のオリジナル3Dモデル【オロロウルス】",
+      "category": "アバター",
+      "price": 1000,
+      "priceLabel": "¥1,000",
+      "url": "https://vetumheberehama.booth.pm/items/7759821",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/ad8d53c6-2ef2-450b-9e2e-bb3c4f6c4c87_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7896488",
+      "title": "【モク】3Dモデル",
+      "category": "アバター",
+      "price": 1500,
+      "priceLabel": "¥1,500",
+      "url": "https://vetumheberehama.booth.pm/items/7896488",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7896488/a627620e-5e96-4d82-95c3-c2a064b98e91_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "6073427",
+      "title": "エリンギ先生3Dモデル(聴診器付属）",
+      "category": "アバター",
+      "price": 500,
+      "priceLabel": "¥500",
+      "url": "https://vetumheberehama.booth.pm/items/6073427",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6073427/ff9d0f6d-de2c-4884-88f1-6711ccb3e413_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7551795",
+      "title": "メカニックカニ3Dモデル（ペットギミックミニカニックミニ付属）",
+      "category": "アバター",
+      "price": 2000,
+      "priceLabel": "¥2,000",
+      "url": "https://vetumheberehama.booth.pm/items/7551795",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/174872e2-d95b-4f83-aaf6-54b5adeda024_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7462088",
+      "title": "オテテとアンヨ【オリジナル3Dモデル】",
+      "category": "アバター",
+      "price": 500,
+      "priceLabel": "¥500",
+      "url": "https://vetumheberehama.booth.pm/items/7462088",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/349aa104-5749-4e72-8959-8a53894cbd33_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7219631",
+      "title": "【3Dアバター】応援する「クワガタ＆カブト」セット【無料】",
+      "category": "アバター",
+      "price": 0,
+      "priceLabel": "¥0",
+      "url": "https://vetumheberehama.booth.pm/items/7219631",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7219631/5f7b6bad-5898-482a-b9c2-28f328adb38a_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "6898442",
+      "title": "【オリジナル3Dモデル】ハルシユ",
+      "category": "アバター",
+      "price": 1500,
+      "priceLabel": "¥1,500",
+      "url": "https://vetumheberehama.booth.pm/items/6898442",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/0a62cfac-91e9-457a-9cd2-f84e6f750f5a_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "6898514",
+      "title": "【オリジナル3Dモデル】雲外鏡【顔奪いギミック付き】",
+      "category": "アバター",
+      "price": 500,
+      "priceLabel": "¥500〜",
+      "url": "https://vetumheberehama.booth.pm/items/6898514",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/6c738ef7-7c6e-4f96-9976-6143497166fb_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7084066",
+      "title": "カチャトリ3Dモデル【給食調理員フクロウ】",
+      "category": "アバター",
+      "price": 1500,
+      "priceLabel": "¥1,500",
+      "url": "https://vetumheberehama.booth.pm/items/7084066",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/c2dc1a6c-2c7f-40b8-bf9c-22953a862f2f_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "8122132",
+      "title": "【VRC想定】あかるい友達【アバターライト】3タイプセット",
+      "category": "ギミック",
+      "price": 800,
+      "priceLabel": "¥800〜",
+      "url": "https://vetumheberehama.booth.pm/items/8122132",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8122132/0dbe3229-53ff-454f-9165-9acbf0039742_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7586035",
+      "title": "お着換えカーテンヘイロー",
+      "category": "ギミック",
+      "price": 500,
+      "priceLabel": "¥500",
+      "url": "https://vetumheberehama.booth.pm/items/7586035",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7586035/5654852f-c009-4e77-92a5-9f711c5d0e1b_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "7924454",
+      "title": "【モクギミックセット】カメラ　AFK　ライト　他",
+      "category": "ギミック",
+      "price": 1500,
+      "priceLabel": "¥1,500",
+      "url": "https://vetumheberehama.booth.pm/items/7924454",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7924454/fbe718ef-9321-4ec4-bab1-d37492a8b421_base_resized.jpg",
+      "availability": "in_stock"
+    },
+    {
+      "id": "8631449",
+      "title": "シンプルシャボン玉ギミック（MA対応）",
+      "category": "ギミック",
+      "price": 400,
+      "priceLabel": "¥400",
+      "url": "https://vetumheberehama.booth.pm/items/8631449",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/550aade6-1fe1-4c9d-833a-072d91c4f645_base_resized.jpg",
+      "availability": "in_stock"
+    }
+  ]
+}
