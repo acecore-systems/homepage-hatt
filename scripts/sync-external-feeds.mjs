@@ -6,8 +6,13 @@ import { XMLParser } from 'fast-xml-parser'
 const root = process.cwd()
 const outDir = path.join(root, 'src', 'data', 'external')
 const narouUserId = '2047731'
+const narouPageSize = 500
 const narouAuthorUrl = `https://mypage.syosetu.com/${narouUserId}/`
 const youtubeChannelId = 'UCzEhXHKDoOrvjFUcIe5q3jA'
+const youtubeFeedChannelIds = new Set([
+  youtubeChannelId,
+  youtubeChannelId.slice(2),
+])
 const youtubeUploadsPlaylistId = `UU${youtubeChannelId.slice(2)}`
 const youtubeChannelUrl = 'https://www.youtube.com/@hatt9241'
 const youtubeFeedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeChannelId}`
@@ -48,55 +53,115 @@ function formatNarouDate(value) {
   return value ? value.replace(' ', 'T') : ''
 }
 
-async function syncNovels() {
-  const apiUrl = new URL('https://api.syosetu.com/novelapi/api/')
-  apiUrl.search = new URLSearchParams({
-    out: 'json',
-    userid: narouUserId,
-    lim: '500',
-    order: 'new',
-  })
+function requireText(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} is missing from the external feed.`)
+  }
 
-  const raw = await fetchText(apiUrl)
-  const data = JSON.parse(raw)
-  const [{ allcount = 0 } = {}, ...items] = data
-  const works = items.map((item) => ({
-    title: item.title,
-    ncode: item.ncode,
-    url: `https://ncode.syosetu.com/${String(item.ncode).toLowerCase()}/`,
-    story: item.story,
-    firstPublishedAt: formatNarouDate(item.general_firstup),
-    lastUpdatedAt: formatNarouDate(item.general_lastup),
-    totalParts: item.general_all_no,
-    length: item.length,
-    readingMinutes: item.time,
-    isCompleted: item.end === 1,
-    isStopped: item.isstop === 1,
-    type: item.novel_type === 2 ? 'short' : 'serial',
-  }))
+  return value
+}
+
+export function parseNarouPayload(
+  raw,
+  { now = () => new Date().toISOString() } = {},
+) {
+  let data
+
+  try {
+    data = JSON.parse(raw)
+  } catch (error) {
+    throw new Error('Syosetu API returned invalid JSON.', { cause: error })
+  }
+
+  if (!Array.isArray(data)) {
+    throw new Error('Syosetu API returned an unexpected response shape.')
+  }
+
+  const [summary, ...items] = data
+  const allcount = Number(summary?.allcount)
+
+  if (!Number.isSafeInteger(allcount) || allcount < 1) {
+    throw new Error(
+      'Syosetu API returned no published works; keeping the current snapshot.',
+    )
+  }
+
+  const expectedCount = Math.min(allcount, narouPageSize)
+  if (items.length !== expectedCount) {
+    throw new Error(
+      `Syosetu API returned ${items.length} of ${expectedCount} expected works; keeping the current snapshot.`,
+    )
+  }
+
+  const works = items.map((item, index) => {
+    const title = requireText(item?.title, `Syosetu work ${index + 1} title`)
+    const ncode = requireText(item?.ncode, `Syosetu work ${index + 1} ncode`)
+
+    return {
+      title,
+      ncode,
+      url: `https://ncode.syosetu.com/${ncode.toLowerCase()}/`,
+      story: item.story,
+      firstPublishedAt: formatNarouDate(item.general_firstup),
+      lastUpdatedAt: formatNarouDate(item.general_lastup),
+      totalParts: item.general_all_no,
+      length: item.length,
+      readingMinutes: item.time,
+      isCompleted: item.end === 1,
+      isStopped: item.isstop === 1,
+      type: item.novel_type === 2 ? 'short' : 'serial',
+    }
+  })
 
   return {
     source: 'syosetu',
     schemaVersion: 1,
     userId: narouUserId,
     authorUrl: narouAuthorUrl,
-    syncedAt: new Date().toISOString(),
+    syncedAt: now(),
     allcount,
     works,
   }
 }
 
-async function syncYoutubeVideos() {
-  const raw = await fetchText(youtubeFeedUrl)
-  const feed = youtubeXmlParser.parse(raw).feed ?? {}
+export function parseYoutubeFeed(
+  raw,
+  { now = () => new Date().toISOString() } = {},
+) {
+  const feed = youtubeXmlParser.parse(raw)?.feed
+
+  if (!feed || typeof feed !== 'object') {
+    throw new Error('YouTube RSS returned an unexpected response shape.')
+  }
+
+  if (!youtubeFeedChannelIds.has(feed['yt:channelId'])) {
+    throw new Error('YouTube RSS returned a different channel.')
+  }
+
   const entries = asArray(feed.entry)
+  if (entries.length === 0) {
+    throw new Error(
+      'YouTube RSS returned no videos; keeping the current snapshot.',
+    )
+  }
+
   const videos = entries
-    .map((entry) => {
-      const videoId = entry['yt:videoId']
-      const mediaGroup = entry['media:group'] ?? {}
-      const title = entry.title ?? mediaGroup['media:title'] ?? ''
+    .map((entry, index) => {
+      const videoId = requireText(
+        entry?.['yt:videoId'],
+        `YouTube entry ${index + 1} videoId`,
+      )
+      const mediaGroup = entry?.['media:group'] ?? {}
+      const title = requireText(
+        entry?.title ?? mediaGroup['media:title'],
+        `YouTube entry ${index + 1} title`,
+      )
+      const publishedAt = requireText(
+        entry?.published,
+        `YouTube entry ${index + 1} publishedAt`,
+      )
       const url =
-        entry.link?.['@_href'] ?? `https://www.youtube.com/watch?v=${videoId}`
+        entry?.link?.['@_href'] ?? `https://www.youtube.com/watch?v=${videoId}`
       const description = mediaGroup['media:description'] ?? ''
 
       return {
@@ -107,13 +172,12 @@ async function syncYoutubeVideos() {
         thumbnailUrl:
           mediaGroup['media:thumbnail']?.['@_url'] ??
           `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-        authorName: entry.author?.name ?? 'Hatt',
-        authorUrl: entry.author?.uri ?? youtubeChannelUrl,
-        publishedAt: entry.published ?? '',
+        authorName: entry?.author?.name ?? 'Hatt',
+        authorUrl: entry?.author?.uri ?? youtubeChannelUrl,
+        publishedAt,
         description,
       }
     })
-    .filter((video) => video.videoId && video.title)
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
 
   return {
@@ -125,9 +189,27 @@ async function syncYoutubeVideos() {
     uploadsPlaylistId: youtubeUploadsPlaylistId,
     uploadsPlaylistUrl: `https://www.youtube.com/playlist?list=${youtubeUploadsPlaylistId}`,
     uploadsEmbedUrl: `https://www.youtube-nocookie.com/embed/videoseries?list=${youtubeUploadsPlaylistId}`,
-    syncedAt: new Date().toISOString(),
+    syncedAt: now(),
     videos,
   }
+}
+
+async function syncNovels() {
+  const apiUrl = new URL('https://api.syosetu.com/novelapi/api/')
+  apiUrl.search = new URLSearchParams({
+    out: 'json',
+    userid: narouUserId,
+    lim: String(narouPageSize),
+    order: 'new',
+  })
+
+  const raw = await fetchText(apiUrl)
+  return parseNarouPayload(raw)
+}
+
+async function syncYoutubeVideos() {
+  const raw = await fetchText(youtubeFeedUrl)
+  return parseYoutubeFeed(raw)
 }
 
 function comparableContent(value) {
@@ -182,10 +264,14 @@ export async function writeJsonIfChanged(
 }
 
 async function main() {
-  const [novels, youtubeVideos] = await Promise.all([
+  const syncResults = await Promise.allSettled([
     syncNovels(),
     syncYoutubeVideos(),
   ])
+  const failedSync = syncResults.find((result) => result.status === 'rejected')
+  if (failedSync) throw failedSync.reason
+
+  const [novels, youtubeVideos] = syncResults.map((result) => result.value)
   const syncedAt = new Date().toISOString()
   const [novelsChanged, youtubeVideosChanged] = await Promise.all([
     writeJsonIfChanged('novels.json', novels, { now: () => syncedAt }),
