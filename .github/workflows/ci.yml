@@ -7,6 +7,7 @@ on:
     paths-ignore:
       - src/data/external/novels.json
       - src/data/external/youtube-videos.json
+      - src/data/external/booth-products.json
   push:
     branches:
       - main

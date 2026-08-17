@@ -4,8 +4,11 @@ import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 import {
+  parseBoothCollectionPage,
+  parseBoothProductPage,
   parseNarouPayload,
   parseYoutubeFeed,
+  syncBoothCatalog,
   writeJsonIfChanged,
 } from '../scripts/sync-external-feeds.mjs'
 
@@ -155,6 +158,115 @@ test('BOOTH公開カタログはアバター10件・ギミック4件を含む', 
   )
   assert.ok(productIds.includes('8631449'))
   assert.ok(productIds.includes('6073427'))
+  assert.ok(
+    catalog.products.every(
+      (product) =>
+        Array.isArray(product.images) &&
+        product.images.length > 0 &&
+        product.images[0] === product.image &&
+        new Set(product.images).size === product.images.length,
+    ),
+  )
+})
+
+test('BOOTH公開リストと商品JSON-LDから代表画像・ギャラリー画像を取得する', () => {
+  const collection = `
+    <a href="https://vetumheberehama.booth.pm/items/100">作品A</a>
+    <a href="/items/101">作品B</a>
+    <a href="https://vetumheberehama.booth.pm/items/100">重複作品A</a>
+  `
+  const listings = parseBoothCollectionPage(collection, {
+    category: 'アバター',
+    collectionUrl: 'https://vetumheberehama.booth.pm/item_lists/test',
+  })
+
+  assert.deepEqual(listings, [
+    {
+      id: '100',
+      category: 'アバター',
+      url: 'https://vetumheberehama.booth.pm/items/100',
+    },
+    {
+      id: '101',
+      category: 'アバター',
+      url: 'https://vetumheberehama.booth.pm/items/101',
+    },
+  ])
+
+  const productPage = `
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "テスト作品",
+        "image": "https://booth.pximg.net/c/620x620/shop/i/100/11111111-1111-4111-8111-111111111111_base_resized.jpg",
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": "500",
+          "highPrice": "900",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    </script>
+    <img src="https://booth.pximg.net/c/620x620/shop/i/100/11111111-1111-4111-8111-111111111111.png" />
+    <img src="https://booth.pximg.net/c/620x620/shop/i/100/22222222-2222-4222-8222-222222222222_base_resized.jpg" />
+    <img src="https://booth.pximg.net/c/620x620/shop/i/100/22222222-2222-4222-8222-222222222222.png" />
+    <img src="https://booth.pximg.net/c/620x620/shop/i/999/33333333-3333-4333-8333-333333333333_base_resized.jpg" />
+  `
+  const product = parseBoothProductPage(productPage, listings[0])
+
+  assert.equal(product.title, 'テスト作品')
+  assert.equal(product.price, 500)
+  assert.equal(product.priceLabel, '¥500〜')
+  assert.equal(product.availability, 'in_stock')
+  assert.deepEqual(product.images, [
+    'https://booth.pximg.net/c/620x620/shop/i/100/11111111-1111-4111-8111-111111111111_base_resized.jpg',
+    'https://booth.pximg.net/c/620x620/shop/i/100/22222222-2222-4222-8222-222222222222_base_resized.jpg',
+  ])
+  assert.equal(product.image, product.images[0])
+})
+
+test('BOOTH同期は両方の公開リストと全商品ページが揃わなければ失敗する', async () => {
+  const collectionUrl = {
+    avatar: 'https://vetumheberehama.booth.pm/item_lists/r1LT6q2w',
+    gimmick: 'https://vetumheberehama.booth.pm/item_lists/nZ6TXKVK',
+  }
+  const productPage = (id, title) => `
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "${title}",
+        "image": "https://booth.pximg.net/c/620x620/shop/i/${id}/11111111-1111-4111-8111-111111111111_base_resized.jpg",
+        "offers": { "price": "0", "availability": "https://schema.org/InStock" }
+      }
+    </script>
+  `
+  const fixture = new Map([
+    [collectionUrl.avatar, '<a href="/items/100">作品A</a>'],
+    [collectionUrl.gimmick, '<a href="/items/200">作品B</a>'],
+    ['https://vetumheberehama.booth.pm/items/100', productPage('100', '作品A')],
+    ['https://vetumheberehama.booth.pm/items/200', productPage('200', '作品B')],
+  ])
+  const getText = async (url) => {
+    const text = fixture.get(String(url))
+    if (!text) throw new Error(`Unexpected fixture URL: ${url}`)
+    return text
+  }
+
+  const catalog = await syncBoothCatalog({ getText, now: fixtureNow })
+  assert.equal(catalog.syncedAt, fixtureNow())
+  assert.equal(catalog.products.length, 2)
+  assert.equal(catalog.products[0].images.length, 1)
+
+  await assert.rejects(
+    () =>
+      syncBoothCatalog({
+        getText: async (url) =>
+          url === collectionUrl.gimmick ? '<main>empty</main>' : getText(url),
+      }),
+    /ギミック collection returned no published products/,
+  )
 })
 
 test('外部フィードは表示内容が変わった場合だけ書き換える', async (t) => {

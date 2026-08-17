@@ -152,49 +152,137 @@ function getYouTubeVideoId(value?: string) {
       </div>
       <div class="booth-catalog-grid">
         {
-          boothProducts.map((product) => (
-            <article class="booth-catalog-card">
-              <a
-                class="booth-catalog-media"
-                href={product.url}
-                {...externalAttrs(product.url)}
-                aria-label={product.title + 'をBOOTHで見る'}
-              >
-                <img
-                  src={product.image}
-                  alt={product.title + 'のBOOTHサムネイル'}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </a>
-              <div class="booth-catalog-card-body">
-                <div class="booth-catalog-meta">
-                  <span class="price-label">{product.category}</span>
-                  <span>{product.priceLabel}</span>
-                </div>
-                <h3>
-                  <a href={product.url} {...externalAttrs(product.url)}>
-                    {product.title}
-                  </a>
-                </h3>
+          boothProducts.map((product) => {
+            const productImages = product.images?.length
+              ? product.images
+              : [product.image]
+            const galleryDialogId = `booth-gallery-${product.id}`
+            const galleryDialogTitleId = `${galleryDialogId}-title`
+
+            return (
+              <article class="booth-catalog-card">
                 <a
-                  class="booth-catalog-link"
+                  class="booth-catalog-media"
                   href={product.url}
                   {...externalAttrs(product.url)}
+                  aria-label={product.title + 'をBOOTHで見る'}
                 >
-                  BOOTHで見る
-                  <span
-                    class="icon-[lucide--arrow-up-right]"
-                    aria-hidden="true"
+                  <img
+                    src={product.image}
+                    alt={product.title + 'のBOOTHサムネイル'}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </a>
-              </div>
-            </article>
-          ))
+                <div class="booth-catalog-card-body">
+                  <div class="booth-catalog-meta">
+                    <span class="price-label">{product.category}</span>
+                    <span>{product.priceLabel}</span>
+                  </div>
+                  <h3>
+                    <a href={product.url} {...externalAttrs(product.url)}>
+                      {product.title}
+                    </a>
+                  </h3>
+                  <a
+                    class="booth-catalog-link"
+                    href={product.url}
+                    {...externalAttrs(product.url)}
+                  >
+                    BOOTHで見る
+                    <span
+                      class="icon-[lucide--arrow-up-right]"
+                      aria-hidden="true"
+                    />
+                  </a>
+                </div>
+                {productImages.length > 1 && (
+                  <>
+                    <a
+                      class="booth-catalog-gallery-trigger"
+                      href={product.url}
+                      {...externalAttrs(product.url)}
+                      data-booth-gallery-open={galleryDialogId}
+                      aria-haspopup="dialog"
+                    >
+                      商品画像 {productImages.length}枚
+                      <span class="icon-[lucide--images]" aria-hidden="true" />
+                    </a>
+                    <dialog
+                      id={galleryDialogId}
+                      class="booth-catalog-gallery-dialog"
+                      aria-labelledby={galleryDialogTitleId}
+                    >
+                      <div class="booth-catalog-gallery-dialog-header">
+                        <div>
+                          <p>BOOTH商品画像 {productImages.length}枚</p>
+                          <h3 id={galleryDialogTitleId}>{product.title}</h3>
+                        </div>
+                        <form method="dialog">
+                          <button type="submit">閉じる</button>
+                        </form>
+                      </div>
+                      <div class="booth-catalog-gallery-images">
+                        {productImages.map((image, index) => (
+                          <a
+                            href={product.url}
+                            {...externalAttrs(product.url)}
+                            aria-label={`${product.title}のBOOTH商品画像 ${index + 1}を開く`}
+                          >
+                            <img
+                              src={image}
+                              alt={`${product.title}のBOOTH商品画像 ${index + 1}`}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                      <a
+                        class="booth-catalog-gallery-dialog-link"
+                        href={product.url}
+                        {...externalAttrs(product.url)}
+                      >
+                        BOOTHで商品詳細を見る
+                        <span
+                          class="icon-[lucide--arrow-up-right]"
+                          aria-hidden="true"
+                        />
+                      </a>
+                    </dialog>
+                  </>
+                )}
+              </article>
+            )
+          })
         }
       </div>
     </div>
   </section>
+
+  <script>
+    document
+      .querySelectorAll('[data-booth-gallery-open]')
+      .forEach((trigger) => {
+        trigger.addEventListener('click', (event) => {
+          const dialogId = trigger.getAttribute('data-booth-gallery-open')
+          const dialog = dialogId ? document.getElementById(dialogId) : null
+
+          if (!(dialog instanceof HTMLDialogElement)) return
+
+          event.preventDefault()
+          if (!dialog.open) dialog.showModal()
+        })
+      })
+
+    document
+      .querySelectorAll('.booth-catalog-gallery-dialog')
+      .forEach((dialog) => {
+        dialog.addEventListener('click', (event) => {
+          if (event.target === dialog) dialog.close()
+        })
+      })
+  </script>
 
   <section class="section-band" aria-labelledby="lineup-title">
     <div class="section-inner">
