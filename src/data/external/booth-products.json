@@ -1,11 +1,12 @@
 {
-  "source": "booth-public-catalog",
+  "source": "booth-public-html+jsonld",
+  "schemaVersion": 2,
   "shopUrl": "https://vetumheberehama.booth.pm/",
   "collectionUrls": {
     "アバター": "https://vetumheberehama.booth.pm/item_lists/r1LT6q2w",
     "ギミック": "https://vetumheberehama.booth.pm/item_lists/nZ6TXKVK"
   },
-  "syncedAt": "2026-08-16T17:20:41.619Z",
+  "syncedAt": "2026-08-17T03:02:22.226Z",
   "products": [
     {
       "id": "8087659",
@@ -15,6 +16,18 @@
       "priceLabel": "¥4,444",
       "url": "https://vetumheberehama.booth.pm/items/8087659",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/cf10f80e-a3b6-4314-894a-8080a61499de_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/cf10f80e-a3b6-4314-894a-8080a61499de_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/868dfedb-dd60-4d9f-81a4-83a44ba2a3c6_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/e026b48f-0410-4dd9-85e0-b44f3356a5a4_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/56607e75-3c54-4e5c-b9bd-fdaec7b2cf54_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/fa705d45-5e00-4fc8-b8e0-0777b5e4882e_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/d1e1de0c-c32b-47fa-9758-a90638025713_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/15afc895-a790-4852-b9e8-27609ad389da_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/8f0c51c8-f275-4474-94c1-9e2bdc1eb5c5_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/d73f1c20-37f4-47a0-add1-545e6ad8f34b_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8087659/09ed3e9e-39ef-4585-9ac9-35fa84c39821_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -25,6 +38,11 @@
       "priceLabel": "¥1,000",
       "url": "https://vetumheberehama.booth.pm/items/7759821",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/ad8d53c6-2ef2-450b-9e2e-bb3c4f6c4c87_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/ad8d53c6-2ef2-450b-9e2e-bb3c4f6c4c87_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/b27349a4-3a5e-4934-9604-8bd65546bbf8_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/3c56fd2d-fc50-418c-b333-a309da0e29b0_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -35,6 +53,11 @@
       "priceLabel": "¥1,500",
       "url": "https://vetumheberehama.booth.pm/items/7896488",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7896488/a627620e-5e96-4d82-95c3-c2a064b98e91_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7896488/a627620e-5e96-4d82-95c3-c2a064b98e91_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7896488/4680efbf-a4f3-47c6-a50a-11a0c31879de_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7896488/e84f2a45-a458-42e0-8811-062b728845c3_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -45,6 +68,12 @@
       "priceLabel": "¥500",
       "url": "https://vetumheberehama.booth.pm/items/6073427",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6073427/ff9d0f6d-de2c-4884-88f1-6711ccb3e413_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6073427/ff9d0f6d-de2c-4884-88f1-6711ccb3e413_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6073427/4707056b-ec51-491b-89c7-097f0319aa9c_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6073427/4f16efb8-1f6c-48d2-96a1-be5e6a504314_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6073427/1bfcdab4-514c-4fec-8a42-76fba820fed0_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -55,6 +84,15 @@
       "priceLabel": "¥2,000",
       "url": "https://vetumheberehama.booth.pm/items/7551795",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/174872e2-d95b-4f83-aaf6-54b5adeda024_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/174872e2-d95b-4f83-aaf6-54b5adeda024_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/62e10225-b1b8-4f3f-9176-b95028de080f_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/1c5a76d3-ec56-4ea9-8b80-6320a97d2140_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/9e0e2d3a-9e2d-451b-ae33-ede590065309_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/859b1ba4-7c4d-4ca3-943e-d90da621137b_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/be926e2c-9be0-439f-babc-84a1f6641105_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7551795/45cf3bca-9b27-4e1b-b089-20ebd62638e0_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -65,6 +103,14 @@
       "priceLabel": "¥500",
       "url": "https://vetumheberehama.booth.pm/items/7462088",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/349aa104-5749-4e72-8959-8a53894cbd33_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/349aa104-5749-4e72-8959-8a53894cbd33_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/8879979e-fcd5-4dc9-856b-5d31931d96fb_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/38b7425f-4be9-4e3d-901f-de5b6f5eaeab_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/4e980432-f0c9-4b5f-975c-d549ebc5bbbc_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/7c3fe0c9-c970-493d-ab40-8e1a9df65a09_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7462088/990ebff3-1199-4595-9f21-68a983b70f4e_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -75,6 +121,12 @@
       "priceLabel": "¥0",
       "url": "https://vetumheberehama.booth.pm/items/7219631",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7219631/5f7b6bad-5898-482a-b9c2-28f328adb38a_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7219631/5f7b6bad-5898-482a-b9c2-28f328adb38a_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7219631/7859bf2e-1def-4669-97ee-9a358193780f_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7219631/550dde39-4785-42d1-9b59-68f33c780276_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7219631/d1bc43ba-d94d-4806-b5c8-6ad9ce951d47_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -85,6 +137,19 @@
       "priceLabel": "¥1,500",
       "url": "https://vetumheberehama.booth.pm/items/6898442",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/0a62cfac-91e9-457a-9cd2-f84e6f750f5a_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/0a62cfac-91e9-457a-9cd2-f84e6f750f5a_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/90adc31c-3d9d-4342-b5e9-d0a127625fd2_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/e7adc602-2412-46c2-91d0-00e4ff3c100a_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/c3770f95-0d1e-42ef-9d03-a7224f55373f_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/0d0e5ffe-5cd2-49ad-bd18-cbdd7de753f7_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/4b403024-1776-47d6-b3f8-79f42387c378_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/371b35dd-5e76-41e7-b4d7-6733faabccce_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/10808156-8d6c-4d26-9b8a-a5a27ab527b4_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/84f6c748-0256-402e-81de-f7d1a7d404b9_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/23bcbd45-7759-433c-94af-dfdc57c431c7_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898442/d1652f60-124b-4a67-be4a-d314d4dd91f4_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -95,6 +160,14 @@
       "priceLabel": "¥500〜",
       "url": "https://vetumheberehama.booth.pm/items/6898514",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/6c738ef7-7c6e-4f96-9976-6143497166fb_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/6c738ef7-7c6e-4f96-9976-6143497166fb_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/4c12b19e-07b2-4fa4-857e-448bd29a1e96_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/12327d4c-44b0-4641-9df2-704cb5ad40ed_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/b8c1d26b-aec2-4bc2-8619-896af3e8aa84_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/6930ee29-998f-428e-8cd1-15843144ad8c_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/6898514/7af11ae2-c806-4810-a4c8-415280665a03_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -105,6 +178,13 @@
       "priceLabel": "¥1,500",
       "url": "https://vetumheberehama.booth.pm/items/7084066",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/c2dc1a6c-2c7f-40b8-bf9c-22953a862f2f_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/c2dc1a6c-2c7f-40b8-bf9c-22953a862f2f_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/f9235e84-160e-4ac8-9bde-f29e88970fc3_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/0c69cf1c-071a-407a-b94b-320e3c73968c_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/1a0da332-1bb3-4d6e-808f-028ec9ef9144_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/b5007fb6-f6f3-4f7f-a76c-451f61aee881_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -115,6 +195,12 @@
       "priceLabel": "¥800〜",
       "url": "https://vetumheberehama.booth.pm/items/8122132",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8122132/0dbe3229-53ff-454f-9165-9acbf0039742_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8122132/0dbe3229-53ff-454f-9165-9acbf0039742_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8122132/be5f880c-c885-4aa4-90bb-d8d3426400a3_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8122132/4f3583d1-54b4-47db-b91b-6ac62f284bad_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8122132/fd596b24-b1f1-4c09-aa67-af84e21b7df5_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -125,6 +211,12 @@
       "priceLabel": "¥500",
       "url": "https://vetumheberehama.booth.pm/items/7586035",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7586035/5654852f-c009-4e77-92a5-9f711c5d0e1b_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7586035/5654852f-c009-4e77-92a5-9f711c5d0e1b_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7586035/3976c989-99d3-4c3d-b5f9-009329508b7f_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7586035/5ef145dc-e7f8-4c26-9728-f5385e152786_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7586035/0cf24c83-5e77-406c-a63f-96bd1b1cb057_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -135,6 +227,11 @@
       "priceLabel": "¥1,500",
       "url": "https://vetumheberehama.booth.pm/items/7924454",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7924454/fbe718ef-9321-4ec4-bab1-d37492a8b421_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7924454/fbe718ef-9321-4ec4-bab1-d37492a8b421_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7924454/ad06f6d2-c620-452b-a2b0-559306abdadf_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7924454/f39555d9-af08-484a-8394-78e8528b6b2a_base_resized.jpg"
+      ],
       "availability": "in_stock"
     },
     {
@@ -145,6 +242,11 @@
       "priceLabel": "¥400",
       "url": "https://vetumheberehama.booth.pm/items/8631449",
       "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/550aade6-1fe1-4c9d-833a-072d91c4f645_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/550aade6-1fe1-4c9d-833a-072d91c4f645_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/2cd1a6c1-83fd-4284-96e5-6e16d784403a_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/5e48f575-2247-4c70-b29e-aa1a663dfc10_base_resized.jpg"
+      ],
       "availability": "in_stock"
     }
   ]

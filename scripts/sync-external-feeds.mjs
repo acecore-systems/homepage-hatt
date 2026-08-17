@@ -20,6 +20,19 @@ const youtubeXmlParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
 })
+const boothShopUrl = 'https://vetumheberehama.booth.pm/'
+const boothCollections = [
+  {
+    category: 'アバター',
+    url: 'https://vetumheberehama.booth.pm/item_lists/r1LT6q2w',
+  },
+  {
+    category: 'ギミック',
+    url: 'https://vetumheberehama.booth.pm/item_lists/nZ6TXKVK',
+  },
+]
+const boothImageHost = 'booth.pximg.net'
+const boothFetchConcurrency = 3
 
 // These values change independently of the site's actual catalog content and
 // should not trigger a commit or a Cloudflare Pages build on their own.
@@ -59,6 +72,225 @@ function requireText(value, label) {
   }
 
   return value
+}
+
+function requireNonNegativeNumber(value, label) {
+  const number = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(number) || number < 0) {
+    throw new Error(`${label} is missing from the external feed.`)
+  }
+
+  return number
+}
+
+function formatYen(value) {
+  return `¥${new Intl.NumberFormat('ja-JP').format(value)}`
+}
+
+function normalizeAvailability(value) {
+  const state = String(value ?? '')
+    .split('/')
+    .pop()
+    ?.toLowerCase()
+
+  if (state === 'instock') return 'in_stock'
+  if (state === 'outofstock') return 'out_of_stock'
+  if (state === 'preorder') return 'preorder'
+  return 'unknown'
+}
+
+function jsonLdEntries(value) {
+  if (Array.isArray(value)) return value.flatMap(jsonLdEntries)
+  if (!value || typeof value !== 'object') return []
+  if (Array.isArray(value['@graph']))
+    return value['@graph'].flatMap(jsonLdEntries)
+  return [value]
+}
+
+function schemaIncludesProduct(value) {
+  const types = asArray(value?.['@type'])
+  return types.some((type) => type === 'Product')
+}
+
+function parseProductJsonLd(raw) {
+  const blocks = raw.matchAll(
+    /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+  )
+
+  for (const block of blocks) {
+    try {
+      const products = jsonLdEntries(JSON.parse(block[1])).filter(
+        schemaIncludesProduct,
+      )
+      if (products.length > 0) return products[0]
+    } catch {
+      // Ignore unrelated or malformed structured-data blocks and keep looking
+      // for the product metadata published on the page.
+    }
+  }
+
+  throw new Error('BOOTH product metadata is missing from the public page.')
+}
+
+function decodeHtmlUrl(value) {
+  return value
+    .replaceAll('&amp;', '&')
+    .replaceAll('&#x2F;', '/')
+    .replaceAll('&#47;', '/')
+    .replaceAll('\\/', '/')
+}
+
+function boothImageCandidate(value, productId) {
+  if (typeof value !== 'string') return undefined
+
+  try {
+    const url = new URL(decodeHtmlUrl(value))
+    if (url.protocol !== 'https:' || url.hostname !== boothImageHost) {
+      return undefined
+    }
+
+    const match = url.pathname.match(
+      new RegExp(
+        `/i/${productId}/([0-9a-f-]+)(?:_base_resized)?\\.(?:jpe?g|png|webp)$`,
+        'i',
+      ),
+    )
+    if (!match) return undefined
+
+    const dimensions = url.pathname.match(/\/c\/(\d+)x(\d+)\//)
+    return {
+      key: match[1].toLowerCase(),
+      url: url.toString(),
+      isDisplayImage: /_base_resized\.(?:jpe?g|png|webp)$/i.test(url.pathname),
+      area: dimensions ? Number(dimensions[1]) * Number(dimensions[2]) : 0,
+    }
+  } catch {
+    return undefined
+  }
+}
+
+function preferBoothImage(current, candidate) {
+  if (!current) return candidate
+  if (current.isDisplayImage !== candidate.isDisplayImage) {
+    return candidate.isDisplayImage ? candidate : current
+  }
+  if (current.area !== candidate.area) {
+    return candidate.area > current.area ? candidate : current
+  }
+  return candidate.url.localeCompare(current.url) < 0 ? candidate : current
+}
+
+export function extractBoothGalleryImages(raw, { productId, primaryImage }) {
+  const primary = boothImageCandidate(primaryImage, productId)
+  if (!primary) {
+    throw new Error('BOOTH product primary image is missing or invalid.')
+  }
+
+  const candidates = new Map([[primary.key, primary]])
+  const imageUrls =
+    raw.match(/https:\/\/booth\.pximg\.net\/[^"'<>\\\s]+/g) ?? []
+
+  for (const imageUrl of imageUrls) {
+    const candidate = boothImageCandidate(imageUrl, productId)
+    if (!candidate) continue
+    candidates.set(
+      candidate.key,
+      preferBoothImage(candidates.get(candidate.key), candidate),
+    )
+  }
+
+  const images = [...candidates.values()].map((candidate) => candidate.url)
+  const primaryIndex = images.indexOf(candidates.get(primary.key).url)
+  if (primaryIndex > 0) {
+    images.unshift(images.splice(primaryIndex, 1)[0])
+  }
+
+  return images
+}
+
+export function parseBoothCollectionPage(raw, { category, collectionUrl }) {
+  const sourceUrl = new URL(requireText(collectionUrl, 'BOOTH collection URL'))
+  const normalizedCategory = requireText(category, 'BOOTH collection category')
+  const productIds = []
+  const seenIds = new Set()
+
+  for (const match of raw.matchAll(
+    /(?:https?:\/\/[^"'<>\s]+)?\/items\/(\d+)(?=["'/?#\s<]|$)/gi,
+  )) {
+    const id = match[1]
+    if (seenIds.has(id)) continue
+    seenIds.add(id)
+    productIds.push(id)
+  }
+
+  if (productIds.length === 0) {
+    throw new Error(
+      `BOOTH ${normalizedCategory} collection returned no published products.`,
+    )
+  }
+
+  return productIds.map((id) => ({
+    id,
+    category: normalizedCategory,
+    url: new URL(`/items/${id}`, sourceUrl).toString(),
+  }))
+}
+
+export function parseBoothProductPage(raw, { id, category, url }) {
+  const product = parseProductJsonLd(raw)
+  const offer = asArray(product.offers)[0]
+  if (!offer || typeof offer !== 'object') {
+    throw new Error(
+      'BOOTH product offer metadata is missing from the public page.',
+    )
+  }
+
+  const price = requireNonNegativeNumber(
+    offer.lowPrice ?? offer.price,
+    'BOOTH product price',
+  )
+  const highPrice = Number(offer.highPrice)
+  const primaryImage = requireText(
+    asArray(product.image)[0],
+    'BOOTH product primary image',
+  )
+  const images = extractBoothGalleryImages(raw, {
+    productId: id,
+    primaryImage,
+  })
+
+  return {
+    id,
+    title: requireText(product.name, 'BOOTH product title'),
+    category,
+    price,
+    priceLabel:
+      Number.isFinite(highPrice) && highPrice > price
+        ? `${formatYen(price)}〜`
+        : formatYen(price),
+    url,
+    image: images[0],
+    images,
+    availability: normalizeAvailability(offer.availability),
+  }
+}
+
+async function mapWithConcurrency(values, concurrency, mapper) {
+  const results = new Array(values.length)
+  let nextIndex = 0
+
+  async function worker() {
+    while (nextIndex < values.length) {
+      const index = nextIndex
+      nextIndex += 1
+      results[index] = await mapper(values[index], index)
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, values.length) }, worker),
+  )
+  return results
 }
 
 export function parseNarouPayload(
@@ -212,6 +444,56 @@ async function syncYoutubeVideos() {
   return parseYoutubeFeed(raw)
 }
 
+export async function syncBoothCatalog({
+  getText = fetchText,
+  now = () => new Date().toISOString(),
+} = {}) {
+  const listings = (
+    await Promise.all(
+      boothCollections.map(async (collection) =>
+        parseBoothCollectionPage(await getText(collection.url), {
+          ...collection,
+          collectionUrl: collection.url,
+        }),
+      ),
+    )
+  ).flat()
+
+  if (new Set(listings.map((product) => product.id)).size !== listings.length) {
+    throw new Error('BOOTH collections contain duplicate product IDs.')
+  }
+
+  const products = await mapWithConcurrency(
+    listings,
+    boothFetchConcurrency,
+    async (listing) =>
+      parseBoothProductPage(await getText(listing.url), listing),
+  )
+
+  if (
+    products.length === 0 ||
+    products.some((product) => product.images.length === 0)
+  ) {
+    throw new Error(
+      'BOOTH catalog is incomplete; keeping the current snapshot.',
+    )
+  }
+
+  return {
+    source: 'booth-public-html+jsonld',
+    schemaVersion: 2,
+    shopUrl: boothShopUrl,
+    collectionUrls: Object.fromEntries(
+      boothCollections.map((collection) => [
+        collection.category,
+        collection.url,
+      ]),
+    ),
+    syncedAt: now(),
+    products,
+  }
+}
+
 function comparableContent(value) {
   if (Array.isArray(value)) {
     return value.map(comparableContent)
@@ -263,7 +545,7 @@ export async function writeJsonIfChanged(
   return true
 }
 
-async function main() {
+async function syncExternalFeeds() {
   const syncResults = await Promise.allSettled([
     syncNovels(),
     syncYoutubeVideos(),
@@ -296,10 +578,34 @@ async function main() {
   )
 }
 
+async function syncBoothFeed() {
+  const boothCatalog = await syncBoothCatalog()
+  const changed = await writeJsonIfChanged('booth-products.json', boothCatalog)
+  const imageCount = boothCatalog.products.reduce(
+    (count, product) => count + product.images.length,
+    0,
+  )
+
+  if (!changed) {
+    console.log(
+      `BOOTH catalog is already current (${boothCatalog.products.length} products and ${imageCount} images).`,
+    )
+    return
+  }
+
+  console.log(
+    `Updated BOOTH catalog (${boothCatalog.products.length} products and ${imageCount} images).`,
+  )
+}
+
 const isEntryPoint = process.argv[1]
   ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
   : false
 
 if (isEntryPoint) {
-  await main()
+  if (process.argv.includes('--booth')) {
+    await syncBoothFeed()
+  } else {
+    await syncExternalFeeds()
+  }
 }

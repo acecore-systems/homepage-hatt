@@ -3,6 +3,7 @@ name: 外部コンテンツ定期同期
 on:
   schedule:
     - cron: '23 */6 * * *'
+    - cron: '47 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -39,7 +40,19 @@ jobs:
         run: npm ci
 
       - name: Fetch external content
-        run: npm run sync:external
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        shell: bash
+        run: |
+          if [[ "$SCHEDULE" == '47 3 * * *' ]]; then
+            npm run sync:booth
+          elif [[ "$EVENT_NAME" == 'workflow_dispatch' ]]; then
+            npm run sync:external
+            npm run sync:booth
+          else
+            npm run sync:external
+          fi
 
       - name: Detect content changes
         id: diff
@@ -47,7 +60,8 @@ jobs:
         run: |
           if git diff --quiet -- \
             src/data/external/novels.json \
-            src/data/external/youtube-videos.json; then
+            src/data/external/youtube-videos.json \
+            src/data/external/booth-products.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -64,7 +78,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
             src/data/external/novels.json \
-            src/data/external/youtube-videos.json
+            src/data/external/youtube-videos.json \
+            src/data/external/booth-products.json
           git commit -m "[CF-Pages-Skip] 外部コンテンツを同期"
 
           sync_sha="$(git rev-parse HEAD)"
@@ -109,7 +124,7 @@ jobs:
               '' \
               '## 概要' \
               '' \
-              '- 小説家になろうとYouTubeの静的スナップショットを更新します。' \
+              '- 小説家になろう、YouTube、BOOTHの静的スナップショットを更新します。' \
               '- 外部コンテンツ定期同期workflowによる自動PRです。' \
               '' \
               '## 確認' \
@@ -118,7 +133,8 @@ jobs:
               '' \
               '## 補足' \
               '' \
-              '- 再生数、評価点、取得時刻だけの変化ではPRを作成しません。' \
+              '- 取得時刻だけの変化ではPRを作成しません。' \
+              '- BOOTHは1日1回、公開リストと商品画像を同期します。' \
               '- 同期branchのPagesプレビューを省き、mainへのマージ後だけ本番ビルドします。')"
 
             pr_url="$(
