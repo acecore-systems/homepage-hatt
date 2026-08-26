@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.172.4/schema/sveltia-cms.json
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.191.1/schema/sveltia-cms.json
 
 backend:
   name: github
@@ -895,12 +895,12 @@ collections:
         widget: select
         required: false
         options:
-          - { label: 告知, value: i-lucide-megaphone }
-          - { label: 星, value: i-lucide-star }
-          - { label: 制作, value: i-lucide-sparkles }
-          - { label: モデリング, value: i-lucide-box }
-          - { label: 絵, value: i-lucide-brush }
-          - { label: 小説, value: i-lucide-book-open }
+          - { label: 告知, value: 'icon-[lucide--megaphone]' }
+          - { label: 星, value: 'icon-[lucide--star]' }
+          - { label: 制作, value: 'icon-[lucide--sparkles]' }
+          - { label: モデリング, value: 'icon-[lucide--box]' }
+          - { label: 絵, value: 'icon-[lucide--brush]' }
+          - { label: 小説, value: 'icon-[lucide--book-open]' }
       - name: tone
         label: 色
         widget: select

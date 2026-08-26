@@ -1,0 +1,211 @@
+name: 外部コンテンツ定期同期
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+    - cron: '47 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: external-content-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: 外部コンテンツを同期
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SYNC_BRANCH: automation/external-content-sync
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch external content
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        shell: bash
+        run: |
+          if [[ "$SCHEDULE" == '47 3 * * *' ]]; then
+            npm run sync:booth
+          elif [[ "$EVENT_NAME" == 'workflow_dispatch' ]]; then
+            npm run sync:external
+            npm run sync:booth
+          else
+            npm run sync:external
+          fi
+
+      - name: Detect content changes
+        id: diff
+        shell: bash
+        run: |
+          if git diff --quiet -- \
+            src/data/external/novels.json \
+            src/data/external/youtube-videos.json \
+            src/data/external/booth-products.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push the snapshot branch
+        if: steps.diff.outputs.changed == 'true'
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/data/external/novels.json \
+            src/data/external/youtube-videos.json \
+            src/data/external/booth-products.json
+          git commit -m "[CF-Pages-Skip] 外部コンテンツを同期"
+
+          sync_sha="$(git rev-parse HEAD)"
+          remote_ref="refs/remotes/origin/${SYNC_BRANCH}"
+          git fetch origin \
+            "+refs/heads/${SYNC_BRANCH}:${remote_ref}" || true
+
+          if git show-ref --verify --quiet "$remote_ref"; then
+            remote_sha="$(git rev-parse "$remote_ref")"
+            git push \
+              --force-with-lease="refs/heads/${SYNC_BRANCH}:${remote_sha}" \
+              origin \
+              "HEAD:refs/heads/${SYNC_BRANCH}"
+          else
+            git push origin "HEAD:refs/heads/${SYNC_BRANCH}"
+          fi
+
+          echo "sha=${sync_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update the sync pull request
+        if: steps.diff.outputs.changed == 'true'
+        id: pull_request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pr_number="$(
+            gh pr list \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head "$SYNC_BRANCH" \
+              --state open \
+              --json number \
+              --jq '.[0].number // empty'
+          )"
+
+          if [[ -z "$pr_number" ]]; then
+            pr_body="$(printf '%s\n' \
+              '関連 Issue: なし' \
+              '' \
+              '## 概要' \
+              '' \
+              '- 小説家になろう、YouTube、BOOTHの静的スナップショットを更新します。' \
+              '- 外部コンテンツ定期同期workflowによる自動PRです。' \
+              '' \
+              '## 確認' \
+              '' \
+              '- Build and Formatを明示起動し、合格後に自動マージします。' \
+              '' \
+              '## 補足' \
+              '' \
+              '- 取得時刻だけの変化ではPRを作成しません。' \
+              '- BOOTHは1日1回、公開リストと商品画像を同期します。' \
+              '- 同期branchのPagesプレビューを省き、mainへのマージ後だけ本番ビルドします。')"
+
+            pr_url="$(
+              gh pr create \
+                --repo "$GITHUB_REPOSITORY" \
+                --base main \
+                --head "$SYNC_BRANCH" \
+                --title "外部コンテンツを定期同期" \
+                --body "$pr_body"
+            )"
+            pr_number="$(
+              gh pr view "$pr_url" \
+                --repo "$GITHUB_REPOSITORY" \
+                --json number \
+                --jq '.number'
+            )"
+          fi
+
+          echo "number=${pr_number}" >> "$GITHUB_OUTPUT"
+
+      # Event-triggered checks for pull requests created with GITHUB_TOKEN can
+      # require approval, so dispatch the required CI check explicitly.
+      - name: Run and wait for the required CI check
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_SHA: ${{ steps.commit.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh workflow run ci.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$SYNC_BRANCH"
+
+          ci_run_id=""
+          for _ in $(seq 1 30); do
+            ci_run_id="$(
+              gh run list \
+                --repo "$GITHUB_REPOSITORY" \
+                --workflow ci.yml \
+                --branch "$SYNC_BRANCH" \
+                --commit "$SYNC_SHA" \
+                --event workflow_dispatch \
+                --limit 1 \
+                --json databaseId \
+                --jq '.[0].databaseId // empty'
+            )"
+            [[ -n "$ci_run_id" ]] && break
+            sleep 2
+          done
+
+          if [[ -z "$ci_run_id" ]]; then
+            echo "Dispatched CI run was not found." >&2
+            exit 1
+          fi
+
+          gh run watch "$ci_run_id" \
+            --repo "$GITHUB_REPOSITORY" \
+            --exit-status
+
+      - name: Merge the verified snapshot
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pull_request.outputs.number }}
+          SYNC_SHA: ${{ steps.commit.outputs.sha }}
+        shell: bash
+        run: |
+          gh pr merge "$PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --squash \
+            --subject "外部コンテンツを同期" \
+            --match-head-commit "$SYNC_SHA"

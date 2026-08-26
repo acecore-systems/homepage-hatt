@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - src/data/external/novels.json
+      - src/data/external/youtube-videos.json
+      - src/data/external/booth-products.json
   push:
     branches:
       - main
@@ -36,6 +40,9 @@ jobs:
       - name: Validate CMS content
         run: npm run validate:content
 
+      - name: Test UI foundation
+        run: npm run test:ui-foundation
+
       - name: Test CMS proxy
         run: npm run test:cms
 
@@ -44,6 +51,9 @@ jobs:
 
       - name: Test sitemap modification dates
         run: npm run test:sitemap
+
+      - name: Test external feed snapshots
+        run: npm run test:external-feed
 
       - name: Check Pages Function bindings
         run: npm run types:functions:check

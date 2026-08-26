@@ -9,19 +9,6 @@ type Site = {
 
 const { site } = Astro.props as { site: Site }
 
-const iconByLabel: Record<string, string> = {
-  絵: 'i-lucide-images',
-  小説: 'i-lucide-book-open',
-  '3D作品': 'i-lucide-box',
-  ショップ: 'i-lucide-shopping-bag',
-  講座: 'i-lucide-graduation-cap',
-  動画: 'i-lucide-square-play',
-  Acecore: 'i-lucide-arrow-up-right',
-  ブログ: 'i-lucide-newspaper',
-  モデリング: 'i-lucide-box',
-  プロフィール: 'i-lucide-user-round',
-}
-
 const compactLabelByLabel: Record<string, string> = {
   '3D作品': '3D',
   ショップ: 'Shop',
@@ -34,7 +21,7 @@ const compactLabelByLabel: Record<string, string> = {
   <nav class="site-nav" aria-label="メインナビゲーション">
     <a class="brand-link" href="/">
       <span class="brand-mark" aria-hidden="true">
-        <span class="i-lucide-feather"></span>
+        <span class="icon-[lucide--feather]"></span>
       </span>
       <span class="brand-copy">
         <span class="brand-name">{site.name}</span>
@@ -52,7 +39,7 @@ const compactLabelByLabel: Record<string, string> = {
         aria-controls="site-search-modal"
         aria-label="検索"
       >
-        <span class="i-lucide-search" aria-hidden="true"></span>
+        <span class="icon-[lucide--search]" aria-hidden="true"></span>
       </button>
       {
         site.headerLinks.map((link) => {
@@ -69,13 +56,6 @@ const compactLabelByLabel: Record<string, string> = {
               data-hatt-label={link.label}
               data-hatt-location="header"
             >
-              <span
-                class:list={[
-                  'nav-link-icon',
-                  iconByLabel[link.label] ?? 'i-lucide-arrow-right',
-                ]}
-                aria-hidden="true"
-              />
               <span class="nav-label nav-label--full">{link.label}</span>
               <span class="nav-label nav-label--compact" aria-hidden="true">
                 {compactLabel}
@@ -92,7 +72,7 @@ const compactLabelByLabel: Record<string, string> = {
         data-hatt-location="header"
         aria-label="カート"
       >
-        <span class="i-lucide-shopping-cart" aria-hidden="true"></span>
+        <span class="icon-[lucide--shopping-cart]" aria-hidden="true"></span>
         <span class="sr-only">カート</span>
         <strong data-shop-cart-count hidden>0</strong>
       </a>

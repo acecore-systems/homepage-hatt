@@ -16,11 +16,21 @@ type ArtItem = {
 const getStatusId = (value: string) =>
   value.match(/(?:status\/|^x-)(\d{12,})/)?.[1]
 
+const getArtImageIndex = (id: string) =>
+  Number(id.match(/-(\d+)$/)?.[1] ?? Number.MAX_SAFE_INTEGER)
+
 const compareRank = (a: ArtItem, b: ArtItem) => {
   if (a.rank && b.rank) {
-    return a.rank.length === b.rank.length
-      ? b.rank.localeCompare(a.rank)
-      : b.rank.length - a.rank.length
+    const rankCompare =
+      a.rank.length === b.rank.length
+        ? b.rank.localeCompare(a.rank)
+        : b.rank.length - a.rank.length
+    if (rankCompare !== 0) return rankCompare
+
+    const imageIndexCompare = getArtImageIndex(a.id) - getArtImageIndex(b.id)
+    if (imageIndexCompare !== 0) return imageIndexCompare
+
+    return a.id.localeCompare(b.id)
   }
   if (a.rank) return -1
   if (b.rank) return 1
@@ -89,7 +99,7 @@ const getArtTileClass = (index: number): string | undefined => {
           </div>
         ) : (
           <div class="art-empty">
-            <span class="i-lucide-image-plus" aria-hidden="true" />
+            <span class="icon-[lucide--image-plus]" aria-hidden="true" />
             <h2>まだ掲載する絵がありません</h2>
             <p>CMSでURLと画像を追加すると、ここに絵が並びます。</p>
             <a href={profileUrl} {...externalAttrs(profileUrl)}>

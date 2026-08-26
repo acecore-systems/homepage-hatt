@@ -1,9 +1,9 @@
 import sitemap from '@astrojs/sitemap'
-import UnoCSS from '@unocss/astro'
+import tailwindcss from '@tailwindcss/vite'
 import { unified } from '@astrojs/markdown-remark'
 import rehypeExternalLinks from 'rehype-external-links'
 import { createSitemapLastmodResolver } from './scripts/sitemap-lastmod.mjs'
-import rehypeOptimizeImages from './src/utils/rehype-optimize-images'
+import rehypeOptimizeImages from './src/utils/rehype-optimize-images.ts'
 import { defineConfig } from 'astro/config'
 
 const sitemapLastmod = createSitemapLastmodResolver()
@@ -11,7 +11,6 @@ const sitemapLastmod = createSitemapLastmodResolver()
 export default defineConfig({
   site: 'https://hatt.acecore.net',
   integrations: [
-    UnoCSS(),
     sitemap({
       filter: (page) =>
         ![
@@ -46,6 +45,9 @@ export default defineConfig({
       },
     }),
   ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
   markdown: {
     processor: unified({
       rehypePlugins: [

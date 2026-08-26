@@ -11,13 +11,16 @@
     "audit:image-alts": "node scripts/audit-image-alts.mjs",
     "preview": "astro preview",
     "sync:external": "node scripts/sync-external-feeds.mjs",
+    "sync:booth": "node scripts/sync-external-feeds.mjs --booth",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "test:cms": "node --test tests/cms-admin-init.test.mjs tests/cms-proxy.test.mjs tests/cms-content-validation.test.mjs tests/cms-reference-validation.test.mjs tests/cms-github-app-setup.test.mjs tests/safe-json.test.mjs",
     "pretest:shop": "node scripts/write-shop-runtime-catalog.mjs",
     "test:shop": "node --test tests/shop-access.test.mjs tests/shop-contact.test.mjs tests/shop-disclosure.test.mjs",
+    "test:external-feed": "node --test tests/external-feed-sync.test.mjs",
     "test:sitemap": "node --test tests/sitemap-lastmod.test.mjs",
     "test:turnstile": "node --test tests/turnstile-retry.test.mjs",
+    "test:ui-foundation": "node --test tests/ui-foundation.test.mjs",
     "setup:cms-app": "node scripts/setup-cms-github-app.mjs --owner acecore-systems --repo homepage-hatt --app-name \"Acecore Hatt CMS\" --site-url https://hatt.acecore.net --pages-project homepage-hatt",
     "pretypecheck:functions": "node scripts/write-shop-runtime-catalog.mjs",
     "typecheck:functions": "tsc --project tsconfig.functions.json",
@@ -36,11 +39,11 @@
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.1.6",
+    "astro": "^7.2.0",
     "fast-xml-parser": "^5.10.1",
     "graphql": "^17.0.2",
-    "js-yaml": "^5.2.2",
-    "jose": "^6.2.5",
+    "js-yaml": "^5.2.3",
+    "jose": "^6.2.8",
     "rehype-external-links": "^3.0.0",
     "satori": "^0.29.0",
     "sharp": "^0.35.3",
@@ -48,16 +51,16 @@
   },
   "devDependencies": {
     "@astrojs/markdown-remark": "^7.2.1",
-    "@cloudflare/workers-types": "^5.20260729.1",
-    "@iconify-json/lucide": "^1.2.120",
-    "@unocss/astro": "^66.7.5",
-    "@unocss/preset-typography": "^66.7.5",
+    "@cloudflare/workers-types": "^5.20260816.1",
+    "@iconify-json/lucide": "^1.2.121",
+    "@iconify/tailwind4": "^1.2.3",
+    "@tailwindcss/vite": "^4.3.3",
     "pagefind": "^1.5.2",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "unocss": "^66.7.5",
-    "wrangler": "^4.116.0"
+    "wrangler": "^4.123.0"
   },
   "overrides": {
     "sharp": "$sharp"
@@ -67,6 +70,6 @@
   },
   "allowScripts": {
     "esbuild@0.28.1": true,
-    "workerd@1.20260722.1": true
+    "workerd@1.20260811.1": true
   }
 }

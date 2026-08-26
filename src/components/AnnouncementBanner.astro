@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import { normalizeIconClass } from '@/utils/icon-class'
 import { isWithinPublicationWindow } from '@/utils/publication-window'
 import { externalAttrs } from '@/utils/routes'
 
@@ -11,10 +12,10 @@ const announcements = campaigns
   )
 
 const toneIcon = {
-  cyan: 'i-lucide-sparkles',
-  ember: 'i-lucide-flame',
-  mint: 'i-lucide-leaf',
-  pollen: 'i-lucide-star',
+  cyan: 'icon-[lucide--sparkles]',
+  ember: 'icon-[lucide--flame]',
+  mint: 'icon-[lucide--leaf]',
+  pollen: 'icon-[lucide--star]',
 }
 ---
 
@@ -22,7 +23,8 @@ const toneIcon = {
   announcements.map((announcement) => {
     const href = announcement.data.href?.trim()
     const icon =
-      announcement.data.icon?.trim() || toneIcon[announcement.data.tone]
+      normalizeIconClass(announcement.data.icon) ??
+      toneIcon[announcement.data.tone]
     const startsAt = announcement.data.startsAt?.trim() || undefined
     const endsAt = announcement.data.endsAt?.trim() || undefined
     const isPublished = isWithinPublicationWindow(startsAt, endsAt)
@@ -59,7 +61,7 @@ const toneIcon = {
               data-hatt-location="global_banner"
             >
               {announcement.data.ctaLabel}
-              <span class="i-lucide-arrow-right" aria-hidden="true" />
+              <span class="icon-[lucide--arrow-right]" aria-hidden="true" />
             </a>
           )}
           <button
@@ -68,7 +70,7 @@ const toneIcon = {
             aria-label="告知を閉じる"
             data-announcement-close
           >
-            <span class="i-lucide-x" aria-hidden="true" />
+            <span class="icon-[lucide--x]" aria-hidden="true" />
           </button>
         </div>
       </section>

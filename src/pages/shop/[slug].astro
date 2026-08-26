@@ -46,13 +46,13 @@ const heroImage = product.images[0]
               alt={heroImage.alt || `${product.title}の画像`}
             />
           ) : (
-            <span class="i-lucide-image" aria-hidden="true" />
+            <span class="icon-[lucide--image]" aria-hidden="true" />
           )
         }
       </div>
       <div class="shop-detail-copy">
         <p class="hero-note">
-          <span class="i-lucide-shopping-bag" aria-hidden="true"></span>
+          <span class="icon-[lucide--shopping-bag]" aria-hidden="true"></span>
           {CATEGORY_LABELS[product.category]} / {
             FULFILLMENT_LABELS[product.fulfillmentType]
           }
@@ -95,7 +95,7 @@ const heroImage = product.images[0]
                 data-hatt-location="shop_detail"
               >
                 カートに入れる
-                <span class="i-lucide-plus" aria-hidden="true" />
+                <span class="icon-[lucide--plus]" aria-hidden="true" />
               </button>
             ) : (
               product.externalUrl && (
@@ -105,14 +105,18 @@ const heroImage = product.images[0]
                   {...externalAttrs(product.externalUrl)}
                 >
                   無料配布を開く
-                  <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                  <span
+                    class="icon-[lucide--arrow-up-right]"
+                    aria-hidden="true"
+                  />
                 </a>
               )
             )
           }
           <a class="secondary-button" href="/shop/cart/">
             カートを見る
-            <span class="i-lucide-shopping-cart" aria-hidden="true"></span>
+            <span class="icon-[lucide--shopping-cart]" aria-hidden="true"
+            ></span>
           </a>
         </div>
         {
@@ -123,7 +127,7 @@ const heroImage = product.images[0]
               {...externalAttrs(product.externalUrl)}
             >
               BOOTHでも見る
-              <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+              <span class="icon-[lucide--arrow-up-right]" aria-hidden="true" />
             </a>
           )
         }
@@ -143,7 +147,7 @@ const heroImage = product.images[0]
           <ul>
             {product.features.map((feature) => (
               <li>
-                <span class="i-lucide-check" aria-hidden="true" />
+                <span class="icon-[lucide--check]" aria-hidden="true" />
                 {feature}
               </li>
             ))}

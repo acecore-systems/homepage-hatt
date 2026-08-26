@@ -30,37 +30,31 @@ const summarize = (value = '', length = 120) => {
   const text = normalizeText(value)
   return text.length > length ? `${text.slice(0, length)}...` : text
 }
-const formatViews = (value?: number) =>
-  typeof value === 'number' && value > 0
-    ? `${new Intl.NumberFormat('ja-JP').format(value)}回再生`
-    : ''
 const getVideoMeta = (video: (typeof videos)[number]) =>
-  [formatDate(video.publishedAt), formatViews(video.views)]
-    .filter(Boolean)
-    .join(' / ')
+  formatDate(video.publishedAt)
 const videoLinks = [
   {
     label: '全公開動画',
     href: uploadsPlaylistUrl,
-    icon: 'i-lucide-list-video',
+    icon: 'icon-[lucide--list-video]',
     text: '通常動画、公開済みのライブ配信アーカイブ、ショートをアップロード順に見られます。',
   },
   {
     label: 'ライブ',
     href: `${channelUrl}/streams`,
-    icon: 'i-lucide-radio',
+    icon: 'icon-[lucide--radio]',
     text: '配信予定、現在のライブ、過去のライブ配信アーカイブを確認できます。',
   },
   {
     label: '動画',
     href: `${channelUrl}/videos`,
-    icon: 'i-lucide-play-square',
+    icon: 'icon-[lucide--play-square]',
     text: 'チャンネルの通常動画タブを開きます。',
   },
   {
     label: 'ショート',
     href: `${channelUrl}/shorts`,
-    icon: 'i-lucide-smartphone',
+    icon: 'icon-[lucide--smartphone]',
     text: 'ショート動画だけをまとめて確認できます。',
   },
 ]
@@ -75,7 +69,7 @@ const videoLinks = [
     <div class="section-inner video-hero">
       <div>
         <p class="hero-note">
-          <span class="i-lucide-youtube" aria-hidden="true"></span>
+          <span class="icon-[lucide--youtube]" aria-hidden="true"></span>
           YouTube @hatt9241
         </p>
         <h1>動画</h1>
@@ -152,7 +146,7 @@ const videoLinks = [
         </div>
         <form class="video-search-form" data-video-search-form>
           <label class="sr-only" for="video-search-input">動画を検索</label>
-          <span class="i-lucide-search" aria-hidden="true"></span>
+          <span class="icon-[lucide--search]" aria-hidden="true"></span>
           <input
             id="video-search-input"
             type="search"
@@ -167,7 +161,7 @@ const videoLinks = [
             data-video-search-clear
             hidden
           >
-            <span class="i-lucide-x" aria-hidden="true"></span>
+            <span class="icon-[lucide--x]" aria-hidden="true"></span>
           </button>
         </form>
       </div>
@@ -208,7 +202,7 @@ const videoLinks = [
                     alt={`${video.title}のサムネイル画像`}
                     loading="lazy"
                   />
-                  <span class="i-lucide-play" aria-hidden="true" />
+                  <span class="icon-[lucide--play]" aria-hidden="true" />
                 </span>
                 <span class="video-result-body">
                   <strong>{video.title}</strong>
@@ -217,7 +211,10 @@ const videoLinks = [
                 </span>
                 <span class="video-result-action">
                   YouTubeで開く
-                  <span class="i-lucide-arrow-up-right" aria-hidden="true" />
+                  <span
+                    class="icon-[lucide--arrow-up-right]"
+                    aria-hidden="true"
+                  />
                 </span>
               </a>
             )
