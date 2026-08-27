@@ -48,3 +48,7 @@
 /admin/config.yml
   Content-Type: application/yaml; charset=utf-8
   Cache-Control: no-store
+
+/shop/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store

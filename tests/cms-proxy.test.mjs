@@ -528,12 +528,17 @@ test('CMS管理対象外の保存をGitHubへ送らない', async () => {
 })
 
 test('CMS設定にないcontent pathを書き込み対象にしない', () => {
-  assert.equal(
-    isAllowedCmsWritePath('src/content/products/example.json'),
-    false,
-  )
+  assert.equal(isAllowedCmsWritePath('src/content/products/example.json'), true)
   assert.equal(
     isAllowedCmsWritePath('src/content/shop-settings/main.json'),
+    true,
+  )
+  assert.equal(
+    isAllowedCmsDeletePath('src/content/products/example.json'),
+    true,
+  )
+  assert.equal(
+    isAllowedCmsDeletePath('src/content/shop-settings/main.json'),
     false,
   )
 
@@ -543,6 +548,8 @@ test('CMS設定にないcontent pathを書き込み対象にしない', () => {
     'src/content/blog/nested/example.md',
     'src/content/campaigns/nested/example.json',
     'src/content/modeling/nested/example.json',
+    'src/content/products/nested/example.json',
+    'src/content/shop-settings/other.json',
     'src/content/tags/nested/example.json',
   ]) {
     assert.equal(isAllowedCmsWritePath(path), false)

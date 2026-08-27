@@ -1,0 +1,326 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getSiteConfig } from '@/utils/blog'
+
+const site = await getSiteConfig()
+const sitekey = site.turnstileSiteKey?.trim() ?? ''
+---
+
+<BaseLayout
+  title="ショップのお問い合わせ"
+  description="Hatt shopの注文、ダウンロード、返品・返金、商品についてお問い合わせいただけます。"
+  canonicalPath="/shop/contact/"
+>
+  <section class="page-hero">
+    <div class="section-inner narrow-page">
+      <p class="hero-note">
+        <span class="icon-[lucide--mail]" aria-hidden="true"></span>
+        Shop contact
+      </p>
+      <h1>ショップのお問い合わせ</h1>
+      <p class="lead">
+        注文やダウンロードの状況、商品について確認したいことをお送りください。
+      </p>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="section-inner shop-contact-grid">
+      <div class="shop-contact-copy">
+        <h2>送信前にご確認ください</h2>
+        <ul>
+          <li>
+            注文後のお問い合わせは、分かる場合のみ注文番号を添えてください。
+          </li>
+          <li>ファイルは添付できません。状況を本文に記載してください。</li>
+          <li>
+            返品・返金の条件は<a href="/shop/legal/">表記・ポリシー</a
+            >で確認できます。
+          </li>
+        </ul>
+      </div>
+
+      <form
+        class="shop-contact-form"
+        data-shop-contact-form
+        data-shop-contact-sitekey={sitekey}
+      >
+        <div class="shop-contact-fields">
+          <div>
+            <label for="shop-contact-name">お名前</label>
+            <input
+              id="shop-contact-name"
+              name="name"
+              type="text"
+              maxlength="60"
+              autocomplete="name"
+              required
+            />
+          </div>
+          <div>
+            <label for="shop-contact-email">返信先メールアドレス</label>
+            <input
+              id="shop-contact-email"
+              name="email"
+              type="email"
+              maxlength="254"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <div>
+            <label for="shop-contact-category">お問い合わせの種類</label>
+            <select id="shop-contact-category" name="category" required>
+              <option value="order">注文について</option>
+              <option value="download">ダウンロードについて</option>
+              <option value="refund">返品・返金について</option>
+              <option value="product">商品について</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+          <div>
+            <label for="shop-contact-order">注文番号（任意）</label>
+            <input
+              id="shop-contact-order"
+              name="orderNumber"
+              type="text"
+              maxlength="120"
+              autocomplete="off"
+            />
+          </div>
+          <div class="shop-contact-wide">
+            <label for="shop-contact-message">お問い合わせ内容</label>
+            <textarea
+              id="shop-contact-message"
+              name="message"
+              rows="7"
+              minlength="10"
+              maxlength="2000"
+              required></textarea>
+          </div>
+        </div>
+
+        <label class="shop-contact-consent">
+          <input name="consent" type="checkbox" value="yes" required />
+          <span>
+            入力内容をお問い合わせ対応に使用することと、<a
+              href="/shop/legal/#privacy-policy">プライバシーポリシー</a
+            >に同意します。
+          </span>
+        </label>
+
+        <input
+          type="text"
+          name="website"
+          value=""
+          autocomplete="off"
+          tabindex="-1"
+          aria-hidden="true"
+          hidden
+        />
+
+        <div
+          class="comments-turnstile"
+          data-shop-contact-turnstile
+          data-theme="light"
+        >
+        </div>
+
+        <div class="shop-contact-actions">
+          <button type="submit" class="primary-button" data-shop-contact-submit>
+            送信する
+            <span class="icon-[lucide--send]" aria-hidden="true"></span>
+          </button>
+          <p>内容を確認後、入力いただいたメールアドレスへ返信します。</p>
+        </div>
+        <p class="comments-feedback" data-shop-contact-feedback role="alert">
+        </p>
+      </form>
+    </div>
+  </section>
+
+  <script is:inline>
+    ;(() => {
+      const form = document.querySelector('[data-shop-contact-form]')
+      if (!form) return
+
+      const sitekey = form.dataset.shopContactSitekey || ''
+      const submit = form.querySelector('[data-shop-contact-submit]')
+      const feedback = form.querySelector('[data-shop-contact-feedback]')
+      const turnstileEl = form.querySelector('[data-shop-contact-turnstile]')
+      const isLocal = ['localhost', '127.0.0.1'].includes(
+        window.location.hostname,
+      )
+
+      function setFeedback(text, type) {
+        if (!feedback) return
+        feedback.textContent = text
+        feedback.className = text
+          ? type === 'success'
+            ? 'comments-feedback comments-feedback--success'
+            : 'comments-feedback comments-feedback--error'
+          : 'comments-feedback'
+      }
+
+      function renderTurnstile() {
+        if (
+          !turnstileEl ||
+          !sitekey ||
+          typeof window.turnstile === 'undefined' ||
+          turnstileEl.dataset.widgetId
+        ) {
+          return
+        }
+
+        const widgetId = window.turnstile.render(turnstileEl, {
+          sitekey,
+          language: 'ja',
+          theme: turnstileEl.dataset.theme || 'light',
+        })
+        turnstileEl.dataset.widgetId = String(widgetId)
+      }
+
+      function loadTurnstile() {
+        if (!sitekey || isLocal) return
+        if (typeof window.turnstile !== 'undefined') {
+          renderTurnstile()
+          return
+        }
+
+        const existingScript = document.querySelector(
+          'script[data-turnstile-script]',
+        )
+        if (existingScript) {
+          waitForTurnstile(renderTurnstile)
+          return
+        }
+
+        const script = document.createElement('script')
+        script.src =
+          'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+        script.async = true
+        script.defer = true
+        script.dataset.turnstileScript = 'true'
+        script.addEventListener('load', renderTurnstile)
+        document.head.append(script)
+      }
+
+      function waitForTurnstile(callback) {
+        let attempts = 0
+        const timer = window.setInterval(() => {
+          attempts += 1
+          if (typeof window.turnstile !== 'undefined') {
+            window.clearInterval(timer)
+            callback()
+          } else if (attempts > 30) {
+            window.clearInterval(timer)
+          }
+        }, 100)
+      }
+
+      function getTurnstileToken() {
+        if (isLocal) return 'local-dev'
+
+        const widgetId = turnstileEl?.dataset.widgetId
+        if (typeof window.turnstile !== 'undefined' && widgetId) {
+          return window.turnstile.getResponse(widgetId)
+        }
+
+        return String(
+          form.querySelector('[name="cf-turnstile-response"]')?.value || '',
+        )
+      }
+
+      function resetTurnstile() {
+        const widgetId = turnstileEl?.dataset.widgetId
+        if (typeof window.turnstile !== 'undefined' && widgetId) {
+          window.turnstile.reset(widgetId)
+        }
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        setFeedback('')
+
+        const formData = new FormData(form)
+        const name = String(formData.get('name') || '').trim()
+        const email = String(formData.get('email') || '').trim()
+        const category = String(formData.get('category') || '').trim()
+        const orderNumber = String(formData.get('orderNumber') || '').trim()
+        const message = String(formData.get('message') || '').trim()
+        const consent = formData.get('consent') === 'yes'
+        const website = String(formData.get('website') || '').trim()
+        const meaningfulMessageLength = Array.from(
+          message.replace(/[^\p{L}\p{N}]/gu, ''),
+        ).length
+
+        if (
+          !name ||
+          !email ||
+          !category ||
+          meaningfulMessageLength < 10 ||
+          !consent
+        ) {
+          setFeedback('必須項目を入力してください。', 'error')
+          return
+        }
+
+        const turnstileToken = getTurnstileToken()
+        if (!turnstileToken) {
+          setFeedback('送信前の確認を完了してください。', 'error')
+          return
+        }
+
+        if (submit) submit.disabled = true
+        setFeedback('送信しています。')
+
+        try {
+          const response = await fetch('/api/shop/contact', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name,
+              email,
+              category,
+              orderNumber,
+              message,
+              consent,
+              website,
+              turnstileToken,
+            }),
+          })
+          const data = await response.json().catch(() => ({}))
+
+          if (!response.ok || !data.ok) {
+            throw new Error(
+              data.message || 'お問い合わせを送信できませんでした。',
+            )
+          }
+
+          form.reset()
+          resetTurnstile()
+          setFeedback('お問い合わせを受け付けました。', 'success')
+          window.hattTrackEvent?.('shop_contact_submit', {
+            location: 'shop_contact',
+            category,
+          })
+        } catch (error) {
+          setFeedback(
+            error instanceof Error
+              ? error.message
+              : 'お問い合わせを送信できませんでした。',
+            'error',
+          )
+          resetTurnstile()
+        } finally {
+          if (submit) submit.disabled = false
+        }
+      })
+
+      loadTurnstile()
+    })()
+  </script>
+</BaseLayout>
