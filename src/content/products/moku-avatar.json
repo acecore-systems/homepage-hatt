@@ -12,10 +12,9 @@
   ],
   "priceJpy": 1500,
   "status": "published",
-  "fulfillmentType": "digital",
+  "fulfillmentType": "manual",
   "stock": 99,
   "maxQuantity": 1,
-  "r2ObjectKey": "products/moku-avatar.zip",
   "taxCode": "txcd_10000000",
   "externalUrl": "https://vetumheberehama.booth.pm/items/7896488",
   "features": [

@@ -883,6 +883,22 @@ export async function consumeOrderReservations(
   }
 }
 
+export function determineFulfillmentStatus(items: OrderItemRow[]) {
+  if (items.some((item) => item.fulfillment_type === 'physical')) {
+    return 'shipping_pending'
+  }
+  if (items.some((item) => item.fulfillment_type === 'manual')) {
+    return 'manual_pending'
+  }
+  return 'digital_ready'
+}
+
+export function itemStatusForFulfillment(fulfillmentType: string) {
+  if (fulfillmentType === 'physical') return 'shipping_pending'
+  if (fulfillmentType === 'manual') return 'manual_pending'
+  return 'digital_ready'
+}
+
 export async function createPendingOrder(
   db: D1Database,
   items: ValidatedCartItem[],

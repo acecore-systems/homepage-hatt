@@ -70,3 +70,29 @@ test('同じ配布ファイルを参照する商品はR2を1回だけ確認す�
 
   assert.deepEqual(checkedKeys, ['products/sample-avatar.zip'])
 })
+
+test('手動納品の商品はR2の配布ファイルを要求しない', async () => {
+  const checkedKeys = []
+  const manualProduct = {
+    slug: 'manual-avatar',
+    title: '手動納品アバター',
+    fulfillmentType: 'manual',
+  }
+
+  await assertDigitalFilesAvailable(
+    {
+      SHOP_FILES: {
+        async get() {
+          return null
+        },
+        async head(key) {
+          checkedKeys.push(key)
+          return null
+        },
+      },
+    },
+    [item(manualProduct)],
+  )
+
+  assert.deepEqual(checkedKeys, [])
+})

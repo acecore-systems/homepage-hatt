@@ -36,6 +36,9 @@ const categories = [...new Set(products.map((product) => product.category))]
           絵、小説、VRChat向け3D作品、グッズをまとめて見られるショップです。
           カートに入れたあと、Stripe Checkoutで決済します。
         </p>
+        <p class="shop-delivery-note">
+          有料商品は、決済完了後にHattが購入時のメールアドレスへ受け渡し方法をご案内します。
+        </p>
         {
           !checkoutReady && (
             <p class="shop-alert">

@@ -59,6 +59,21 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
       const status = document.querySelector('[data-shop-admin-status]')
       const refresh = document.querySelector('[data-shop-admin-refresh]')
       const sessionEmail = document.querySelector('[data-shop-admin-email]')
+      const fulfillmentStatusLabels = {
+        pending: '受付中',
+        digital_ready: 'ダウンロード準備完了',
+        manual_pending: '手動納品待ち',
+        manual_complete: '手動納品済み',
+        shipping_pending: '発送準備中',
+        shipped: '発送済み',
+        complete: '完了',
+        canceled: 'キャンセル済み',
+      }
+      const fulfillmentTypeLabels = {
+        digital: 'デジタル配布',
+        manual: '手動納品',
+        physical: '物理発送',
+      }
 
       function formatJpy(amount) {
         return new Intl.NumberFormat('ja-JP', {
@@ -117,21 +132,28 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
           const header = document.createElement('div')
           header.className = 'shop-admin-order-head'
           const title = document.createElement('h3')
-          title.textContent = order.customerEmail || order.id
+          if (order.customerEmail) {
+            const emailLink = document.createElement('a')
+            emailLink.href = `mailto:${encodeURIComponent(order.customerEmail)}`
+            emailLink.textContent = order.customerEmail
+            title.append(emailLink)
+          } else {
+            title.textContent = order.id
+          }
           const meta = document.createElement('p')
           const feeText = order.platformFeeJpy
             ? ` / 手数料 ${formatJpy(order.platformFeeJpy)}`
             : ''
-          const accountText = order.stripeConnectedAccountId
-            ? ` / ${order.stripeConnectedAccountId}`
+          const customerNameText = order.customerName
+            ? ` / ${order.customerName}`
             : ''
-          meta.textContent = `${formatJpy(order.totalJpy)}${feeText} / ${order.paymentStatus} / ${order.fulfillmentStatus}${accountText}`
+          meta.textContent = `${formatJpy(order.totalJpy)}${feeText} / ${order.paymentStatus} / ${fulfillmentStatusLabels[order.fulfillmentStatus] || order.fulfillmentStatus}${customerNameText}`
           header.append(title, meta)
 
           const items = document.createElement('ul')
           ;(order.items || []).forEach((item) => {
             const row = document.createElement('li')
-            row.textContent = `${item.title} x ${item.quantity} (${item.itemStatus})`
+            row.textContent = `${item.title} x ${item.quantity} (${fulfillmentTypeLabels[item.fulfillmentType] || item.fulfillmentType} / ${fulfillmentStatusLabels[item.itemStatus] || item.itemStatus})`
             items.append(row)
           })
 
@@ -181,7 +203,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         ].forEach((value) => {
           const option = document.createElement('option')
           option.value = value
-          option.textContent = value
+          option.textContent = fulfillmentStatusLabels[value] || value
           option.selected = value === currentValue
           select.append(option)
         })

@@ -62,6 +62,13 @@ const heroImage = product.images[0]
         {product.description && <p>{product.description}</p>}
         <div class="shop-detail-price">{formatJpy(product.priceJpy)}</div>
         {
+          product.priceJpy > 0 && product.fulfillmentType === 'manual' && (
+            <p class="shop-delivery-note">
+              決済完了後、Hattが購入時のメールアドレスへ受け渡し方法をご案内します。
+            </p>
+          )
+        }
+        {
           !checkoutReady && (
             <p class="shop-alert">
               決済は準備中です。公開前にショップ設定の販売者情報・規約・Stripe

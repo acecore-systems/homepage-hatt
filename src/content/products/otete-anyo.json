@@ -12,10 +12,9 @@
   ],
   "priceJpy": 500,
   "status": "published",
-  "fulfillmentType": "digital",
+  "fulfillmentType": "manual",
   "stock": 999,
   "maxQuantity": 1,
-  "r2ObjectKey": "products/otete-anyo.zip",
   "taxCode": "txcd_10000000",
   "externalUrl": "https://vetumheberehama.booth.pm/items/7462088",
   "features": [

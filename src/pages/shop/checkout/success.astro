@@ -27,6 +27,21 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
     ;(() => {
       const message = document.querySelector('[data-shop-success-message]')
       const detail = document.querySelector('[data-shop-order-detail]')
+      const fulfillmentMessages = {
+        digital: 'ダウンロードの準備ができました。',
+        manual: 'Hattが購入時のメールアドレスへ受け渡し方法をご案内します。',
+        physical: '発送の準備を進めます。',
+      }
+
+      const itemStatusLabels = {
+        digital_ready: 'ダウンロード準備完了',
+        manual_pending: '手動納品待ち',
+        manual_complete: '手動納品済み',
+        shipping_pending: '発送準備中',
+        shipped: '発送済み',
+        complete: '完了',
+        canceled: 'キャンセル済み',
+      }
 
       function formatJpy(amount) {
         return new Intl.NumberFormat('ja-JP', {
@@ -62,8 +77,12 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         window.dispatchEvent(new CustomEvent('hatt-shop:cart-change'))
 
         const order = payload.order
-        message.textContent =
-          '支払いが完了しました。受け渡し方法を確認してください。'
+        const hasManualDelivery = order.items.some(
+          (item) => item.fulfillmentType === 'manual',
+        )
+        message.textContent = hasManualDelivery
+          ? '支払いを確認しました。Hattからの受け渡し方法のご案内をお待ちください。'
+          : '支払いが完了しました。受け渡し方法を確認してください。'
         detail.replaceChildren()
         appendText('h2', `注文番号 ${order.id}`)
         appendText('p', `合計 ${formatJpy(order.totalJpy)}`)
@@ -75,7 +94,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
           const title = document.createElement('h3')
           title.textContent = item.title
           const state = document.createElement('p')
-          state.textContent = item.itemStatus
+          state.textContent = `${itemStatusLabels[item.itemStatus] || '受け渡し状況を確認中'}: ${fulfillmentMessages[item.fulfillmentType] || '受け渡し方法を確認しています。'}`
           row.append(title, state)
 
           if (item.downloadUrl) {

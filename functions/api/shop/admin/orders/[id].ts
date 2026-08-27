@@ -27,6 +27,10 @@ const FULFILLMENT_STATUSES = new Set([
   'complete',
   'canceled',
 ])
+const MANUAL_FULFILLMENT_STATUSES = new Set([
+  'manual_pending',
+  'manual_complete',
+])
 
 export const onRequestPatch = async ({
   request,
@@ -84,6 +88,19 @@ export const onRequestPatch = async ({
         orderId,
       )
       .run()
+    if (
+      fulfillmentStatus &&
+      MANUAL_FULFILLMENT_STATUSES.has(fulfillmentStatus)
+    ) {
+      await db
+        .prepare(
+          `UPDATE shop_order_items
+           SET item_status = ?
+           WHERE order_id = ? AND fulfillment_type = 'manual'`,
+        )
+        .bind(fulfillmentStatus, orderId)
+        .run()
+    }
     await recordFulfillmentEvent(
       db,
       orderId,

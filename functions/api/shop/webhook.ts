@@ -1,8 +1,10 @@
 import {
   beginStripeEvent,
   consumeOrderReservations,
+  determineFulfillmentStatus,
   finishStripeEvent,
   getDb,
+  itemStatusForFulfillment,
   handleApiError,
   jsonResponse,
   methodNotAllowed,
@@ -208,20 +210,4 @@ async function getOrderItemsForWebhook(db: D1Database, orderId: string) {
     .bind(orderId)
     .all<OrderItemRow>()
   return rows.results ?? []
-}
-
-function determineFulfillmentStatus(items: OrderItemRow[]) {
-  if (items.some((item) => item.fulfillment_type === 'physical')) {
-    return 'shipping_pending'
-  }
-  if (items.some((item) => item.fulfillment_type === 'manual')) {
-    return 'manual_pending'
-  }
-  return 'digital_ready'
-}
-
-function itemStatusForFulfillment(fulfillmentType: string) {
-  if (fulfillmentType === 'physical') return 'shipping_pending'
-  if (fulfillmentType === 'manual') return 'manual_pending'
-  return 'digital_ready'
 }

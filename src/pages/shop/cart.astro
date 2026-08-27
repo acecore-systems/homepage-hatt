@@ -99,6 +99,11 @@ const requiresSellerDisclosure =
       const checkoutButton = document.querySelector('[data-shop-checkout]')
       const status = document.querySelector('[data-shop-cart-status]')
       let catalog = []
+      const fulfillmentLabels = {
+        digital: 'デジタル配布',
+        manual: '手動納品',
+        physical: '物理発送',
+      }
 
       function formatJpy(amount) {
         return new Intl.NumberFormat('ja-JP', {
@@ -173,7 +178,7 @@ const requiresSellerDisclosure =
           const title = document.createElement('h2')
           title.textContent = product.title
           const detail = document.createElement('p')
-          detail.textContent = `${formatJpy(product.priceJpy)} / ${product.fulfillmentType}`
+          detail.textContent = `${formatJpy(product.priceJpy)} / ${fulfillmentLabels[product.fulfillmentType] || '受け渡し方法を確認中'}`
 
           const controls = document.createElement('div')
           controls.className = 'shop-cart-controls'
