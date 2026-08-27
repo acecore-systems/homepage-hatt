@@ -3,7 +3,11 @@ import test from 'node:test'
 
 import {
   assertDigitalFilesAvailable,
+  CHECKOUT_SESSION_TTL_SECONDS,
+  createStripeCheckoutSession,
   ShopApiError,
+  settings,
+  STOCK_RESERVATION_TTL_SECONDS,
 } from '../functions/api/shop/_shared.ts'
 
 const digitalProduct = {
@@ -95,4 +99,59 @@ test('手動納品の商品はR2の配布ファイルを要求しない', async 
   )
 
   assert.deepEqual(checkedKeys, [])
+})
+
+test('Checkout Sessionは在庫予約より先に期限切れになる', async () => {
+  const originalFetch = globalThis.fetch
+  const originalSettings = structuredClone(settings)
+  let params
+
+  try {
+    Object.assign(settings, {
+      stripeConnectedAccountId: 'acct_checkoutexpirytest',
+      platformFeeBasisPoints: 0,
+      platformFeeFixedJpy: 0,
+      stripeTaxEnabled: false,
+    })
+    globalThis.fetch = async (_input, init) => {
+      params = new URLSearchParams(init.body)
+      return Response.json({
+        id: 'cs_test_checkout_expiry',
+        url: 'https://checkout.stripe.com/c/pay/cs_test_checkout_expiry',
+      })
+    }
+
+    const startedAt = Math.floor(Date.now() / 1000)
+    await createStripeCheckoutSession(
+      new Request('https://hatt.acecore.net/api/shop/checkout'),
+      { STRIPE_SECRET_KEY: 'sk_test_checkout_expiry' },
+      'order-checkout-expiry',
+      [
+        {
+          product: {
+            slug: 'manual-product',
+            title: '手動納品の商品',
+            summary: '手動で受け渡す商品です。',
+            priceJpy: 500,
+            fulfillmentType: 'manual',
+          },
+          quantity: 1,
+          lineTotalJpy: 500,
+        },
+      ],
+      { required: false, amountJpy: 0 },
+    )
+
+    const expiresAt = Number(params.get('expires_at'))
+    assert.equal(
+      STOCK_RESERVATION_TTL_SECONDS,
+      CHECKOUT_SESSION_TTL_SECONDS + 300,
+    )
+    assert.ok(expiresAt >= startedAt + CHECKOUT_SESSION_TTL_SECONDS - 1)
+    assert.ok(expiresAt <= startedAt + CHECKOUT_SESSION_TTL_SECONDS + 1)
+  } finally {
+    globalThis.fetch = originalFetch
+    for (const key of Object.keys(settings)) delete settings[key]
+    Object.assign(settings, originalSettings)
+  }
 })

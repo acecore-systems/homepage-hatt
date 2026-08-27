@@ -171,6 +171,9 @@ export const productBySlug = new Map(
 )
 
 const DOWNLOAD_TOKEN_TTL_SECONDS = 24 * 60 * 60
+export const CHECKOUT_SESSION_TTL_SECONDS = 30 * 60
+export const STOCK_RESERVATION_TTL_SECONDS =
+  CHECKOUT_SESSION_TTL_SECONDS + 5 * 60
 const SELLER_DISCLOSURE_PROFILE_VERSION_PATTERN =
   /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/
 const DEFAULT_DISCLOSURE_HOSTNAMES = [
@@ -775,7 +778,9 @@ export async function reserveStock(
 ) {
   const now = new Date()
   const createdAt = now.toISOString()
-  const expiresAt = new Date(now.getTime() + 30 * 60 * 1000).toISOString()
+  const expiresAt = new Date(
+    now.getTime() + STOCK_RESERVATION_TTL_SECONDS * 1000,
+  ).toISOString()
   const reserved: {
     id: string
     productSlug: string
@@ -980,6 +985,10 @@ export async function createStripeCheckoutSession(
   const origin = new URL(request.url).origin
   const params = new URLSearchParams()
   params.set('mode', 'payment')
+  params.set(
+    'expires_at',
+    String(Math.floor(Date.now() / 1000) + CHECKOUT_SESSION_TTL_SECONDS),
+  )
   params.set('client_reference_id', orderId)
   params.set(
     'success_url',
