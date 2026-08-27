@@ -1,5 +1,6 @@
 import {
   assertCheckoutReady,
+  assertDigitalFilesAvailable,
   assertSameOriginRequest,
   cleanupExpiredReservations,
   createPendingOrder,
@@ -34,6 +35,7 @@ export const onRequestPost = async ({ request, env }: PagesContext) => {
 
     const payload = await readJson<CheckoutPayload>(request)
     const items = validateCart(normalizeCartItems(payload.items))
+    await assertDigitalFilesAvailable(env, items)
     const shipping = resolveShipping(items)
     const orderId = await createPendingOrder(db, items, shipping)
 

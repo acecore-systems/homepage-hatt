@@ -22,6 +22,7 @@ type R2ObjectBody = {
 
 export type R2Bucket = {
   get(key: string): Promise<R2ObjectBody | null>
+  head(key: string): Promise<unknown | null>
 }
 
 export type ShopEnv = ShopAccessEnv &
@@ -635,6 +636,44 @@ export function validateCart(items: CheckoutCartItem[]) {
   }
 
   return validated
+}
+
+export async function assertDigitalFilesAvailable(
+  env: ShopEnv,
+  items: ValidatedCartItem[],
+) {
+  const objectKeys = new Set(
+    items
+      .filter((item) => item.product.fulfillmentType === 'digital')
+      .map((item) => item.product.r2ObjectKey)
+      .filter((key): key is string => Boolean(key)),
+  )
+
+  if (objectKeys.size === 0) return
+
+  const files = getFiles(env)
+
+  try {
+    const results = await Promise.all(
+      [...objectKeys].map(async (key) => ({
+        key,
+        object: await files.head(key),
+      })),
+    )
+
+    if (results.some((result) => !result.object)) {
+      throw new ShopApiError(
+        503,
+        '配布ファイルを準備中の商品が含まれています。時間をおいて再度お試しください。',
+      )
+    }
+  } catch (error) {
+    if (error instanceof ShopApiError) throw error
+    throw new ShopApiError(
+      503,
+      '配布ファイルを確認できません。時間をおいて再度お試しください。',
+    )
+  }
 }
 
 export function getSubtotal(items: ValidatedCartItem[]) {

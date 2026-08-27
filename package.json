@@ -16,7 +16,7 @@
     "format:check": "prettier . --check",
     "test:cms": "node --test tests/cms-admin-init.test.mjs tests/cms-proxy.test.mjs tests/cms-content-validation.test.mjs tests/cms-reference-validation.test.mjs tests/cms-github-app-setup.test.mjs tests/safe-json.test.mjs",
     "pretest:shop": "node scripts/write-shop-runtime-catalog.mjs",
-    "test:shop": "node --test tests/shop-access.test.mjs tests/shop-contact.test.mjs tests/shop-disclosure.test.mjs",
+    "test:shop": "node --test tests/shop-access.test.mjs tests/shop-contact.test.mjs tests/shop-disclosure.test.mjs tests/shop-checkout-files.test.mjs",
     "test:external-feed": "node --test tests/external-feed-sync.test.mjs",
     "test:sitemap": "node --test tests/sitemap-lastmod.test.mjs",
     "test:turnstile": "node --test tests/turnstile-retry.test.mjs",
