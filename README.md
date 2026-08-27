@@ -129,6 +129,8 @@ Cloudflare Pages 側で以下を設定してください。
 - Variable: `SHOP_ACCESS_AUD=12faf91ff5d66812272272ec869557e4367f7f0a48cb1447f37e4b9e34de9e84`
 - Variable: `SHOP_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev`
 
+Cloudflare Pages の Secret や binding を更新した後は、GitHub連携の `main` デプロイを完了してから本番で確認します。Direct Upload での反映は行いません。
+
 ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` から順に適用します。請求時開示には `migrations/shop/0002_add_seller_disclosure_requests.sql` が必要です。コメント用 D1 とは migration directory を分けています。
 
 所在地を請求時開示にする場合は、CMSで`所在地の表示方法`を`請求時にメールで開示する`にして、`所在地の開示請求URL`を`/shop/legal/disclosure-request/`、`所在地開示プロファイル版`を例えば`v1`に設定します。実住所はPages・CMS・Git・`wrangler.jsonc`に保存せず、専用WorkerのSecretだけに保存します。Workerは公開済みの事業者名、販売責任者、電話番号、プロファイル版と完全に一致しない限り、メールを送信しません。
