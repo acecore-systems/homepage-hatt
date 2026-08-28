@@ -5,7 +5,7 @@
   "currency": "JPY",
   "stripeTaxEnabled": false,
   "stripeConnectedAccountId": "acct_1Tkgy9K5tsms3ocL",
-  "platformFeeBasisPoints": 0,
+  "platformFeeBasisPoints": 100,
   "platformFeeFixedJpy": 0,
   "allowedCountries": ["JP"],
   "shippingProfiles": [
