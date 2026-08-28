@@ -86,6 +86,7 @@ test('所在地の開示請求をHMAC化して送信し、同一受付番号の�
   assert.equal(first.status, 201)
   assert.equal(second.status, 201)
   assert.equal(messages.length, 1)
+  assert.equal(new URL(messages[0].request.url).hostname, 'hatt.acecore.net')
   assert.equal(new URL(messages[0].request.url).pathname, '/v1/disclosures')
   assert.match(
     messages[0].request.headers.get('Authorization'),

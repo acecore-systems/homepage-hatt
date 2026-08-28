@@ -442,7 +442,7 @@ export function createSellerAddressDisclosureServiceRequest(
   path: '/v1/ready' | '/v1/disclosures',
   body: unknown,
 ) {
-  return new Request(`https://disclosure-email.internal${path}`, {
+  return new Request(`https://hatt.acecore.net${path}`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
