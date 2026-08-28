@@ -19,8 +19,22 @@ export const onRequestGet = async ({ request, env }: PagesContext) => {
     }
 
     const order = await getOrderBySession(db, sessionId)
-    if (!order || order.payment_status !== 'paid') {
+    if (!order) {
       return jsonResponse({ ok: false, message: '注文が見つかりません。' }, 404)
+    }
+    if (order.payment_status !== 'paid') {
+      const terminal = ['expired', 'failed'].includes(order.payment_status)
+      return jsonResponse(
+        {
+          ok: false,
+          pending: !terminal,
+          paymentStatus: order.payment_status,
+          message: terminal
+            ? '支払いを確認できませんでした。ショップへ戻って再度お試しください。'
+            : '支払い結果を確認しています。このままお待ちください。',
+        },
+        terminal ? 409 : 202,
+      )
     }
 
     const items = await getOrderItems(db, order.id)

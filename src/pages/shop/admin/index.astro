@@ -1,5 +1,10 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getShopProducts } from '@/lib/shop/content'
+
+const fileProducts = (await getShopProducts({ includeDraft: true })).filter(
+  (product) => product.fulfillmentType !== 'physical',
+)
 ---
 
 <BaseLayout
@@ -31,22 +36,82 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         </a>
       </div>
 
-      <div class="shop-admin-orders" data-shop-admin-orders hidden>
-        <div class="section-heading">
-          <div>
-            <h2>注文一覧</h2>
+      <nav class="shop-admin-nav" aria-label="ショップ管理メニュー">
+        <a href="#product-files">商品ZIP</a>
+        <a href="#orders">注文</a>
+      </nav>
+
+      <div class="shop-admin-content" data-shop-admin-content hidden>
+        <section class="shop-admin-files" id="product-files">
+          <div class="section-heading">
+            <div>
+              <h2>商品ZIP</h2>
+            </div>
+            <button
+              class="secondary-button"
+              type="button"
+              data-shop-files-refresh
+            >
+              再読込
+            </button>
           </div>
-          <button
-            class="secondary-button"
-            type="button"
-            data-shop-admin-refresh
+
+          <form class="shop-admin-upload-form" data-shop-file-upload>
+            <label>
+              商品
+              <select name="productSlug" data-shop-file-product required>
+                {
+                  fileProducts.map((product) => (
+                    <option value={product.slug}>{product.title}</option>
+                  ))
+                }
+              </select>
+            </label>
+            <label>
+              ZIPファイル
+              <input
+                type="file"
+                name="file"
+                accept=".zip,application/zip,application/x-zip-compressed"
+                data-shop-file-input
+                required
+              />
+            </label>
+            <button class="primary-button" type="submit">アップロード</button>
+          </form>
+          <div
+            class="shop-admin-upload-progress"
+            data-shop-file-progress
+            hidden
           >
-            更新
-          </button>
-        </div>
-        <div data-shop-admin-list>
-          <p class="empty-state">注文を読み込んでいます。</p>
-        </div>
+            <progress max="100" value="0"></progress>
+            <span>0%</span>
+          </div>
+          <p class="shop-admin-file-note">
+            非公開R2に分割保存します。1ファイル最大5 GiBです。
+          </p>
+          <div class="shop-admin-file-list" data-shop-file-list>
+            <p class="empty-state">商品を選択してください。</p>
+          </div>
+        </section>
+
+        <section class="shop-admin-orders" id="orders" data-shop-admin-orders>
+          <div class="section-heading">
+            <div>
+              <h2>注文一覧</h2>
+            </div>
+            <button
+              class="secondary-button"
+              type="button"
+              data-shop-admin-refresh
+            >
+              更新
+            </button>
+          </div>
+          <div data-shop-admin-list>
+            <p class="empty-state">注文を読み込んでいます。</p>
+          </div>
+        </section>
       </div>
       <p class="shop-cart-status" data-shop-admin-status></p>
     </div>
@@ -54,11 +119,19 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 
   <script is:inline>
     ;(() => {
-      const ordersShell = document.querySelector('[data-shop-admin-orders]')
+      const contentShell = document.querySelector('[data-shop-admin-content]')
       const list = document.querySelector('[data-shop-admin-list]')
       const status = document.querySelector('[data-shop-admin-status]')
       const refresh = document.querySelector('[data-shop-admin-refresh]')
       const sessionEmail = document.querySelector('[data-shop-admin-email]')
+      const fileForm = document.querySelector('[data-shop-file-upload]')
+      const fileProduct = document.querySelector('[data-shop-file-product]')
+      const fileInput = document.querySelector('[data-shop-file-input]')
+      const fileList = document.querySelector('[data-shop-file-list]')
+      const fileRefresh = document.querySelector('[data-shop-files-refresh]')
+      const fileProgress = document.querySelector('[data-shop-file-progress]')
+      const fileProgressBar = fileProgress?.querySelector('progress')
+      const fileProgressText = fileProgress?.querySelector('span')
       const fulfillmentStatusLabels = {
         pending: '受付中',
         digital_ready: 'ダウンロード準備完了',
@@ -100,8 +173,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         }
 
         sessionEmail.textContent = payload.email || 'Cloudflare Access'
-        ordersShell.hidden = false
-        await loadOrders()
+        contentShell.hidden = false
+        await Promise.all([loadOrders(), loadFiles()])
       }
 
       async function loadOrders() {
@@ -182,6 +255,223 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         })
       }
 
+      async function loadFiles() {
+        const productSlug = fileProduct?.value
+        if (!productSlug) return
+
+        fileList.replaceChildren()
+        const loading = document.createElement('p')
+        loading.className = 'empty-state'
+        loading.textContent = 'ZIPを読み込んでいます。'
+        fileList.append(loading)
+
+        const response = await fetch(filesUrl('list', { productSlug }))
+        const payload = await readPayload(response)
+        if (!response.ok) {
+          fileList.replaceChildren()
+          setStatus(payload.message || 'ZIPを読み込めませんでした。')
+          return
+        }
+
+        renderFiles(payload.files || [], productSlug)
+      }
+
+      function renderFiles(files, productSlug) {
+        fileList.replaceChildren()
+        if (files.length === 0) {
+          const empty = document.createElement('p')
+          empty.className = 'empty-state'
+          empty.textContent = '登録済みのZIPはありません。'
+          fileList.append(empty)
+          return
+        }
+
+        files.forEach((file) => {
+          const row = document.createElement('div')
+          row.className = 'shop-admin-file-row'
+          const details = document.createElement('div')
+          const name = document.createElement('strong')
+          name.textContent = file.filename
+          const meta = document.createElement('span')
+          meta.textContent = `${formatBytes(file.size)} / ${new Intl.DateTimeFormat('ja-JP', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(file.uploadedAt))}`
+          details.append(name, meta)
+
+          const download = document.createElement('a')
+          download.className = 'secondary-button'
+          download.href = filesUrl('download', {
+            productSlug,
+            key: file.key,
+          })
+          download.textContent = 'ダウンロード'
+          row.append(details, download)
+          fileList.append(row)
+        })
+      }
+
+      async function uploadFile(event) {
+        event.preventDefault()
+        const file = fileInput?.files?.[0]
+        const productSlug = fileProduct?.value
+        if (!file || !productSlug) {
+          setStatus('商品とZIPファイルを選択してください。')
+          return
+        }
+        if (!file.name.toLowerCase().endsWith('.zip')) {
+          setStatus('ZIPファイルを選択してください。')
+          return
+        }
+
+        const submit = fileForm.querySelector('button[type="submit"]')
+        submit.disabled = true
+        fileProduct.disabled = true
+        fileInput.disabled = true
+        updateUploadProgress(0)
+        fileProgress.hidden = false
+        setStatus('アップロードを開始しています...')
+
+        let upload = null
+        try {
+          const createResponse = await fetch(filesUrl('create'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productSlug,
+              filename: file.name,
+              size: file.size,
+            }),
+          })
+          const createPayload = await readPayload(createResponse)
+          if (!createResponse.ok) {
+            throw new Error(
+              createPayload.message || 'アップロードを開始できませんでした。',
+            )
+          }
+          upload = createPayload
+
+          const parts = []
+          const partSize = upload.partSize
+          for (
+            let offset = 0, partNumber = 1;
+            offset < file.size;
+            partNumber += 1
+          ) {
+            const chunk = file.slice(offset, offset + partSize)
+            const part = await uploadPart(
+              productSlug,
+              upload,
+              partNumber,
+              chunk,
+            )
+            parts.push(part)
+            offset += chunk.size
+            updateUploadProgress(Math.round((offset / file.size) * 100))
+          }
+
+          const completeResponse = await fetch(filesUrl('complete'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productSlug,
+              key: upload.key,
+              uploadId: upload.uploadId,
+              parts,
+            }),
+          })
+          const completePayload = await readPayload(completeResponse)
+          if (!completeResponse.ok) {
+            throw new Error(
+              completePayload.message || 'アップロードを完了できませんでした。',
+            )
+          }
+
+          fileInput.value = ''
+          setStatus('ZIPをアップロードしました。')
+          await loadFiles()
+        } catch (error) {
+          if (upload?.uploadId) {
+            await fetch(
+              filesUrl('abort', {
+                productSlug,
+                key: upload.key,
+                uploadId: upload.uploadId,
+              }),
+              { method: 'DELETE' },
+            ).catch(() => {})
+          }
+          setStatus(
+            error instanceof Error
+              ? error.message
+              : 'アップロードできませんでした。',
+          )
+        } finally {
+          submit.disabled = false
+          fileProduct.disabled = false
+          fileInput.disabled = false
+          fileProgress.hidden = true
+        }
+      }
+
+      async function uploadPart(productSlug, upload, partNumber, chunk) {
+        let lastError = null
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            const response = await fetch(
+              filesUrl('part', {
+                productSlug,
+                key: upload.key,
+                uploadId: upload.uploadId,
+                partNumber,
+              }),
+              {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: chunk,
+              },
+            )
+            const payload = await readPayload(response)
+            if (!response.ok || !payload.part) {
+              throw new Error(
+                payload.message ||
+                  `ZIPの${partNumber}番目を保存できませんでした。`,
+              )
+            }
+            return payload.part
+          } catch (error) {
+            lastError = error
+            if (attempt < 2) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, 500 * 2 ** attempt),
+              )
+            }
+          }
+        }
+        throw lastError
+      }
+
+      function updateUploadProgress(value) {
+        if (fileProgressBar) fileProgressBar.value = value
+        if (fileProgressText) fileProgressText.textContent = `${value}%`
+      }
+
+      function filesUrl(action, parameters = {}) {
+        const url = new URL('/api/shop/admin/files', window.location.origin)
+        if (action && action !== 'list') url.searchParams.set('action', action)
+        Object.entries(parameters).forEach(([key, value]) => {
+          url.searchParams.set(key, String(value))
+        })
+        return `${url.pathname}${url.search}`
+      }
+
+      function formatBytes(value) {
+        const bytes = Number(value) || 0
+        if (bytes < 1024) return `${bytes} B`
+        if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KiB`
+        if (bytes < 1024 ** 3) {
+          return `${(bytes / 1024 ** 2).toFixed(1)} MiB`
+        }
+        return `${(bytes / 1024 ** 3).toFixed(2)} GiB`
+      }
+
       function buildFieldShell(labelText, control) {
         const label = document.createElement('label')
         label.append(labelText, control)
@@ -257,6 +547,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
       }
 
       refresh?.addEventListener('click', loadOrders)
+      fileRefresh?.addEventListener('click', loadFiles)
+      fileProduct?.addEventListener('change', loadFiles)
+      fileForm?.addEventListener('submit', uploadFile)
       initialize()
     })()
   </script>

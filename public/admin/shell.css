@@ -98,11 +98,45 @@ body,
   background: rgb(255 255 255 / 12%);
 }
 
+.cms-shop-files-link {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 0.5rem;
+  background: #001d36;
+  padding: 0.5rem 0.75rem;
+  color: #ffffff;
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 18%);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cms-shop-files-link:hover,
+.cms-shop-files-link:focus-visible {
+  background: #113957;
+}
+
+.cms-shop-files-link .material-symbols-outlined {
+  font-size: 1.2rem;
+}
+
 @media (max-width: 40rem) {
   .cms-publish-notice {
     right: 0.75rem;
     bottom: 0.75rem;
     left: 0.75rem;
     max-width: none;
+  }
+
+  .cms-shop-files-link {
+    bottom: 0.75rem;
+    left: 0.75rem;
   }
 }

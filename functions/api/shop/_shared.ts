@@ -17,12 +17,53 @@ export type D1Database = {
 type R2ObjectBody = {
   body: ReadableStream
   httpEtag: string
+  key: string
+  size: number
+  uploaded: Date
+  customMetadata?: Record<string, string>
   writeHttpMetadata(headers: Headers): void
+}
+
+type R2Object = {
+  key: string
+  size: number
+  uploaded: Date
+  httpEtag: string
+  customMetadata?: Record<string, string>
+}
+
+type R2UploadedPart = {
+  partNumber: number
+  etag: string
+}
+
+type R2MultipartUpload = {
+  key: string
+  uploadId: string
+  uploadPart(
+    partNumber: number,
+    value: ReadableStream | ArrayBuffer | ArrayBufferView | string | Blob,
+  ): Promise<R2UploadedPart>
+  complete(parts: R2UploadedPart[]): Promise<R2Object>
+  abort(): Promise<void>
 }
 
 export type R2Bucket = {
   get(key: string): Promise<R2ObjectBody | null>
-  head(key: string): Promise<unknown | null>
+  head(key: string): Promise<R2Object | null>
+  list(options?: {
+    prefix?: string
+    limit?: number
+    include?: ('httpMetadata' | 'customMetadata')[]
+  }): Promise<{ objects: R2Object[]; truncated: boolean; cursor?: string }>
+  createMultipartUpload(
+    key: string,
+    options?: {
+      httpMetadata?: Headers
+      customMetadata?: Record<string, string>
+    },
+  ): Promise<R2MultipartUpload>
+  resumeMultipartUpload(key: string, uploadId: string): R2MultipartUpload
 }
 
 export type ShopEnv = ShopAccessEnv &
@@ -33,6 +74,7 @@ export type ShopEnv = ShopAccessEnv &
     STRIPE_WEBHOOK_SECRET?: string
     SHOP_DOWNLOAD_TOKEN_SECRET?: string
     SHOP_CONTACT_EMAIL_FROM?: string
+    SHOP_CONTACT_EMAIL_TO?: string
     COURSE_SIGNUP_EMAIL_FROM?: string
     SHOP_DISCLOSURE_ENABLED?: string
     SHOP_DISCLOSURE_HMAC_SECRET?: string
@@ -560,7 +602,7 @@ function hasRequiredStripeConnectFields(shopSettings: ShopSettings) {
   )
 }
 
-function getStripeConnectedAccountId() {
+export function getStripeConnectedAccountId() {
   const accountId = String(settings.stripeConnectedAccountId || '').trim()
   if (!/^acct_[A-Za-z0-9]+$/.test(accountId)) {
     throw new ShopApiError(
@@ -1017,6 +1059,8 @@ export async function createStripeCheckoutSession(
   const origin = new URL(request.url).origin
   const params = new URLSearchParams()
   params.set('mode', 'payment')
+  params.set('origin_context', 'web')
+  params.set('integration_identifier', 'hatt_shop_checkout_kdmtqzrw')
   params.set(
     'expires_at',
     String(Math.floor(Date.now() / 1000) + CHECKOUT_SESSION_TTL_SECONDS),
@@ -1115,7 +1159,7 @@ export async function createStripeCheckoutSession(
     headers: {
       Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Stripe-Version': '2026-02-25.clover',
+      'Stripe-Version': '2026-07-29.dahlia',
       'Stripe-Account': stripeConnectedAccountId,
     },
     body: params,
@@ -1269,6 +1313,7 @@ export async function verifyStripeWebhook(request: Request, env: ShopEnv) {
   return JSON.parse(payload) as {
     id: string
     type: string
+    account?: string
     data: { object: Record<string, unknown> }
   }
 }
@@ -1292,11 +1337,19 @@ export async function beginStripeEvent(
     return true
   } catch {
     const existing = await db
-      .prepare('SELECT processing_status FROM stripe_events WHERE event_id = ?')
+      .prepare(
+        'SELECT processing_status, received_at FROM stripe_events WHERE event_id = ?',
+      )
       .bind(eventId)
-      .first<{ processing_status: string }>()
+      .first<{ processing_status: string; received_at: string }>()
 
     if (existing?.processing_status === 'processed') return false
+    if (
+      existing?.processing_status === 'processing' &&
+      Date.now() - Date.parse(existing.received_at) < 5 * 60 * 1000
+    ) {
+      return false
+    }
 
     await db
       .prepare(
