@@ -37,7 +37,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const worker: ExportedHandler<DisclosureEmailEnv> = {
   async fetch(request, env): Promise<Response> {
     try {
-      if (!(await isAuthorized(request, env))) return json({ ok: false }, 401)
+      if (!(await isAuthorized(request, env))) {
+        console.warn(
+          JSON.stringify({ event: 'seller_disclosure_email_unauthorized' }),
+        )
+        return json({ ok: false }, 401)
+      }
 
       const url = new URL(request.url)
       if (request.method !== 'POST') return json({ ok: false }, 405)
@@ -47,11 +52,19 @@ const worker: ExportedHandler<DisclosureEmailEnv> = {
       if (url.pathname === READY_PATH) {
         const profile = parsePublicSellerProfile(body)
         const details = getPrivateSellerProfile(env)
-        if (
-          !profile ||
-          !details ||
-          !samePublicSellerProfile(profile, details)
-        ) {
+        const profilesMatch =
+          profile !== null &&
+          details !== null &&
+          samePublicSellerProfile(profile, details)
+        if (!profilesMatch) {
+          console.warn(
+            JSON.stringify({
+              event: 'seller_disclosure_email_not_ready',
+              hasPublicProfile: profile !== null,
+              hasPrivateProfile: details !== null,
+              profilesMatch,
+            }),
+          )
           return json({ ok: false }, 503)
         }
         return json({ ok: true })
