@@ -403,7 +403,7 @@ collections:
   - name: products
     label: 商品
     label_singular: 商品
-    description: ショップに並べる絵・小説・3D作品・グッズの商品情報を編集します。
+    description: ショップの商品情報を編集します。手動納品用ZIPは画面左下の「商品ZIP管理」から登録します。
     icon: shopping_bag
     folder: src/content/products
     format: json
@@ -489,7 +489,7 @@ collections:
         default: 1
       - name: r2ObjectKey
         label: R2オブジェクトキー
-        hint: デジタル配布商品のみ設定します。公開カタログには出しません。
+        hint: 自動ダウンロード商品のみ設定します。手動納品用ZIPでは使用しません。
         widget: string
         required: false
       - name: shippingProfileId

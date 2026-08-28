@@ -65,18 +65,34 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         )
         if (!sessionId) throw new Error('注文情報が見つかりません。')
 
-        const response = await fetch(
-          `/api/shop/order?session_id=${encodeURIComponent(sessionId)}`,
-        )
-        const payload = await response.json()
-        if (!response.ok || !payload.order) {
+        let order = null
+        for (let attempt = 0; attempt < 15; attempt += 1) {
+          const response = await fetch(
+            `/api/shop/order?session_id=${encodeURIComponent(sessionId)}`,
+          )
+          const payload = await response.json()
+
+          if (response.ok && payload.order) {
+            order = payload.order
+            break
+          }
+          if (response.status === 202 && payload.pending) {
+            message.textContent = payload.message
+            await new Promise((resolve) => setTimeout(resolve, 2000))
+            continue
+          }
           throw new Error(payload.message || '注文情報を取得できませんでした。')
+        }
+
+        if (!order) {
+          message.textContent =
+            '支払い結果を確認中です。確定後に購入時のメールアドレスへご案内します。'
+          return
         }
 
         localStorage.removeItem('hattShopCart:v1')
         window.dispatchEvent(new CustomEvent('hatt-shop:cart-change'))
 
-        const order = payload.order
         const hasManualDelivery = order.items.some(
           (item) => item.fulfillmentType === 'manual',
         )

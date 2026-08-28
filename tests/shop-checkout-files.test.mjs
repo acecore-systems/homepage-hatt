@@ -143,6 +143,11 @@ test('Checkout Sessionは在庫予約より先に期限切れになる', async (
     )
 
     const expiresAt = Number(params.get('expires_at'))
+    assert.equal(params.get('origin_context'), 'web')
+    assert.equal(
+      params.get('integration_identifier'),
+      'hatt_shop_checkout_kdmtqzrw',
+    )
     assert.equal(
       STOCK_RESERVATION_TTL_SECONDS,
       CHECKOUT_SESSION_TTL_SECONDS + 300,
