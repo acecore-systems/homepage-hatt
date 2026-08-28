@@ -5,6 +5,7 @@ import {
   buildSellerOrderNotification,
   getCheckoutEventAction,
 } from '../functions/api/shop/webhook.ts'
+import { beginStripeEvent } from '../functions/api/shop/_shared.ts'
 
 test('Checkout完了はpaidを確認してから注文を確定する', () => {
   assert.equal(
@@ -65,3 +66,74 @@ test('販売者通知に購入者と手動納品対象を含める', () => {
   assert.match(notification.text, /￥1,500/)
   assert.equal(notification.replyTo, 'buyer@example.com')
 })
+
+test('Stripeイベントは完了済みと処理中の重複を無視し、失敗と停止処理を再試行する', async () => {
+  const processed = duplicateEventDb({
+    processing_status: 'processed',
+    received_at: new Date().toISOString(),
+  })
+  assert.equal(
+    await beginStripeEvent(processed.db, 'evt_processed', 'test'),
+    false,
+  )
+  assert.equal(processed.updates.length, 0)
+
+  const processing = duplicateEventDb({
+    processing_status: 'processing',
+    received_at: new Date().toISOString(),
+  })
+  assert.equal(
+    await beginStripeEvent(processing.db, 'evt_processing', 'test'),
+    false,
+  )
+  assert.equal(processing.updates.length, 0)
+
+  const failed = duplicateEventDb({
+    processing_status: 'failed',
+    received_at: new Date().toISOString(),
+  })
+  assert.equal(await beginStripeEvent(failed.db, 'evt_failed', 'test'), true)
+  assert.equal(failed.updates.length, 1)
+
+  const stale = duplicateEventDb({
+    processing_status: 'processing',
+    received_at: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
+  })
+  assert.equal(await beginStripeEvent(stale.db, 'evt_stale', 'test'), true)
+  assert.equal(stale.updates.length, 1)
+})
+
+function duplicateEventDb(existing) {
+  const updates = []
+  return {
+    updates,
+    db: {
+      prepare(query) {
+        let values = []
+        const statement = {
+          bind(...nextValues) {
+            values = nextValues
+            return statement
+          },
+          async run() {
+            if (query.includes('INSERT INTO stripe_events')) {
+              throw new Error('UNIQUE constraint failed')
+            }
+            updates.push({ query, values })
+            return {}
+          },
+          async first() {
+            return existing
+          },
+          async all() {
+            return { results: [] }
+          },
+        }
+        return statement
+      },
+      async batch() {
+        return []
+      },
+    },
+  }
+}
