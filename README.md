@@ -130,6 +130,7 @@ Cloudflare Pages 側で以下を設定してください。
 - Variable: `SHOP_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev,*.homepage-hatt.pages.dev`
 
 Cloudflare Pages の Secret や binding を更新した後は、GitHub連携の `main` デプロイを完了してから本番で確認します。Direct Upload での反映は行いません。
+`SHOP_DISCLOSURE_SERVICE_TOKEN` は Pages と専用Workerで同じ値にし、更新時は両方を同じ操作で更新します。
 
 ショップ用 D1/R2 は Preview と Production で同じリソースを使います。D1 schema は `migrations/shop/0001_create_shop.sql` から順に適用します。請求時開示には `migrations/shop/0002_add_seller_disclosure_requests.sql` が必要です。コメント用 D1 とは migration directory を分けています。
 
