@@ -92,7 +92,7 @@ GitHub App を新規作成または置換するときは `npm run setup:cms-app`
 
 管理画面の「AIに依頼」から、Hattの管理対象URL・修正内容・任意の参考画像を送れます。参考画像はPNG / JPEG / WebPを1枚、2 MiBまで添付でき、画像を生成する機能は含みません。
 
-依頼はCloudflare Accessで認証した編集者とともにD1へ保存し、参考画像は非公開R2の cms-ai/ prefixに保存します。GitHub Appが repository_dispatch を送ると、CMS AI Automation workflowがGitHub Actions OIDC tokenでPages Functionへ認証します。Workers AIの @cf/zai-org/glm-5.3-flash は変更案だけを返し、workflowが許可範囲のファイルを別branchへ書き込み、ローカル検証・PR作成・CIを行います。
+依頼はCloudflare Accessで認証した編集者とともにD1へ保存し、参考画像は非公開R2の cms-ai/ prefixに保存します。GitHub Appが repository_dispatch を送ると、CMS AI Automation workflowがGitHub Actions OIDC tokenで、Access配下から分離したOIDC専用の `/api/cms-ai/runner` Pages Functionへ認証します。Workers AIの @cf/zai-org/glm-5.3-flash は変更案だけを返し、workflowが許可範囲のファイルを別branchへ書き込み、ローカル検証・PR作成・CIを行います。
 
 - AIが変更できるのは src/、public/（public/admin/ と public/uploads/ を除く）、docs/ のテキストだけです。
 - 認証、CMS管理API、決済、テスト、依存関係、migration、workflow、Cloudflare設定は自動変更の対象外です。

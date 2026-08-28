@@ -9,7 +9,7 @@ import type { CmsAccessEnv } from '../_access-auth.ts'
 
 export const CMS_AI_MODEL = '@cf/zai-org/glm-5.3-flash'
 export const CMS_AI_RUNNER_AUDIENCE =
-  'https://hatt.acecore.net/admin/api/ai/runner'
+  'https://hatt.acecore.net/api/cms-ai/runner'
 export const CMS_AI_JOB_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const CMS_AI_JOB_STATUSES = [

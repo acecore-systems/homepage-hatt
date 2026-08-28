@@ -54,7 +54,7 @@
   "vars": {
     "CMS_AI_AUTOMERGE_ENABLED": "false",
     "CMS_AI_MODEL": "@cf/zai-org/glm-5.3-flash",
-    "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/admin/api/ai/runner",
+    "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/api/cms-ai/runner",
     "CMS_AI_TARGET_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
     "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
@@ -131,7 +131,7 @@
       "vars": {
         "CMS_AI_AUTOMERGE_ENABLED": "false",
         "CMS_AI_MODEL": "@cf/zai-org/glm-5.3-flash",
-        "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/admin/api/ai/runner",
+        "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/api/cms-ai/runner",
         "CMS_AI_TARGET_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
@@ -208,7 +208,7 @@
       "vars": {
         "CMS_AI_AUTOMERGE_ENABLED": "false",
         "CMS_AI_MODEL": "@cf/zai-org/glm-5.3-flash",
-        "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/admin/api/ai/runner",
+        "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/api/cms-ai/runner",
         "CMS_AI_TARGET_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",

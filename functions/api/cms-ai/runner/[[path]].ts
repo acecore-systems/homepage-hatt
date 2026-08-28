@@ -1,4 +1,4 @@
-import { getGitHubActionsIdentity } from '../_github-actions-auth.ts'
+import { getGitHubActionsIdentity } from '../../../admin/api/ai/_github-actions-auth.ts'
 import {
   CmsAiError,
   getCmsAiJob,
@@ -9,8 +9,11 @@ import {
   toCmsAiErrorResponse,
   updateCmsAiJob,
   type CmsAiEnv,
-} from '../_shared.ts'
-import { runCmsAiInference, validateSourceFiles } from '../_runner.ts'
+} from '../../../admin/api/ai/_shared.ts'
+import {
+  runCmsAiInference,
+  validateSourceFiles,
+} from '../../../admin/api/ai/_runner.ts'
 
 export const onRequest: PagesFunction<CmsAiEnv> = async ({ request, env }) => {
   try {
@@ -170,7 +173,7 @@ function optionalText(value: unknown, maxLength: number) {
 }
 
 function getRoute(request: Request) {
-  const prefix = '/admin/api/ai/runner/'
+  const prefix = '/api/cms-ai/runner/'
   const pathname = new URL(request.url).pathname
 
   if (!pathname.startsWith(prefix)) return { kind: 'unknown' as const }

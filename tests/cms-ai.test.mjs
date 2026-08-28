@@ -3,7 +3,7 @@ import { afterEach, test } from 'node:test'
 import { SignJWT, exportJWK, exportPKCS8, generateKeyPair } from 'jose'
 
 import { onRequest as handleJobs } from '../functions/admin/api/ai/jobs/[[path]].ts'
-import { onRequest as handleRunner } from '../functions/admin/api/ai/runner/[[path]].ts'
+import { onRequest as handleRunner } from '../functions/api/cms-ai/runner/[[path]].ts'
 import {
   CmsAiError,
   normalizeTargetUrl,
@@ -18,7 +18,7 @@ const originalFetch = globalThis.fetch
 const accessIssuer = 'https://cms-ai-test.cloudflareaccess.com'
 const accessAudience = 'cms-ai-test-access-audience'
 const actionsIssuer = 'https://cms-ai-test.actions.example'
-const actionsAudience = 'https://hatt.acecore.net/admin/api/ai/runner'
+const actionsAudience = 'https://hatt.acecore.net/api/cms-ai/runner'
 const accessKeyId = 'cms-ai-access-key'
 const actionsKeyId = 'cms-ai-actions-key'
 const { privateKey: accessPrivateKey, publicKey: accessPublicKey } =
@@ -271,7 +271,7 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
   })
 
   const response = await handleRunner({
-    request: new Request('http://localhost/admin/api/ai/runner/inference', {
+    request: new Request('http://localhost/api/cms-ai/runner/inference', {
       body: JSON.stringify({
         files: [
           {
@@ -298,7 +298,7 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
   assert.equal(modelRequests[0].input.response_format.type, 'json_schema')
 
   const rejected = await handleRunner({
-    request: new Request('http://localhost/admin/api/ai/runner/inference', {
+    request: new Request('http://localhost/api/cms-ai/runner/inference', {
       body: JSON.stringify({
         files: [
           {

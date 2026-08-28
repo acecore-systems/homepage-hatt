@@ -22,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      CMS_AI_RUNNER_AUDIENCE: https://hatt.acecore.net/admin/api/ai/runner
-      CMS_AI_RUNNER_URL: https://hatt.acecore.net/admin/api/ai/runner
+      CMS_AI_RUNNER_AUDIENCE: https://hatt.acecore.net/api/cms-ai/runner
+      CMS_AI_RUNNER_URL: https://hatt.acecore.net/api/cms-ai/runner
       GH_TOKEN: ${{ github.token }}
 
     steps:

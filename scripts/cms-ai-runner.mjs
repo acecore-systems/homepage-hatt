@@ -9,7 +9,7 @@ const repository = process.env.GITHUB_REPOSITORY || ''
 const runnerUrl = String(process.env.CMS_AI_RUNNER_URL || '').replace(/\/$/, '')
 const runnerAudience =
   process.env.CMS_AI_RUNNER_AUDIENCE ||
-  'https://hatt.acecore.net/admin/api/ai/runner'
+  'https://hatt.acecore.net/api/cms-ai/runner'
 const workspace = process.cwd()
 const maxContextBytes = 768 * 1024
 const allowedExtensions = new Set([
