@@ -1,5 +1,6 @@
 import {
   assertSellerDisclosureRequestOrigin,
+  getSellerDisclosureDiagnostics,
   getSellerDisclosurePublicConfig,
   processSellerDisclosureRequest,
   validateSellerDisclosureRequest,
@@ -12,11 +13,18 @@ import {
   type PagesContext,
 } from './_shared.ts'
 
-export const onRequestGet = async ({ request, env }: PagesContext) =>
-  jsonResponse({
+export const onRequestGet = async ({ request, env }: PagesContext) => {
+  const diagnostic = new URL(request.url).searchParams.get('diagnostic') === '1'
+  const config = await getSellerDisclosurePublicConfig(request, env)
+
+  return jsonResponse({
     ok: true,
-    ...(await getSellerDisclosurePublicConfig(request, env)),
+    ...config,
+    ...(diagnostic
+      ? { diagnostic: await getSellerDisclosureDiagnostics(request, env) }
+      : {}),
   })
+}
 
 export const onRequestPost = async ({ request, env }: PagesContext) => {
   try {
