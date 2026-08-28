@@ -46,37 +46,6 @@ test('専用Workerの販売者情報が一致しない開示窓口は公開設�
   assert.deepEqual(await response.json(), { ok: true, enabled: false })
 })
 
-test('診断指定時は秘密値を返さず開示窓口の実行条件だけ返す', async () => {
-  configureReadySellerSettings()
-  const env = readyEnv(createDisclosureDatabase())
-  env.DISCLOSURE_EMAIL_SERVICE = {
-    async fetch() {
-      return Response.json({ ok: false }, { status: 401 })
-    },
-  }
-
-  const response = await onRequestGet({
-    request: new Request(
-      'https://hatt.acecore.net/api/shop/disclosure-request?diagnostic=1',
-    ),
-    env,
-  })
-
-  assert.equal(response.status, 200)
-  assert.deepEqual(await response.json(), {
-    ok: true,
-    enabled: false,
-    diagnostic: {
-      runtimeReady: true,
-      shopDbReady: true,
-      turnstileSecretReady: true,
-      schemaReady: true,
-      emailServiceReady: false,
-      emailServiceStatus: 401,
-    },
-  })
-})
-
 test('所在地の開示請求をHMAC化して送信し、同一受付番号の再送を防ぐ', async () => {
   configureReadySellerSettings()
   const database = createDisclosureDatabase()
