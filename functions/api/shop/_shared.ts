@@ -334,12 +334,24 @@ export function getSellerAddressDisclosureRuntime(
   env: ShopEnv,
   request: Request,
 ): SellerAddressDisclosureRuntime | null {
+  const disclosureOnRequest = isSellerAddressDisclosedOnRequest(settings)
+  const disclosureConfigurationValid = hasSellerAddressDisclosure(settings)
+  const disclosureEnabled =
+    String(env.SHOP_DISCLOSURE_ENABLED || '').trim() === 'true'
+  const hostAllowed = isSellerAddressDisclosureRequestHostAllowed(request, env)
+
   if (
-    !isSellerAddressDisclosedOnRequest(settings) ||
-    !hasSellerAddressDisclosure(settings) ||
-    String(env.SHOP_DISCLOSURE_ENABLED || '').trim() !== 'true' ||
-    !isSellerAddressDisclosureRequestHostAllowed(request, env)
+    !disclosureOnRequest ||
+    !disclosureConfigurationValid ||
+    !disclosureEnabled ||
+    !hostAllowed
   ) {
+    logSellerDisclosureRuntimeUnavailable({
+      disclosureOnRequest,
+      disclosureConfigurationValid,
+      disclosureEnabled,
+      hostAllowed,
+    })
     return null
   }
 
@@ -350,15 +362,27 @@ export function getSellerAddressDisclosureRuntime(
     env.SHOP_DISCLOSURE_TURNSTILE_SITE_KEY || '',
   ).trim()
   const emailService = getSellerAddressDisclosureEmailService(env)
+  const hasPublicProfile = Boolean(publicProfile)
+  const hasHmacSecret = hmacSecret.length >= 32
+  const hasServiceToken = serviceToken.length >= 32
+  const hasTurnstileSiteKey =
+    turnstileSiteKey.length >= 10 && turnstileSiteKey.length <= 256
+  const hasEmailService = Boolean(emailService)
 
   if (
     !publicProfile ||
-    hmacSecret.length < 32 ||
-    serviceToken.length < 32 ||
-    turnstileSiteKey.length < 10 ||
-    turnstileSiteKey.length > 256 ||
+    !hasHmacSecret ||
+    !hasServiceToken ||
+    !hasTurnstileSiteKey ||
     !emailService
   ) {
+    logSellerDisclosureRuntimeUnavailable({
+      hasPublicProfile,
+      hasHmacSecret,
+      hasServiceToken,
+      hasTurnstileSiteKey,
+      hasEmailService,
+    })
     return null
   }
 
@@ -370,6 +394,14 @@ export function getSellerAddressDisclosureRuntime(
     turnstileSiteKey,
     emailService,
   }
+}
+
+function logSellerDisclosureRuntimeUnavailable(
+  checks: Record<string, boolean>,
+) {
+  console.warn(
+    JSON.stringify({ event: 'seller_disclosure_runtime_unavailable', checks }),
+  )
 }
 
 export async function isSellerAddressDisclosureReady(
