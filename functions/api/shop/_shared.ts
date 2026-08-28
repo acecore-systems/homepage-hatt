@@ -197,22 +197,6 @@ export type SellerAddressDisclosureRuntime = {
   emailService: Fetcher
 }
 
-export type SellerAddressDisclosureEmailServiceReadiness = {
-  ready: boolean
-  status?: number
-  errorName?: string
-}
-
-export type SellerAddressDisclosureReadiness = {
-  runtimeReady: boolean
-  shopDbReady: boolean
-  turnstileSecretReady: boolean
-  schemaReady?: boolean
-  emailServiceReady?: boolean
-  emailServiceStatus?: number
-  emailServiceErrorName?: string
-}
-
 export function jsonResponse(
   body: unknown,
   status = 200,
@@ -424,19 +408,19 @@ export async function isSellerAddressDisclosureReady(
   env: ShopEnv,
   request: Request,
 ): Promise<boolean> {
-  const readiness = await getSellerAddressDisclosureReadiness(env, request)
-  return readiness.schemaReady === true && readiness.emailServiceReady === true
+  const runtime = getSellerAddressDisclosureRuntime(env, request)
+  if (!runtime || !env.SHOP_DB || !env.TURNSTILE_SECRET_KEY) return false
+
+  const [schemaReady, emailServiceReady] = await Promise.all([
+    hasSellerAddressDisclosureSchema(env.SHOP_DB),
+    isSellerAddressDisclosureEmailServiceReady(runtime),
+  ])
+  return schemaReady && emailServiceReady
 }
 
 export async function isSellerAddressDisclosureEmailServiceReady(
   runtime: SellerAddressDisclosureRuntime,
 ): Promise<boolean> {
-  return (await getSellerAddressDisclosureEmailServiceReadiness(runtime)).ready
-}
-
-export async function getSellerAddressDisclosureEmailServiceReadiness(
-  runtime: SellerAddressDisclosureRuntime,
-): Promise<SellerAddressDisclosureEmailServiceReadiness> {
   try {
     const response = await runtime.emailService.fetch(
       createSellerAddressDisclosureServiceRequest(
@@ -445,55 +429,11 @@ export async function getSellerAddressDisclosureEmailServiceReadiness(
         runtime.publicProfile,
       ),
     )
-    if (!response.ok) return { ready: false, status: response.status }
+    if (!response.ok) return false
     const payload = (await response.json()) as { ok?: unknown }
-    return {
-      ready: payload.ok === true,
-      status: response.status,
-    }
-  } catch (error) {
-    return {
-      ready: false,
-      errorName: error instanceof Error ? error.name : 'unknown',
-    }
-  }
-}
-
-export async function getSellerAddressDisclosureReadiness(
-  env: ShopEnv,
-  request: Request,
-  runtime: SellerAddressDisclosureRuntime | null | undefined = undefined,
-): Promise<SellerAddressDisclosureReadiness> {
-  const resolvedRuntime =
-    runtime === undefined
-      ? getSellerAddressDisclosureRuntime(env, request)
-      : runtime
-  const shopDb = env.SHOP_DB
-  const shopDbReady = Boolean(shopDb)
-  const turnstileSecretReady = Boolean(env.TURNSTILE_SECRET_KEY)
-  const base = {
-    runtimeReady: Boolean(resolvedRuntime),
-    shopDbReady,
-    turnstileSecretReady,
-  }
-
-  if (!resolvedRuntime || !shopDb || !turnstileSecretReady) return base
-
-  const [schemaReady, emailService] = await Promise.all([
-    hasSellerAddressDisclosureSchema(shopDb),
-    getSellerAddressDisclosureEmailServiceReadiness(resolvedRuntime),
-  ])
-
-  return {
-    ...base,
-    schemaReady,
-    emailServiceReady: emailService.ready,
-    ...(emailService.status === undefined
-      ? {}
-      : { emailServiceStatus: emailService.status }),
-    ...(emailService.errorName
-      ? { emailServiceErrorName: emailService.errorName }
-      : {}),
+    return payload.ok === true
+  } catch {
+    return false
   }
 }
 
