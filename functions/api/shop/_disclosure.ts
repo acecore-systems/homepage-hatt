@@ -67,11 +67,27 @@ export async function getSellerDisclosurePublicConfig(
       return { enabled: false }
     }
 
-    if (!(await hasSellerAddressDisclosureSchema(env.SHOP_DB))) {
+    const schemaReady = await hasSellerAddressDisclosureSchema(env.SHOP_DB)
+    if (!schemaReady) {
+      console.warn(
+        JSON.stringify({
+          event: 'seller_disclosure_public_config_unavailable',
+          schemaReady,
+        }),
+      )
       return { enabled: false }
     }
 
-    if (!(await isSellerAddressDisclosureEmailServiceReady(runtime))) {
+    const emailServiceReady =
+      await isSellerAddressDisclosureEmailServiceReady(runtime)
+    if (!emailServiceReady) {
+      console.warn(
+        JSON.stringify({
+          event: 'seller_disclosure_public_config_unavailable',
+          schemaReady,
+          emailServiceReady,
+        }),
+      )
       return { enabled: false }
     }
 
