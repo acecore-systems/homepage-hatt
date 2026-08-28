@@ -1,0 +1,46 @@
+name: CMS AI Automation
+
+on:
+  repository_dispatch:
+    types:
+      - cms-ai-job
+
+permissions:
+  actions: write
+  contents: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: cms-ai-${{ github.event.client_payload.job_id }}
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    if: ${{ github.event.client_payload.job_id != '' }}
+    name: CMS AI request
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CMS_AI_RUNNER_AUDIENCE: https://hatt.acecore.net/api/cms-ai/runner
+      CMS_AI_RUNNER_URL: https://hatt.acecore.net/api/cms-ai/runner
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create and verify the change
+        run: node scripts/cms-ai-runner.mjs "${{ github.event.client_payload.job_id }}"
