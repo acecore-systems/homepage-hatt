@@ -2,6 +2,7 @@ import { getClientIp } from '../../_form-shared.ts'
 import {
   createSellerAddressDisclosureServiceRequest,
   getDb,
+  getSellerAddressDisclosureReadiness,
   getSellerAddressDisclosureRuntime,
   hasSellerAddressDisclosureSchema,
   isSellerAddressDisclosureEmailServiceReady,
@@ -57,35 +58,46 @@ export type SellerDisclosurePublicConfig = {
   action?: string
 }
 
+export type SellerDisclosureDiagnostics = {
+  runtimeReady: boolean
+  shopDbReady: boolean
+  turnstileSecretReady: boolean
+  schemaReady?: boolean
+  emailServiceReady?: boolean
+  emailServiceStatus?: number
+  emailServiceErrorName?: string
+}
+
 export async function getSellerDisclosurePublicConfig(
   request: Request,
   env: ShopEnv,
 ): Promise<SellerDisclosurePublicConfig> {
   try {
     const runtime = getSellerAddressDisclosureRuntime(env, request)
-    if (!runtime || !env.SHOP_DB || !env.TURNSTILE_SECRET_KEY) {
+    const readiness = await getSellerAddressDisclosureReadiness(
+      env,
+      request,
+      runtime,
+    )
+    if (!runtime || !readiness.shopDbReady || !readiness.turnstileSecretReady) {
       return { enabled: false }
     }
 
-    const schemaReady = await hasSellerAddressDisclosureSchema(env.SHOP_DB)
-    if (!schemaReady) {
+    if (!readiness.schemaReady) {
       console.warn(
         JSON.stringify({
           event: 'seller_disclosure_public_config_unavailable',
-          schemaReady,
+          ...readiness,
         }),
       )
       return { enabled: false }
     }
 
-    const emailServiceReady =
-      await isSellerAddressDisclosureEmailServiceReady(runtime)
-    if (!emailServiceReady) {
+    if (!readiness.emailServiceReady) {
       console.warn(
         JSON.stringify({
           event: 'seller_disclosure_public_config_unavailable',
-          schemaReady,
-          emailServiceReady,
+          ...readiness,
         }),
       )
       return { enabled: false }
@@ -99,6 +111,14 @@ export async function getSellerDisclosurePublicConfig(
   } catch {
     return { enabled: false }
   }
+}
+
+export async function getSellerDisclosureDiagnostics(
+  request: Request,
+  env: ShopEnv,
+): Promise<SellerDisclosureDiagnostics> {
+  const readiness = await getSellerAddressDisclosureReadiness(env, request)
+  return readiness
 }
 
 export function assertSellerDisclosureRequestOrigin(
