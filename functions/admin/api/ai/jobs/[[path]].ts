@@ -1,33 +1,21 @@
 import {
-  assertReferenceImageSignature,
   assertSameOriginRequest,
   CmsAiError,
-  createAttachmentKey,
   createCmsAiJob,
   createJobId,
-  deleteCmsAiJob,
   dispatchCmsAiJob,
-  getCmsAiAssets,
   getCmsAiJob,
   json,
   methodNotAllowed,
   normalizeInstruction,
+  normalizeReasoningEffort,
   normalizeTargetUrl,
   toCmsAiErrorResponse,
   toPublicCmsAiJob,
   updateCmsAiJob,
-  validateReferenceImage,
-  type CmsAiAttachment,
   type CmsAiEnv,
 } from '../_shared.ts'
 import { getAccessIdentity } from '../../_access-auth.ts'
-
-type UploadedReferenceImage = {
-  arrayBuffer(): Promise<ArrayBuffer>
-  name?: string
-  size?: number
-  type?: string
-}
 
 export const onRequest: PagesFunction<CmsAiEnv> = async ({ request, env }) => {
   const auth = await getAccessIdentity(request, env)
@@ -71,34 +59,17 @@ async function createJob(request: Request, env: CmsAiEnv, requestedBy: string) {
   })
   const targetUrl = normalizeTargetUrl(form.get('targetUrl'), env)
   const instruction = normalizeInstruction(form.get('instruction'))
+  const reasoningEffort = normalizeReasoningEffort(form.get('reasoningEffort'))
+  assertNoReferenceImage(form)
   const jobId = createJobId()
-  const reference = await readReferenceImage(form, jobId)
-  const attachments = reference ? [reference.attachment] : []
   const job = await createCmsAiJob(env, {
-    attachments,
+    attachments: [],
     id: jobId,
     instruction,
+    reasoningEffort,
     requestedBy,
     targetUrl,
   })
-
-  try {
-    if (reference) {
-      await getCmsAiAssets(env).put(reference.attachment.key, reference.bytes, {
-        customMetadata: {
-          job_id: job.id,
-          kind: 'reference-image',
-        },
-        httpMetadata: {
-          cacheControl: 'private, no-store',
-          contentType: reference.attachment.contentType,
-        },
-      })
-    }
-  } catch (error) {
-    await deleteCmsAiJob(env, job.id).catch(() => undefined)
-    throw error
-  }
 
   try {
     await dispatchCmsAiJob(env, job.id)
@@ -124,51 +95,18 @@ async function createJob(request: Request, env: CmsAiEnv, requestedBy: string) {
   return json({ job: toPublicCmsAiJob(job) }, 202)
 }
 
-async function readReferenceImage(form: FormData, jobId: string) {
-  const values = form.getAll('referenceImage').flatMap((value) => {
-    const file = asUploadedReferenceImage(value)
-
-    if (!file || (!file.name && Number(file.size) === 0)) return []
-
-    return [file]
+function assertNoReferenceImage(form: FormData) {
+  const hasReferenceImage = form.getAll('referenceImage').some((value) => {
+    if (typeof value === 'string') return value.trim().length > 0
+    return Boolean(value.name) || value.size > 0
   })
 
-  if (values.length > 1) {
+  if (hasReferenceImage) {
     throw new CmsAiError(
       400,
-      '参考画像は1件まで添付できます。画像を並べた1枚の資料にしてください。',
+      '現在のGLM-5.3は参考画像に対応していません。URLと文章で依頼してください。',
     )
   }
-
-  const file = values[0]
-
-  if (!file) return null
-
-  const { contentType, fileName } = validateReferenceImage(file)
-  const bytes = await file.arrayBuffer()
-  await assertReferenceImageSignature(bytes, contentType)
-  const attachment: CmsAiAttachment = {
-    bytes: bytes.byteLength,
-    contentType,
-    fileName,
-    key: createAttachmentKey(jobId, contentType),
-  }
-
-  return { attachment, bytes }
-}
-
-function asUploadedReferenceImage(
-  value: unknown,
-): UploadedReferenceImage | null {
-  if (
-    !value ||
-    typeof value !== 'object' ||
-    typeof (value as UploadedReferenceImage).arrayBuffer !== 'function'
-  ) {
-    return null
-  }
-
-  return value as UploadedReferenceImage
 }
 
 function getJobId(request: Request) {

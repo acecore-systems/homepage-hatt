@@ -6,6 +6,7 @@ import { onRequest as handleJobs } from '../functions/admin/api/ai/jobs/[[path]]
 import { onRequest as handleRunner } from '../functions/api/cms-ai/runner/[[path]].ts'
 import {
   CmsAiError,
+  normalizeReasoningEffort,
   normalizeTargetUrl,
 } from '../functions/admin/api/ai/_shared.ts'
 import {
@@ -60,6 +61,14 @@ test('CMS AIはHattのURLだけを対象にする', () => {
   )
 })
 
+test('AIの考える深さはlow・medium・highだけを受け付ける', () => {
+  assert.equal(normalizeReasoningEffort('low'), 'low')
+  assert.equal(normalizeReasoningEffort('medium'), 'medium')
+  assert.equal(normalizeReasoningEffort('high'), 'high')
+  assert.equal(normalizeReasoningEffort(''), 'medium')
+  assert.throws(() => normalizeReasoningEffort('max'), CmsAiError)
+})
+
 test('AIの変更はサイト表示・コンテンツ範囲だけを許可する', () => {
   assert.equal(isAiWritablePath('src/pages/about.astro'), true)
   assert.equal(isAiWritablePath('public/site.css'), true)
@@ -102,6 +111,7 @@ test('JSON schema形式を使えない推論は同じモデルのJSON応答へ�
     id: '22222222-2222-4222-8222-222222222222',
     instruction: '対象ページの余白を直してください。',
     prUrl: null,
+    reasoningEffort: 'high',
     requestedBy: 'editor@example.com',
     status: 'running',
     summary: null,
@@ -116,10 +126,12 @@ test('JSON schema形式を使えない推論は同じモデルのJSON応答へ�
 
           if (calls === 1) {
             assert.equal(input.response_format.type, 'json_schema')
+            assert.equal(input.reasoning_effort, 'high')
             throw new Error('JSON Mode could not be met')
           }
 
           assert.equal('response_format' in input, false)
+          assert.equal(input.reasoning_effort, 'high')
           return {
             response: JSON.stringify({
               changes: [
@@ -144,11 +156,10 @@ test('JSON schema形式を使えない推論は同じモデルのJSON応答へ�
   assert.equal(result.changes[0].path, 'src/pages/example.astro')
 })
 
-test('Access認証済みのCMS依頼はD1・R2へ保存してGitHub Actionsを起動する', async () => {
+test('Access認証済みのCMS依頼はeffortとともにD1へ保存してGitHub Actionsを起動する', async () => {
   const db = createDatabase()
-  const assets = createAssets()
   const dispatched = []
-  const env = createEnv({ assets, db })
+  const env = createEnv({ db })
 
   mockFetch(async (url, init = {}) => {
     if (url === accessIssuer + '/cdn-cgi/access/certs') {
@@ -171,10 +182,7 @@ test('Access認証済みのCMS依頼はD1・R2へ保存してGitHub Actionsを�
   const form = new FormData()
   form.set('targetUrl', 'https://hatt.acecore.net/about/')
   form.set('instruction', '見出しの余白を少し狭くしてください。')
-  form.set(
-    'referenceImage',
-    new File([validPngBytes()], 'reference.png', { type: 'image/png' }),
-  )
+  form.set('reasoningEffort', 'high')
   const response = await handleJobs({
     request: new Request('http://localhost/admin/api/ai/jobs', {
       body: form,
@@ -191,14 +199,13 @@ test('Access認証済みのCMS依頼はD1・R2へ保存してGitHub Actionsを�
   assert.equal(response.status, 202)
   assert.match(payload.job.id, /^[0-9a-f-]{36}$/)
   assert.equal(payload.job.status, 'queued')
-  assert.equal(payload.job.attachmentCount, 1)
+  assert.equal(payload.job.attachmentCount, 0)
+  assert.equal(payload.job.reasoningEffort, 'high')
   assert.equal(dispatched.length, 1)
   assert.deepEqual(dispatched[0], {
     client_payload: { job_id: payload.job.id },
     event_type: 'cms-ai-job',
   })
-  assert.equal(assets.objects.size, 1)
-
   const otherResponse = await handleJobs({
     request: new Request(
       'http://localhost/admin/api/ai/jobs/' +
@@ -213,11 +220,36 @@ test('Access認証済みのCMS依頼はD1・R2へ保存してGitHub Actionsを�
   })
 
   assert.equal(otherResponse.status, 404)
+
+  const imageForm = new FormData()
+  imageForm.set('targetUrl', 'https://hatt.acecore.net/about/')
+  imageForm.set('instruction', 'この参考画像に合わせてください。')
+  imageForm.set('reasoningEffort', 'medium')
+  imageForm.set(
+    'referenceImage',
+    new File([validPngBytes()], 'reference.png', { type: 'image/png' }),
+  )
+  const imageResponse = await handleJobs({
+    request: new Request('http://localhost/admin/api/ai/jobs', {
+      body: imageForm,
+      headers: {
+        'Cf-Access-Jwt-Assertion': await signAccessJwt('editor@example.com'),
+        Origin: 'http://localhost',
+      },
+      method: 'POST',
+    }),
+    env,
+  })
+
+  assert.equal(imageResponse.status, 400)
+  assert.match(
+    (await imageResponse.json()).message,
+    /参考画像に対応していません/,
+  )
 })
 
 test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼できる', async () => {
   const db = createDatabase()
-  const assets = createAssets()
   const modelRequests = []
   const env = createEnv({
     ai: {
@@ -238,7 +270,6 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
         }
       },
     },
-    assets,
     db,
   })
   const jobId = '11111111-1111-4111-8111-111111111111'
@@ -255,6 +286,7 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
     id: jobId,
     instruction: 'このページの余白を直してください。',
     pr_url: null,
+    reasoning_effort: 'high',
     requested_by: 'editor@example.com',
     status: 'queued',
     summary: null,
@@ -294,7 +326,8 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
   assert.equal(response.status, 200)
   assert.equal(payload.result.changes[0].path, 'src/pages/example.astro')
   assert.equal(modelRequests.length, 1)
-  assert.equal(modelRequests[0].model, '@cf/zai-org/glm-5.3-flash')
+  assert.equal(modelRequests[0].model, '@cf/zai-org/glm-5.3')
+  assert.equal(modelRequests[0].input.reasoning_effort, 'high')
   assert.equal(modelRequests[0].input.response_format.type, 'json_schema')
 
   const rejected = await handleRunner({
@@ -324,13 +357,12 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
   assert.equal(rejected.status, 403)
 })
 
-function createEnv({ ai, assets, db } = {}) {
+function createEnv({ ai, db } = {}) {
   return {
     AI: ai,
     CMS_ACCESS_ALLOWED_EMAILS: 'editor@example.com,other@example.com',
     CMS_ACCESS_AUD: accessAudience,
     CMS_ACCESS_TEAM_DOMAIN: accessIssuer,
-    CMS_AI_ASSETS: assets,
     CMS_AI_DB: db,
     CMS_AI_GITHUB_OIDC_ISSUER: actionsIssuer,
     CMS_AI_RUNNER_AUDIENCE: actionsAudience,
@@ -374,6 +406,7 @@ function createDatabase() {
               requestedBy,
               targetUrl,
               instruction,
+              reasoningEffort,
               attachmentJson,
               status,
               branchName,
@@ -392,6 +425,7 @@ function createDatabase() {
               id,
               instruction,
               pr_url: null,
+              reasoning_effort: reasoningEffort,
               requested_by: requestedBy,
               status,
               summary: null,
@@ -439,37 +473,6 @@ function createDatabase() {
           throw new Error('Unexpected D1 query: ' + query)
         },
       }
-    },
-  }
-}
-
-function createAssets() {
-  const objects = new Map()
-
-  return {
-    objects,
-    async delete(keys) {
-      for (const key of Array.isArray(keys) ? keys : [keys]) objects.delete(key)
-    },
-    async get(key) {
-      const value = objects.get(key)
-      return value
-        ? {
-            async arrayBuffer() {
-              return value.slice(0)
-            },
-          }
-        : null
-    },
-    async put(key, value) {
-      const bytes =
-        value instanceof ArrayBuffer
-          ? value
-          : value.buffer.slice(
-              value.byteOffset,
-              value.byteOffset + value.byteLength,
-            )
-      objects.set(key, bytes)
     },
   }
 }

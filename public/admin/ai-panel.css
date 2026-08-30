@@ -107,6 +107,7 @@
 }
 
 .cms-ai-form input,
+.cms-ai-form select,
 .cms-ai-form textarea {
   box-sizing: border-box;
   width: 100%;
@@ -126,6 +127,7 @@
 }
 
 .cms-ai-form input:focus,
+.cms-ai-form select:focus,
 .cms-ai-form textarea:focus {
   outline: 2px solid #fb923c;
   outline-offset: 1px;

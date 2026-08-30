@@ -7,7 +7,9 @@ import {
 } from '../_github-api.ts'
 import type { CmsAccessEnv } from '../_access-auth.ts'
 
-export const CMS_AI_MODEL = '@cf/zai-org/glm-5.3-flash'
+export const CMS_AI_MODEL = '@cf/zai-org/glm-5.3'
+export const CMS_AI_REASONING_EFFORTS = ['low', 'medium', 'high'] as const
+export const CMS_AI_DEFAULT_REASONING_EFFORT = 'medium'
 export const CMS_AI_RUNNER_AUDIENCE =
   'https://hatt.acecore.net/api/cms-ai/runner'
 export const CMS_AI_JOB_ID_PATTERN =
@@ -23,6 +25,7 @@ export const CMS_AI_JOB_STATUSES = [
 ] as const
 
 export type CmsAiJobStatus = (typeof CMS_AI_JOB_STATUSES)[number]
+export type CmsAiReasoningEffort = (typeof CMS_AI_REASONING_EFFORTS)[number]
 
 export type CmsAiPreparedStatement = {
   bind(...values: unknown[]): CmsAiPreparedStatement
@@ -34,30 +37,12 @@ export type CmsAiDatabase = {
   prepare(query: string): CmsAiPreparedStatement
 }
 
-export type CmsAiR2ObjectBody = {
-  arrayBuffer(): Promise<ArrayBuffer>
-}
-
-export type CmsAiR2Bucket = {
-  put(
-    key: string,
-    value: ArrayBuffer | ArrayBufferView | Blob | ReadableStream | string,
-    options?: {
-      httpMetadata?: { contentType?: string; cacheControl?: string }
-      customMetadata?: Record<string, string>
-    },
-  ): Promise<unknown>
-  get(key: string): Promise<CmsAiR2ObjectBody | null>
-  delete(keys: string | string[]): Promise<void>
-}
-
 export type CmsAiBinding = {
   run(model: string, input: unknown): Promise<unknown>
 }
 
 export type CmsAiEnv = CmsAccessEnv & {
   AI?: CmsAiBinding
-  CMS_AI_ASSETS?: CmsAiR2Bucket
   CMS_AI_AUTOMERGE_ENABLED?: string
   CMS_AI_DB?: CmsAiDatabase
   CMS_AI_GITHUB_OIDC_ISSUER?: string
@@ -85,6 +70,7 @@ export type CmsAiJob = {
   id: string
   instruction: string
   prUrl: string | null
+  reasoningEffort: CmsAiReasoningEffort
   requestedBy: string
   status: CmsAiJobStatus
   summary: string | null
@@ -103,6 +89,7 @@ type CmsAiJobRow = {
   id: string
   instruction: string
   pr_url: string | null
+  reasoning_effort: string
   requested_by: string
   status: string
   summary: string | null
@@ -151,14 +138,6 @@ export function getCmsAiDb(env: CmsAiEnv) {
   }
 
   return env.CMS_AI_DB
-}
-
-export function getCmsAiAssets(env: CmsAiEnv) {
-  if (!env.CMS_AI_ASSETS) {
-    throw new CmsAiError(503, 'CMS AI参照画像の保存先が設定されていません。')
-  }
-
-  return env.CMS_AI_ASSETS
 }
 
 export function getCmsAiBinding(env: CmsAiEnv) {
@@ -218,6 +197,18 @@ export function normalizeInstruction(value: unknown) {
   return instruction
 }
 
+export function normalizeReasoningEffort(value: unknown): CmsAiReasoningEffort {
+  const effort = String(value || '').trim()
+
+  if (!effort) return CMS_AI_DEFAULT_REASONING_EFFORT
+
+  if ((CMS_AI_REASONING_EFFORTS as readonly string[]).includes(effort)) {
+    return effort as CmsAiReasoningEffort
+  }
+
+  throw new CmsAiError(400, 'AIの考える深さを選択してください。')
+}
+
 export function assertSameOriginRequest(request: Request) {
   const origin = request.headers.get('Origin')
 
@@ -238,70 +229,6 @@ export function assertSameOriginRequest(request: Request) {
   }
 }
 
-export function validateReferenceImage(file: {
-  arrayBuffer(): Promise<ArrayBuffer>
-  name?: string
-  size?: number
-  type?: string
-}) {
-  const contentType = String(file.type || '').toLowerCase()
-
-  if (
-    contentType !== 'image/jpeg' &&
-    contentType !== 'image/png' &&
-    contentType !== 'image/webp'
-  ) {
-    throw new CmsAiError(
-      400,
-      '参考画像はPNG、JPEG、WebPのいずれかにしてください。',
-    )
-  }
-
-  const size = Number(file.size)
-
-  if (!Number.isSafeInteger(size) || size <= 0 || size > MAX_ATTACHMENT_BYTES) {
-    throw new CmsAiError(400, '参考画像は2 MiB以下にしてください。')
-  }
-
-  return {
-    contentType: contentType as CmsAiAttachment['contentType'],
-    fileName: sanitizeFileName(String(file.name || 'reference-image')),
-  }
-}
-
-export async function assertReferenceImageSignature(
-  bytes: ArrayBuffer,
-  contentType: CmsAiAttachment['contentType'],
-) {
-  const view = new Uint8Array(bytes)
-
-  const matchesPng =
-    view.length >= 8 &&
-    view[0] === 0x89 &&
-    view[1] === 0x50 &&
-    view[2] === 0x4e &&
-    view[3] === 0x47 &&
-    view[4] === 0x0d &&
-    view[5] === 0x0a &&
-    view[6] === 0x1a &&
-    view[7] === 0x0a
-  const matchesJpeg =
-    view.length >= 3 && view[0] === 0xff && view[1] === 0xd8 && view[2] === 0xff
-  const matchesWebp =
-    view.length >= 12 &&
-    asAscii(view.slice(0, 4)) === 'RIFF' &&
-    asAscii(view.slice(8, 12)) === 'WEBP'
-
-  const valid =
-    (contentType === 'image/png' && matchesPng) ||
-    (contentType === 'image/jpeg' && matchesJpeg) ||
-    (contentType === 'image/webp' && matchesWebp)
-
-  if (!valid) {
-    throw new CmsAiError(400, '参考画像の形式とファイル内容が一致しません。')
-  }
-}
-
 export function createJobId() {
   return crypto.randomUUID()
 }
@@ -311,27 +238,13 @@ export function createBranchName(jobId: string) {
   return 'ai/cms-' + jobId
 }
 
-export function createAttachmentKey(
-  jobId: string,
-  contentType: CmsAiAttachment['contentType'],
-) {
-  assertJobId(jobId)
-  const extension =
-    contentType === 'image/png'
-      ? 'png'
-      : contentType === 'image/webp'
-        ? 'webp'
-        : 'jpg'
-
-  return 'cms-ai/jobs/' + jobId + '/reference.' + extension
-}
-
 export async function createCmsAiJob(
   env: CmsAiEnv,
   input: {
     attachments: CmsAiAttachment[]
     id: string
     instruction: string
+    reasoningEffort: CmsAiReasoningEffort
     requestedBy: string
     targetUrl: string
   },
@@ -344,9 +257,9 @@ export async function createCmsAiJob(
     .prepare(
       [
         'INSERT INTO cms_ai_jobs (',
-        'id, requested_by, target_url, instruction, attachment_json, status,',
+        'id, requested_by, target_url, instruction, reasoning_effort, attachment_json, status,',
         'branch_name, changed_paths_json, created_at, updated_at',
-        ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ].join(' '),
     )
     .bind(
@@ -354,6 +267,7 @@ export async function createCmsAiJob(
       input.requestedBy,
       input.targetUrl,
       input.instruction,
+      input.reasoningEffort,
       JSON.stringify(input.attachments),
       'queued',
       branchName,
@@ -375,6 +289,7 @@ export async function createCmsAiJob(
     id: input.id,
     instruction: input.instruction,
     prUrl: null,
+    reasoningEffort: input.reasoningEffort,
     requestedBy: input.requestedBy,
     status: 'queued' as const,
     summary: null,
@@ -394,7 +309,7 @@ export async function getCmsAiJob(
     ? db
         .prepare(
           [
-            'SELECT id, requested_by, target_url, instruction, attachment_json,',
+            'SELECT id, requested_by, target_url, instruction, reasoning_effort, attachment_json,',
             'status, branch_name, summary, clarification, pr_url, deployment_url,',
             'changed_paths_json, error_message, created_at, updated_at',
             'FROM cms_ai_jobs WHERE id = ? AND requested_by = ? LIMIT 1',
@@ -404,7 +319,7 @@ export async function getCmsAiJob(
     : db
         .prepare(
           [
-            'SELECT id, requested_by, target_url, instruction, attachment_json,',
+            'SELECT id, requested_by, target_url, instruction, reasoning_effort, attachment_json,',
             'status, branch_name, summary, clarification, pr_url, deployment_url,',
             'changed_paths_json, error_message, created_at, updated_at',
             'FROM cms_ai_jobs WHERE id = ? LIMIT 1',
@@ -491,14 +406,6 @@ export async function updateCmsAiJob(
   } satisfies CmsAiJob
 }
 
-export async function deleteCmsAiJob(env: CmsAiEnv, jobId: string) {
-  assertJobId(jobId)
-  await getCmsAiDb(env)
-    .prepare('DELETE FROM cms_ai_jobs WHERE id = ?')
-    .bind(jobId)
-    .run()
-}
-
 export async function dispatchCmsAiJob(env: CmsAiEnv, jobId: string) {
   assertJobId(jobId)
   const token = await getGitHubToken(env, { fresh: true })
@@ -539,6 +446,7 @@ export function toPublicCmsAiJob(job: CmsAiJob) {
     errorMessage: job.errorMessage,
     id: job.id,
     prUrl: job.prUrl,
+    reasoningEffort: job.reasoningEffort,
     status: job.status,
     summary: job.summary,
     targetUrl: job.targetUrl,
@@ -629,6 +537,7 @@ function parseCmsAiJob(row: CmsAiJobRow) {
     id: row.id,
     instruction: row.instruction,
     prUrl: normalizeGithubUrl(row.pr_url),
+    reasoningEffort: parseReasoningEffort(row.reasoning_effort),
     requestedBy: row.requested_by,
     status,
     summary: limitOptionalText(row.summary, 4_000),
@@ -747,6 +656,8 @@ function parseJson(value: string): unknown {
   }
 }
 
-function asAscii(value: Uint8Array) {
-  return String.fromCharCode(...value)
+function parseReasoningEffort(value: unknown): CmsAiReasoningEffort {
+  return (CMS_AI_REASONING_EFFORTS as readonly unknown[]).includes(value)
+    ? (value as CmsAiReasoningEffort)
+    : CMS_AI_DEFAULT_REASONING_EFFORT
 }

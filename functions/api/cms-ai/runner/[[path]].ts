@@ -56,6 +56,7 @@ async function getJob(env: CmsAiEnv, jobId: string) {
       branchName: job.branchName,
       id: job.id,
       instruction: job.instruction,
+      reasoningEffort: job.reasoningEffort,
       status: job.status,
       targetUrl: job.targetUrl,
     },
