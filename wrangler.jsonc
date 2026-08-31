@@ -26,6 +26,12 @@
       "migrations_dir": "migrations",
     },
     {
+      "binding": "CMS_AI_DB",
+      "database_name": "homepage-hatt-comments",
+      "database_id": "97d09eef-97fe-4d11-8c28-93bb40bfd234",
+      "migrations_dir": "migrations",
+    },
+    {
       "binding": "SHOP_DB",
       "database_name": "homepage-hatt-shop",
       "database_id": "a79e27cc-a53c-47de-b464-7cab1218438e",
@@ -38,7 +44,14 @@
       "bucket_name": "homepage-hatt-shop-files",
     },
   ],
+  "ai": {
+    "binding": "AI",
+  },
   "vars": {
+    "CMS_AI_AUTOMERGE_ENABLED": "false",
+    "CMS_AI_MODEL": "@cf/zai-org/glm-5.3",
+    "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/api/cms-ai/runner",
+    "CMS_AI_TARGET_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
     "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
     "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
     "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
@@ -86,6 +99,12 @@
           "migrations_dir": "migrations",
         },
         {
+          "binding": "CMS_AI_DB",
+          "database_name": "homepage-hatt-comments",
+          "database_id": "97d09eef-97fe-4d11-8c28-93bb40bfd234",
+          "migrations_dir": "migrations",
+        },
+        {
           "binding": "SHOP_DB",
           "database_name": "homepage-hatt-shop",
           "database_id": "a79e27cc-a53c-47de-b464-7cab1218438e",
@@ -98,7 +117,14 @@
           "bucket_name": "homepage-hatt-shop-files",
         },
       ],
+      "ai": {
+        "binding": "AI",
+      },
       "vars": {
+        "CMS_AI_AUTOMERGE_ENABLED": "false",
+        "CMS_AI_MODEL": "@cf/zai-org/glm-5.3",
+        "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/api/cms-ai/runner",
+        "CMS_AI_TARGET_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
         "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
@@ -146,6 +172,12 @@
           "migrations_dir": "migrations",
         },
         {
+          "binding": "CMS_AI_DB",
+          "database_name": "homepage-hatt-comments",
+          "database_id": "97d09eef-97fe-4d11-8c28-93bb40bfd234",
+          "migrations_dir": "migrations",
+        },
+        {
           "binding": "SHOP_DB",
           "database_name": "homepage-hatt-shop",
           "database_id": "a79e27cc-a53c-47de-b464-7cab1218438e",
@@ -158,7 +190,14 @@
           "bucket_name": "homepage-hatt-shop-files",
         },
       ],
+      "ai": {
+        "binding": "AI",
+      },
       "vars": {
+        "CMS_AI_AUTOMERGE_ENABLED": "false",
+        "CMS_AI_MODEL": "@cf/zai-org/glm-5.3",
+        "CMS_AI_RUNNER_AUDIENCE": "https://hatt.acecore.net/api/cms-ai/runner",
+        "CMS_AI_TARGET_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COMMENT_ALLOWED_HOSTNAMES": "hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev",
         "COURSE_SIGNUP_EMAIL_FROM": "Hattのホームページ <noreply@hatt.acecore.net>",
         "COURSE_SIGNUP_EMAIL_TO": "borubin@outlook.jp",
