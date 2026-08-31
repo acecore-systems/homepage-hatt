@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: cms-ai-${{ github.event.client_payload.job_id }}
+  group: cms-ai-${{ github.event.client_payload.conversation_id || github.event.client_payload.job_id }}
   cancel-in-progress: false
 
 jobs:
@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
+      CMS_AI_JOB_ID: ${{ github.event.client_payload.job_id }}
       CMS_AI_RUNNER_AUDIENCE: https://hatt.acecore.net/api/cms-ai/runner
       CMS_AI_RUNNER_URL: https://hatt.acecore.net/api/cms-ai/runner
       GH_TOKEN: ${{ github.token }}
@@ -43,4 +44,4 @@ jobs:
         run: npm ci
 
       - name: Create and verify the change
-        run: node scripts/cms-ai-runner.mjs "${{ github.event.client_payload.job_id }}"
+        run: node scripts/cms-ai-runner.mjs "$CMS_AI_JOB_ID"

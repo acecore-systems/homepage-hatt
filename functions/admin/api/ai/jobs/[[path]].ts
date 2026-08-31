@@ -72,7 +72,7 @@ async function createJob(request: Request, env: CmsAiEnv, requestedBy: string) {
   })
 
   try {
-    await dispatchCmsAiJob(env, job.id)
+    await dispatchCmsAiJob(env, job.id, job.conversationId)
   } catch (error) {
     const failed = await updateCmsAiJob(env, job.id, {
       errorMessage:
