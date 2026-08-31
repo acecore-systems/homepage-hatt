@@ -92,7 +92,7 @@ GitHub App を新規作成または置換するときは `npm run setup:cms-app`
 
 管理画面の「AIと相談」から会話を開始し、結果を見ながら「もう少し狭くして」「見出しは元に戻して」のような追加入力を送れます。同じ会話の各ターンは同じGit branchとPull Requestへ積み上がり、AIには直近の会話履歴と現在のbranch内容を渡します。処理中のターンがある間は次の送信を受け付けず、終了済みのPull Requestへは追記しません。
 
-対象URLは会話の開始時に固定します。AIの考える深さは `low` / `medium` / `high` からターンごとに選択でき、既定は `medium` です。会話履歴はCloudflare Accessの編集者ごとにD1へ保存し、管理画面から直近の会話を再開できます。画像の入力・生成機能は含みません。
+対象URLの入力欄は設けず、質問・相談・修正対象のページ名やURLをすべてメッセージとして送ります。AIの考える深さは `low` / `medium` / `high` からターンごとに選択でき、既定は `medium` です。会話履歴はCloudflare Accessの編集者ごとにD1へ保存し、管理画面から直近の会話を再開できます。画像の入力・生成機能は含みません。
 
 依頼はCloudflare Accessで認証した編集者とともにD1へ保存します。GitHub Appが repository_dispatch を送ると、CMS AI Automation workflowがGitHub Actions OIDC tokenで、Access配下から分離したOIDC専用の `/api/cms-ai/runner` Pages Functionへ認証します。Workers AIの `@cf/zai-org/glm-5.3` は選択された `reasoning_effort` で変更案だけを返し、workflowが許可範囲のファイルを別branchへ書き込み、ローカル検証・PR作成・CIを行います。
 

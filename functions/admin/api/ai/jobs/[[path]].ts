@@ -17,6 +17,8 @@ import {
 } from '../_shared.ts'
 import { getAccessIdentity } from '../../_access-auth.ts'
 
+const CMS_AI_SITE_URL = 'https://hatt.acecore.net/'
+
 export const onRequest: PagesFunction<CmsAiEnv> = async ({ request, env }) => {
   const auth = await getAccessIdentity(request, env)
 
@@ -57,7 +59,10 @@ async function createJob(request: Request, env: CmsAiEnv, requestedBy: string) {
   const form = await request.formData().catch(() => {
     throw new CmsAiError(400, '依頼内容を読み取れません。')
   })
-  const targetUrl = normalizeTargetUrl(form.get('targetUrl'), env)
+  const targetUrl = normalizeTargetUrl(
+    form.get('targetUrl') || CMS_AI_SITE_URL,
+    env,
+  )
   const instruction = normalizeInstruction(form.get('instruction'))
   const reasoningEffort = normalizeReasoningEffort(form.get('reasoningEffort'))
   assertNoReferenceImage(form)
@@ -104,7 +109,7 @@ function assertNoReferenceImage(form: FormData) {
   if (hasReferenceImage) {
     throw new CmsAiError(
       400,
-      '現在のGLM-5.3は参考画像に対応していません。URLと文章で依頼してください。',
+      '現在のGLM-5.3は参考画像に対応していません。文章で依頼してください。',
     )
   }
 }

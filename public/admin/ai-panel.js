@@ -19,7 +19,7 @@
     '<header class="cms-ai-panel__header">',
     '  <div>',
     '    <h2 class="cms-ai-panel__title">CMS AI</h2>',
-    '    <p class="cms-ai-panel__description">会話を続けながら、同じPull Requestを調整できます。</p>',
+    '    <p class="cms-ai-panel__description">質問とサイト修正を、同じ会話で続けられます。</p>',
     '  </div>',
     '  <button class="cms-ai-panel__close" type="button" aria-label="CMS AIパネルを閉じる">×</button>',
     '</header>',
@@ -32,14 +32,8 @@
     '  </div>',
     '  <ol class="cms-ai-messages" aria-live="polite"></ol>',
     '  <form class="cms-ai-form">',
-    '    <div class="cms-ai-conversation-setup">',
-    '      <label>対象URL',
-    '        <input name="targetUrl" type="url" required />',
-    '      </label>',
-    '      <p class="cms-ai-form__hint">会話中はこのページと同じ変更branchを使います。</p>',
-    '    </div>',
     '    <label class="cms-ai-form__message-label">メッセージ',
-    '      <textarea name="instruction" required maxlength="4000" placeholder="例: このページの見出しの余白を少し狭くして"></textarea>',
+    '      <textarea name="instruction" required maxlength="4000" placeholder="例: プロフィールページの文章を見直したい。まず今の内容を確認して"></textarea>',
     '    </label>',
     '    <div class="cms-ai-form__actions">',
     '      <label>考える深さ',
@@ -49,7 +43,7 @@
     '          <option value="high">高</option>',
     '        </select>',
     '      </label>',
-    '      <button class="cms-ai-form__submit" type="submit">会話を開始</button>',
+    '      <button class="cms-ai-form__submit" type="submit">送信</button>',
     '    </div>',
     '    <p class="cms-ai-form__hint">高いほど丁寧に考えますが、完了時間と利用量が増える場合があります。</p>',
     '    <p class="cms-ai-form__status" role="status"></p>',
@@ -62,10 +56,8 @@
   const form = panel.querySelector('.cms-ai-form')
   const close = panel.querySelector('.cms-ai-panel__close')
   const submit = panel.querySelector('.cms-ai-form__submit')
-  const target = form.elements.targetUrl
   const instruction = form.elements.instruction
   const effort = form.elements.reasoningEffort
-  const setup = panel.querySelector('.cms-ai-conversation-setup')
   const messages = panel.querySelector('.cms-ai-messages')
   const conversationSelect = panel.querySelector('.cms-ai-conversation-select')
   const newConversation = panel.querySelector('.cms-ai-new-conversation')
@@ -74,8 +66,6 @@
   let conversationSummaries = []
   let initialized = false
   let timer = 0
-
-  target.value = window.location.origin + '/'
 
   launcher.addEventListener('click', () => {
     panel.hidden = false
@@ -258,7 +248,6 @@
     clearTimer()
     conversation = null
     forgetConversation()
-    target.value = window.location.origin + '/'
     instruction.value = ''
     effort.value = 'medium'
     renderConversation()
@@ -284,13 +273,12 @@
 
   function renderConversation() {
     messages.replaceChildren()
-    setup.hidden = Boolean(conversation)
 
     if (!conversation || !Array.isArray(conversation.jobs)) {
       const empty = document.createElement('li')
       empty.className = 'cms-ai-messages__empty'
       empty.textContent =
-        '対象ページと最初の依頼を送ると会話が始まります。結果を見て、そのまま追加の修正を頼めます。'
+        '質問もサイト修正も、そのままメッセージで送れます。修正対象がある場合はページ名を会話に含めてください。'
       messages.append(empty)
       return
     }
@@ -373,12 +361,8 @@
     effort.disabled = pending || merged || atLimit
     instruction.placeholder = conversation
       ? '例: もう少し余白を狭くして、見出しはそのままにして'
-      : '例: このページの見出しの余白を少し狭くして'
-    submit.textContent = pending
-      ? '処理中…'
-      : conversation
-        ? '送信'
-        : '会話を開始'
+      : '例: プロフィールページの文章を見直したい。まず今の内容を確認して'
+    submit.textContent = pending ? '処理中…' : '送信'
 
     if (options.preserveStatus) {
       return
@@ -408,8 +392,7 @@
 
   function focusComposer() {
     window.setTimeout(() => {
-      if (conversation) instruction.focus()
-      else target.focus()
+      instruction.focus()
     }, 0)
   }
 
@@ -432,7 +415,7 @@
         queued: 'GitHub Actionsを開始しています',
         running: '変更案を作成しています',
         validating: '変更を検証しています',
-        needs_input: '返答を待っています',
+        needs_input: '返信しました',
         failed: '自動処理を停止しました',
         pr_created: 'Pull Requestを更新しました',
         merged: 'マージ済み',
