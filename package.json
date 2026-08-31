@@ -40,20 +40,20 @@
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.2.0",
-    "fast-xml-parser": "^5.10.1",
+    "astro": "^7.2.9",
+    "fast-xml-parser": "^5.11.1",
     "graphql": "^17.0.2",
-    "js-yaml": "^5.2.3",
-    "jose": "^6.2.8",
+    "js-yaml": "^5.4.1",
+    "jose": "^6.2.10",
     "rehype-external-links": "^3.0.0",
-    "satori": "^0.29.0",
-    "sharp": "^0.35.3",
+    "satori": "^0.33.4",
+    "sharp": "^0.35.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@astrojs/markdown-remark": "^7.2.1",
-    "@cloudflare/workers-types": "^5.20260816.1",
-    "@iconify-json/lucide": "^1.2.121",
+    "@cloudflare/workers-types": "^5.20260828.1",
+    "@iconify-json/lucide": "^1.2.126",
     "@iconify/tailwind4": "^1.2.3",
     "@tailwindcss/vite": "^4.3.3",
     "pagefind": "^1.5.2",
@@ -61,7 +61,7 @@
     "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "wrangler": "^4.123.0"
+    "wrangler": "^4.127.0"
   },
   "overrides": {
     "sharp": "$sharp"
