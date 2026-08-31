@@ -28,6 +28,7 @@ export type CmsAiJobStatus = (typeof CMS_AI_JOB_STATUSES)[number]
 export type CmsAiReasoningEffort = (typeof CMS_AI_REASONING_EFFORTS)[number]
 
 export type CmsAiPreparedStatement = {
+  all<T = Record<string, unknown>>(): Promise<{ results: T[] }>
   bind(...values: unknown[]): CmsAiPreparedStatement
   first<T = Record<string, unknown>>(columnName?: string): Promise<T | null>
   run(): Promise<{ meta?: { changes?: number } }>
@@ -59,11 +60,13 @@ export type CmsAiAttachment = {
 }
 
 export type CmsAiJob = {
+  assistantMessage: string | null
   attachmentJson: string
   attachments: CmsAiAttachment[]
   branchName: string
   changedPaths: string[]
   clarification: string | null
+  conversationId: string
   createdAt: string
   deploymentUrl: string | null
   errorMessage: string | null
@@ -75,14 +78,17 @@ export type CmsAiJob = {
   status: CmsAiJobStatus
   summary: string | null
   targetUrl: string
+  turnNumber: number
   updatedAt: string
 }
 
 type CmsAiJobRow = {
+  assistant_message: string | null
   attachment_json: string
   branch_name: string
   changed_paths_json: string
   clarification: string | null
+  conversation_id: string | null
   created_at: string
   deployment_url: string | null
   error_message: string | null
@@ -94,6 +100,7 @@ type CmsAiJobRow = {
   status: string
   summary: string | null
   target_url: string
+  turn_number: number | null
   updated_at: string
 }
 
@@ -105,6 +112,14 @@ const DEFAULT_TARGET_HOSTNAMES = [
 const MAX_TARGET_URL_LENGTH = 2_048
 const MAX_INSTRUCTION_LENGTH = 4_000
 const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024
+export const CMS_AI_MAX_CONVERSATION_TURNS = 30
+
+const CMS_AI_JOB_COLUMNS = [
+  'id, conversation_id, turn_number, requested_by, target_url, instruction,',
+  'reasoning_effort, attachment_json, status, branch_name, assistant_message,',
+  'summary, clarification, pr_url, deployment_url, changed_paths_json,',
+  'error_message, created_at, updated_at',
+].join(' ')
 
 export class CmsAiError extends Error {
   status: number
@@ -242,28 +257,49 @@ export async function createCmsAiJob(
   env: CmsAiEnv,
   input: {
     attachments: CmsAiAttachment[]
+    branchName?: string
+    conversationId?: string
     id: string
     instruction: string
+    prUrl?: string | null
     reasoningEffort: CmsAiReasoningEffort
     requestedBy: string
     targetUrl: string
+    turnNumber?: number
   },
 ) {
   const db = getCmsAiDb(env)
   const now = new Date().toISOString()
-  const branchName = createBranchName(input.id)
+  const conversationId = input.conversationId || input.id
+  assertJobId(conversationId)
+  const turnNumber = input.turnNumber ?? 1
+
+  if (
+    !Number.isSafeInteger(turnNumber) ||
+    turnNumber < 1 ||
+    turnNumber > CMS_AI_MAX_CONVERSATION_TURNS
+  ) {
+    throw new CmsAiError(400, 'CMS AIの会話ターンを確認してください。')
+  }
+
+  const branchName = input.branchName || createBranchName(conversationId)
+  const prUrl = normalizeGithubUrl(input.prUrl)
 
   await db
     .prepare(
       [
         'INSERT INTO cms_ai_jobs (',
-        'id, requested_by, target_url, instruction, reasoning_effort, attachment_json, status,',
-        'branch_name, changed_paths_json, created_at, updated_at',
-        ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'id, conversation_id, turn_number, requested_by, target_url, instruction,',
+        'reasoning_effort, attachment_json, status, branch_name, assistant_message,',
+        'summary, clarification, pr_url, deployment_url, changed_paths_json,',
+        'error_message, created_at, updated_at',
+        ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ].join(' '),
     )
     .bind(
       input.id,
+      conversationId,
+      turnNumber,
       input.requestedBy,
       input.targetUrl,
       input.instruction,
@@ -271,29 +307,38 @@ export async function createCmsAiJob(
       JSON.stringify(input.attachments),
       'queued',
       branchName,
+      null,
+      null,
+      null,
+      prUrl,
+      null,
       '[]',
+      null,
       now,
       now,
     )
     .run()
 
   return {
+    assistantMessage: null,
     attachmentJson: JSON.stringify(input.attachments),
     attachments: input.attachments,
     branchName,
     changedPaths: [],
     clarification: null,
+    conversationId,
     createdAt: now,
     deploymentUrl: null,
     errorMessage: null,
     id: input.id,
     instruction: input.instruction,
-    prUrl: null,
+    prUrl,
     reasoningEffort: input.reasoningEffort,
     requestedBy: input.requestedBy,
     status: 'queued' as const,
     summary: null,
     targetUrl: input.targetUrl,
+    turnNumber,
     updatedAt: now,
   } satisfies CmsAiJob
 }
@@ -309,9 +354,7 @@ export async function getCmsAiJob(
     ? db
         .prepare(
           [
-            'SELECT id, requested_by, target_url, instruction, reasoning_effort, attachment_json,',
-            'status, branch_name, summary, clarification, pr_url, deployment_url,',
-            'changed_paths_json, error_message, created_at, updated_at',
+            'SELECT ' + CMS_AI_JOB_COLUMNS,
             'FROM cms_ai_jobs WHERE id = ? AND requested_by = ? LIMIT 1',
           ].join(' '),
         )
@@ -319,9 +362,7 @@ export async function getCmsAiJob(
     : db
         .prepare(
           [
-            'SELECT id, requested_by, target_url, instruction, reasoning_effort, attachment_json,',
-            'status, branch_name, summary, clarification, pr_url, deployment_url,',
-            'changed_paths_json, error_message, created_at, updated_at',
+            'SELECT ' + CMS_AI_JOB_COLUMNS,
             'FROM cms_ai_jobs WHERE id = ? LIMIT 1',
           ].join(' '),
         )
@@ -331,10 +372,80 @@ export async function getCmsAiJob(
   return row ? parseCmsAiJob(row) : null
 }
 
+export async function getCmsAiConversation(
+  env: CmsAiEnv,
+  conversationId: string,
+  requestedBy?: string,
+) {
+  assertJobId(conversationId)
+  const db = getCmsAiDb(env)
+  const statement = requestedBy
+    ? db
+        .prepare(
+          [
+            'SELECT ' + CMS_AI_JOB_COLUMNS,
+            'FROM cms_ai_jobs',
+            'WHERE conversation_id = ? AND requested_by = ?',
+            'ORDER BY turn_number ASC, created_at ASC',
+            'LIMIT ?',
+          ].join(' '),
+        )
+        .bind(conversationId, requestedBy, CMS_AI_MAX_CONVERSATION_TURNS)
+    : db
+        .prepare(
+          [
+            'SELECT ' + CMS_AI_JOB_COLUMNS,
+            'FROM cms_ai_jobs',
+            'WHERE conversation_id = ?',
+            'ORDER BY turn_number ASC, created_at ASC',
+            'LIMIT ?',
+          ].join(' '),
+        )
+        .bind(conversationId, CMS_AI_MAX_CONVERSATION_TURNS)
+  const result = await statement.all<CmsAiJobRow>()
+
+  return result.results.map(parseCmsAiJob)
+}
+
+export async function listCmsAiConversations(
+  env: CmsAiEnv,
+  requestedBy: string,
+) {
+  const result = await getCmsAiDb(env)
+    .prepare(
+      [
+        'SELECT ' + CMS_AI_JOB_COLUMNS,
+        'FROM cms_ai_jobs WHERE requested_by = ?',
+        'ORDER BY created_at DESC LIMIT 200',
+      ].join(' '),
+    )
+    .bind(requestedBy)
+    .all<CmsAiJobRow>()
+  const conversations = new Map<string, CmsAiJob[]>()
+
+  for (const row of result.results) {
+    const job = parseCmsAiJob(row)
+    const jobs = conversations.get(job.conversationId) || []
+    jobs.push(job)
+    conversations.set(job.conversationId, jobs)
+  }
+
+  return Array.from(conversations.values())
+    .slice(0, 20)
+    .map((jobs) =>
+      jobs.sort(
+        (left, right) =>
+          left.turnNumber - right.turnNumber ||
+          left.createdAt.localeCompare(right.createdAt),
+      ),
+    )
+}
+
 export async function updateCmsAiJob(
   env: CmsAiEnv,
   jobId: string,
   update: {
+    assistantMessage?: string | null
     changedPaths?: string[]
     clarification?: string | null
     deploymentUrl?: string | null
@@ -352,6 +463,10 @@ export async function updateCmsAiJob(
   }
 
   const next = {
+    assistantMessage:
+      'assistantMessage' in update
+        ? (update.assistantMessage ?? null)
+        : job.assistantMessage,
     changedPaths:
       'changedPaths' in update ? (update.changedPaths ?? []) : job.changedPaths,
     clarification:
@@ -375,13 +490,14 @@ export async function updateCmsAiJob(
   await getCmsAiDb(env)
     .prepare(
       [
-        'UPDATE cms_ai_jobs SET status = ?, summary = ?, clarification = ?,',
-        'pr_url = ?, deployment_url = ?, changed_paths_json = ?, error_message = ?,',
-        'updated_at = ? WHERE id = ?',
+        'UPDATE cms_ai_jobs SET status = ?, assistant_message = ?, summary = ?,',
+        'clarification = ?, pr_url = ?, deployment_url = ?, changed_paths_json = ?,',
+        'error_message = ?, updated_at = ? WHERE id = ?',
       ].join(' '),
     )
     .bind(
       next.status,
+      limitOptionalText(next.assistantMessage, 4_000),
       limitOptionalText(next.summary, 4_000),
       limitOptionalText(next.clarification, 4_000),
       normalizeGithubUrl(next.prUrl),
@@ -395,6 +511,7 @@ export async function updateCmsAiJob(
 
   return {
     ...job,
+    assistantMessage: limitOptionalText(next.assistantMessage, 4_000),
     changedPaths: normalizeChangedPaths(next.changedPaths),
     clarification: limitOptionalText(next.clarification, 4_000),
     deploymentUrl: normalizeHttpsUrl(next.deploymentUrl),
@@ -406,12 +523,20 @@ export async function updateCmsAiJob(
   } satisfies CmsAiJob
 }
 
-export async function dispatchCmsAiJob(env: CmsAiEnv, jobId: string) {
+export async function dispatchCmsAiJob(
+  env: CmsAiEnv,
+  jobId: string,
+  conversationId = jobId,
+) {
   assertJobId(jobId)
+  assertJobId(conversationId)
   const token = await getGitHubToken(env, { fresh: true })
   const response = await githubRequest({
     body: {
-      client_payload: { job_id: jobId },
+      client_payload: {
+        conversation_id: conversationId,
+        job_id: jobId,
+      },
       event_type: 'cms-ai-job',
     },
     method: 'POST',
@@ -437,20 +562,57 @@ export async function dispatchCmsAiJob(env: CmsAiEnv, jobId: string) {
 
 export function toPublicCmsAiJob(job: CmsAiJob) {
   return {
+    assistantMessage: job.assistantMessage,
     attachmentCount: job.attachments.length,
     attachmentNames: job.attachments.map((attachment) => attachment.fileName),
     changedPaths: job.changedPaths,
     clarification: job.clarification,
+    conversationId: job.conversationId,
     createdAt: job.createdAt,
     deploymentUrl: job.deploymentUrl,
     errorMessage: job.errorMessage,
     id: job.id,
+    instruction: job.instruction,
     prUrl: job.prUrl,
     reasoningEffort: job.reasoningEffort,
     status: job.status,
     summary: job.summary,
     targetUrl: job.targetUrl,
+    turnNumber: job.turnNumber,
     updatedAt: job.updatedAt,
+  }
+}
+
+export function toPublicCmsAiConversation(jobs: CmsAiJob[]) {
+  if (jobs.length === 0) return null
+
+  const first = jobs[0]
+  const latest = jobs[jobs.length - 1]
+  const latestPrUrl = [...jobs]
+    .reverse()
+    .find((job) => Boolean(job.prUrl))?.prUrl
+
+  return {
+    id: first.conversationId,
+    jobs: jobs.map(toPublicCmsAiJob),
+    prUrl: latestPrUrl || null,
+    reasoningEffort: latest.reasoningEffort,
+    status: latest.status,
+    targetUrl: first.targetUrl,
+    title: compactTitle(first.instruction),
+    updatedAt: latest.updatedAt,
+  }
+}
+
+export function toPublicCmsAiConversationSummary(jobs: CmsAiJob[]) {
+  const conversation = toPublicCmsAiConversation(jobs)
+
+  if (!conversation) return null
+
+  const { jobs: _jobs, ...summary } = conversation
+  return {
+    ...summary,
+    turnCount: jobs.length,
   }
 }
 
@@ -524,13 +686,26 @@ export function toCmsAiErrorResponse(error: unknown, event: string) {
 
 function parseCmsAiJob(row: CmsAiJobRow) {
   const status = isCmsAiJobStatus(row.status) ? row.status : 'failed'
+  const conversationId =
+    typeof row.conversation_id === 'string' &&
+    CMS_AI_JOB_ID_PATTERN.test(row.conversation_id)
+      ? row.conversation_id
+      : row.id
+  const turnNumber =
+    Number.isSafeInteger(row.turn_number) &&
+    Number(row.turn_number) >= 1 &&
+    Number(row.turn_number) <= CMS_AI_MAX_CONVERSATION_TURNS
+      ? Number(row.turn_number)
+      : 1
 
   return {
+    assistantMessage: limitOptionalText(row.assistant_message, 4_000),
     attachmentJson: row.attachment_json,
     attachments: parseAttachments(row.attachment_json),
     branchName: row.branch_name,
     changedPaths: parseChangedPaths(row.changed_paths_json),
     clarification: limitOptionalText(row.clarification, 4_000),
+    conversationId,
     createdAt: row.created_at,
     deploymentUrl: normalizeHttpsUrl(row.deployment_url),
     errorMessage: limitOptionalText(row.error_message, 2_000),
@@ -542,6 +717,7 @@ function parseCmsAiJob(row: CmsAiJobRow) {
     status,
     summary: limitOptionalText(row.summary, 4_000),
     targetUrl: row.target_url,
+    turnNumber,
     updatedAt: row.updated_at,
   } satisfies CmsAiJob
 }
@@ -660,4 +836,9 @@ function parseReasoningEffort(value: unknown): CmsAiReasoningEffort {
   return (CMS_AI_REASONING_EFFORTS as readonly unknown[]).includes(value)
     ? (value as CmsAiReasoningEffort)
     : CMS_AI_DEFAULT_REASONING_EFFORT
+}
+
+function compactTitle(value: string) {
+  const title = value.replace(/\s+/g, ' ').trim()
+  return title.length <= 60 ? title : title.slice(0, 59) + '…'
 }

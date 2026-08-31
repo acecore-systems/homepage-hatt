@@ -12,6 +12,7 @@ const runnerAudience =
   'https://hatt.acecore.net/api/cms-ai/runner'
 const workspace = process.cwd()
 const maxContextBytes = 768 * 1024
+const maxConversationChangedPaths = 100
 const allowedExtensions = new Set([
   '.astro',
   '.css',
@@ -45,6 +46,10 @@ async function main() {
     throw new Error('CMS AIジョブを読み取れません。')
   }
 
+  if (!isConversationBranch(job.branchName, job.conversationId)) {
+    throw new Error('CMS AIの会話branchを確認できません。')
+  }
+
   if (job.status !== 'queued' && job.status !== 'running') {
     console.log('CMS AI job is already terminal:', job.status)
     return
@@ -54,6 +59,7 @@ async function main() {
     status: 'running',
     summary: 'AIが対象ページと関連ソースを確認しています。',
   })
+  const existingBranch = await prepareConversationBranch(job)
 
   let validationFeedback = ''
 
@@ -95,7 +101,7 @@ async function main() {
     const validation = await runValidation()
 
     if (validation.ok) {
-      await createPullRequest(job, result)
+      await createPullRequest(job, result, existingBranch)
       return
     }
 
@@ -115,6 +121,70 @@ async function main() {
         trimOutput(validation.output, 2_000),
     )
   }
+}
+
+async function prepareConversationBranch(job) {
+  const previousPr = job.prUrl || (await findAnyPullRequest(job.branchName))
+
+  if (previousPr) {
+    const state = (
+      await runRequired('gh', [
+        'pr',
+        'view',
+        previousPr,
+        '--repo',
+        repository,
+        '--json',
+        'state',
+        '--jq',
+        '.state',
+      ])
+    ).trim()
+
+    if (state !== 'OPEN') {
+      throw new Error(
+        'この会話のPull Requestは終了済みです。新しい会話を開始してください。',
+      )
+    }
+  }
+
+  const lookup = await runCommand('git', [
+    'ls-remote',
+    '--heads',
+    'origin',
+    'refs/heads/' + job.branchName,
+  ])
+
+  if (!lookup.ok) {
+    throw new Error('CMS AIの会話branchを確認できません。\n' + lookup.output)
+  }
+
+  if (!lookup.output.trim()) return false
+
+  await runRequired('git', [
+    'fetch',
+    'origin',
+    'refs/heads/' + job.branchName + ':refs/remotes/origin/' + job.branchName,
+  ])
+  await runRequired('git', [
+    'switch',
+    '--create',
+    job.branchName,
+    '--track',
+    'origin/' + job.branchName,
+  ])
+  const existingPaths = await getBranchChangedPaths()
+
+  if (
+    existingPaths.length > maxConversationChangedPaths ||
+    existingPaths.some((path) => !isWritablePath(path))
+  ) {
+    throw new Error(
+      '会話branchに許可範囲外の変更があるため、自動処理を停止しました。',
+    )
+  }
+
+  return true
 }
 
 async function collectSourceFiles(job) {
@@ -301,7 +371,7 @@ async function runValidation() {
   }
 }
 
-async function createPullRequest(job, result) {
+async function createPullRequest(job, result, existingBranch) {
   const changedPaths = await getChangedPaths()
 
   if (changedPaths.length === 0) {
@@ -312,7 +382,9 @@ async function createPullRequest(job, result) {
     throw new Error('許可範囲外の変更が検出されたため停止しました。')
   }
 
-  await runRequired('git', ['switch', '-c', job.branchName])
+  if (!existingBranch) {
+    await runRequired('git', ['switch', '-c', job.branchName])
+  }
   await runRequired('git', ['config', 'user.name', 'github-actions[bot]'])
   await runRequired('git', [
     'config',
@@ -320,8 +392,25 @@ async function createPullRequest(job, result) {
     '41898282+github-actions[bot]@users.noreply.github.com',
   ])
   await runRequired('git', ['add', '--', ...changedPaths])
-  await runRequired('git', ['commit', '-m', 'cms: AI request ' + job.id])
+  await runRequired('git', [
+    'commit',
+    '-m',
+    'cms: AI conversation ' +
+      job.conversationId +
+      ' turn ' +
+      String(job.turnNumber),
+  ])
   const commitSha = (await runRequired('git', ['rev-parse', 'HEAD'])).trim()
+  const conversationChangedPaths = await getBranchChangedPaths()
+
+  if (
+    conversationChangedPaths.length === 0 ||
+    conversationChangedPaths.length > maxConversationChangedPaths ||
+    conversationChangedPaths.some((path) => !isWritablePath(path))
+  ) {
+    throw new Error('会話branchの変更範囲を安全に確認できません。')
+  }
+
   await runRequired('git', [
     'push',
     'origin',
@@ -333,13 +422,18 @@ async function createPullRequest(job, result) {
     '',
     result.summary || 'CMS AIによるサイト修正です。',
     '',
+    '## 会話',
+    '',
+    '- Conversation: `' + job.conversationId + '`',
+    '- Turn: ' + String(job.turnNumber),
+    '',
     '## 対象',
     '',
     '- ' + job.targetUrl,
     '',
     '## 変更ファイル',
     '',
-    ...changedPaths.map((path) => '- ' + path),
+    ...conversationChangedPaths.map((path) => '- ' + path),
     '',
     '## 自動確認',
     '',
@@ -351,21 +445,46 @@ async function createPullRequest(job, result) {
     '',
     'このPRはCMS AI Automation workflowによって作成されました。',
   ].join('\n')
-  const prOutput = await runRequired('gh', [
-    'pr',
-    'create',
-    '--repo',
-    repository,
-    '--base',
-    'main',
-    '--head',
-    job.branchName,
-    '--title',
-    'CMS AI: ' + trimOneLine(result.summary || 'サイト修正', 80),
-    '--body',
-    prBody,
-  ])
-  const prUrl = findPullRequestUrl(prOutput)
+  const title = 'CMS AI: ' + trimOneLine(result.summary || 'サイト修正', 80)
+  let prUrl = await findOpenPullRequest(job.branchName)
+
+  if (prUrl) {
+    await runRequired('gh', [
+      'pr',
+      'edit',
+      prUrl,
+      '--repo',
+      repository,
+      '--title',
+      title,
+      '--body',
+      prBody,
+    ])
+  } else {
+    const previousPr = await findAnyPullRequest(job.branchName)
+
+    if (previousPr) {
+      throw new Error(
+        'この会話のPull Requestは終了済みです。新しい会話を開始してください。',
+      )
+    }
+
+    const prOutput = await runRequired('gh', [
+      'pr',
+      'create',
+      '--repo',
+      repository,
+      '--base',
+      'main',
+      '--head',
+      job.branchName,
+      '--title',
+      title,
+      '--body',
+      prBody,
+    ])
+    prUrl = findPullRequestUrl(prOutput)
+  }
 
   await updateStatus({
     changedPaths,
@@ -432,6 +551,65 @@ async function getChangedPaths() {
         .filter(Boolean),
     ),
   )
+}
+
+async function getBranchChangedPaths() {
+  const output = await runRequired('git', [
+    'diff',
+    '--name-only',
+    'origin/main...HEAD',
+  ])
+
+  return Array.from(
+    new Set(
+      output
+        .split(/\r?\n/)
+        .map((path) => path.trim().replaceAll('\\', '/'))
+        .filter(Boolean),
+    ),
+  )
+}
+
+async function findOpenPullRequest(branchName) {
+  return (
+    await runRequired('gh', [
+      'pr',
+      'list',
+      '--repo',
+      repository,
+      '--head',
+      branchName,
+      '--state',
+      'open',
+      '--limit',
+      '1',
+      '--json',
+      'url',
+      '--jq',
+      '.[0].url // empty',
+    ])
+  ).trim()
+}
+
+async function findAnyPullRequest(branchName) {
+  return (
+    await runRequired('gh', [
+      'pr',
+      'list',
+      '--repo',
+      repository,
+      '--head',
+      branchName,
+      '--state',
+      'all',
+      '--limit',
+      '1',
+      '--json',
+      'url',
+      '--jq',
+      '.[0].url // empty',
+    ])
+  ).trim()
 }
 
 async function waitForCiRun(branchName, commitSha) {
@@ -625,6 +803,16 @@ function findPullRequestUrl(value) {
   }
 
   return match[0]
+}
+
+function isConversationBranch(branchName, conversationId) {
+  return (
+    typeof conversationId === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      conversationId,
+    ) &&
+    branchName === 'ai/cms-' + conversationId
+  )
 }
 
 function trimOutput(value, maxLength) {
