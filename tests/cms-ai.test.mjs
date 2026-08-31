@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { afterEach, test } from 'node:test'
 import { SignJWT, exportJWK, exportPKCS8, generateKeyPair } from 'jose'
 
 import { onRequest as handleJobs } from '../functions/admin/api/ai/jobs/[[path]].ts'
+import { onRequest as handleConversations } from '../functions/admin/api/ai/conversations/[[path]].ts'
 import { onRequest as handleRunner } from '../functions/api/cms-ai/runner/[[path]].ts'
 import {
   CmsAiError,
@@ -100,11 +102,13 @@ test('AIの変更はサイト表示・コンテンツ範囲だけを許可する
 test('JSON schema形式を使えない推論は同じモデルのJSON応答へ安全に再試行する', async () => {
   let calls = 0
   const job = {
+    assistantMessage: null,
     attachmentJson: '[]',
     attachments: [],
     branchName: 'ai/cms-22222222-2222-4222-8222-222222222222',
     changedPaths: [],
     clarification: null,
+    conversationId: '22222222-2222-4222-8222-222222222222',
     createdAt: '2026-08-28T00:00:00.000Z',
     deploymentUrl: null,
     errorMessage: null,
@@ -116,6 +120,7 @@ test('JSON schema形式を使えない推論は同じモデルのJSON応答へ�
     status: 'running',
     summary: null,
     targetUrl: 'https://hatt.acecore.net/example/',
+    turnNumber: 1,
     updatedAt: '2026-08-28T00:00:00.000Z',
   }
   const result = await runCmsAiInference(
@@ -200,10 +205,15 @@ test('Access認証済みのCMS依頼はeffortとともにD1へ保存してGitHub
   assert.match(payload.job.id, /^[0-9a-f-]{36}$/)
   assert.equal(payload.job.status, 'queued')
   assert.equal(payload.job.attachmentCount, 0)
+  assert.equal(payload.job.conversationId, payload.job.id)
+  assert.equal(payload.job.turnNumber, 1)
   assert.equal(payload.job.reasoningEffort, 'high')
   assert.equal(dispatched.length, 1)
   assert.deepEqual(dispatched[0], {
-    client_payload: { job_id: payload.job.id },
+    client_payload: {
+      conversation_id: payload.job.id,
+      job_id: payload.job.id,
+    },
     event_type: 'cms-ai-job',
   })
   const otherResponse = await handleJobs({
@@ -248,6 +258,147 @@ test('Access認証済みのCMS依頼はeffortとともにD1へ保存してGitHub
   )
 })
 
+test('CMS AIの追加入力は同じ会話・branch・Pull Requestへ新しいターンとして保存する', async () => {
+  const db = createDatabase()
+  const dispatched = []
+  const env = createEnv({ db })
+
+  mockFetch(async (url, init = {}) => {
+    if (url === accessIssuer + '/cdn-cgi/access/certs') {
+      return jsonResponse({ keys: [accessJwk] })
+    }
+    if (url.endsWith('/access_tokens')) {
+      return jsonResponse(installationTokenResponse())
+    }
+    if (url.endsWith('/dispatches')) {
+      dispatched.push(JSON.parse(String(init.body)))
+      return new Response(null, { status: 204 })
+    }
+
+    throw new Error('Unexpected fetch: ' + url)
+  })
+
+  const initialForm = new FormData()
+  initialForm.set('targetUrl', 'https://hatt.acecore.net/about/')
+  initialForm.set('instruction', '見出しの余白を少し狭くしてください。')
+  initialForm.set('reasoningEffort', 'medium')
+  const initialResponse = await handleJobs({
+    request: new Request('http://localhost/admin/api/ai/jobs', {
+      body: initialForm,
+      headers: {
+        'Cf-Access-Jwt-Assertion': await signAccessJwt('editor@example.com'),
+        Origin: 'http://localhost',
+      },
+      method: 'POST',
+    }),
+    env,
+  })
+  const initialPayload = await initialResponse.json()
+  const conversationId = initialPayload.job.conversationId
+  const firstRow = db.rows.get(initialPayload.job.id)
+
+  const blockedForm = new FormData()
+  blockedForm.set('instruction', '処理中の追加入力です。')
+  blockedForm.set('reasoningEffort', 'low')
+  const blockedResponse = await handleConversations({
+    request: new Request(
+      'http://localhost/admin/api/ai/conversations/' +
+        conversationId +
+        '/messages',
+      {
+        body: blockedForm,
+        headers: {
+          'Cf-Access-Jwt-Assertion': await signAccessJwt('editor@example.com'),
+          Origin: 'http://localhost',
+        },
+        method: 'POST',
+      },
+    ),
+    env,
+  })
+
+  assert.equal(blockedResponse.status, 409)
+
+  db.rows.set(initialPayload.job.id, {
+    ...firstRow,
+    assistant_message: '見出しの余白を調整しました。',
+    pr_url: 'https://github.com/acecore-systems/homepage-hatt/pull/123',
+    status: 'pr_created',
+    summary: 'Pull Requestを作成しました。',
+  })
+
+  const followUpForm = new FormData()
+  followUpForm.set('instruction', 'もう少しだけ狭くしてください。')
+  followUpForm.set('reasoningEffort', 'high')
+  const followUpResponse = await handleConversations({
+    request: new Request(
+      'http://localhost/admin/api/ai/conversations/' +
+        conversationId +
+        '/messages',
+      {
+        body: followUpForm,
+        headers: {
+          'Cf-Access-Jwt-Assertion': await signAccessJwt('editor@example.com'),
+          Origin: 'http://localhost',
+        },
+        method: 'POST',
+      },
+    ),
+    env,
+  })
+  const followUpPayload = await followUpResponse.json()
+
+  assert.equal(followUpResponse.status, 202)
+  assert.equal(followUpPayload.conversation.id, conversationId)
+  assert.equal(followUpPayload.conversation.jobs.length, 2)
+  assert.equal(followUpPayload.conversation.jobs[1].turnNumber, 2)
+  assert.equal(followUpPayload.conversation.jobs[1].reasoningEffort, 'high')
+  assert.equal(
+    followUpPayload.conversation.jobs[1].prUrl,
+    'https://github.com/acecore-systems/homepage-hatt/pull/123',
+  )
+  assert.equal(
+    db.rows.get(followUpPayload.conversation.jobs[1].id).branch_name,
+    firstRow.branch_name,
+  )
+  assert.deepEqual(dispatched.at(-1), {
+    client_payload: {
+      conversation_id: conversationId,
+      job_id: followUpPayload.conversation.jobs[1].id,
+    },
+    event_type: 'cms-ai-job',
+  })
+
+  const listResponse = await handleConversations({
+    request: new Request('http://localhost/admin/api/ai/conversations', {
+      headers: {
+        'Cf-Access-Jwt-Assertion': await signAccessJwt('editor@example.com'),
+      },
+    }),
+    env,
+  })
+  const listPayload = await listResponse.json()
+
+  assert.equal(listResponse.status, 200)
+  assert.equal(listPayload.conversations.length, 1)
+  assert.equal(listPayload.conversations[0].id, conversationId)
+  assert.equal(listPayload.conversations[0].turnCount, 2)
+
+  const otherResponse = await handleConversations({
+    request: new Request(
+      'http://localhost/admin/api/ai/conversations/' + conversationId,
+      {
+        headers: {
+          'Cf-Access-Jwt-Assertion': await signAccessJwt('other@example.com'),
+        },
+      },
+    ),
+    env,
+  })
+
+  assert.equal(otherResponse.status, 404)
+})
+
 test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼できる', async () => {
   const db = createDatabase()
   const modelRequests = []
@@ -272,25 +423,51 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
     },
     db,
   })
+  const conversationId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  const previousJobId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
   const jobId = '11111111-1111-4111-8111-111111111111'
   const now = new Date().toISOString()
 
-  db.rows.set(jobId, {
+  db.rows.set(previousJobId, {
+    assistant_message: '見出しの余白を少し狭くしました。',
     attachment_json: '[]',
-    branch_name: 'ai/cms-' + jobId,
+    branch_name: 'ai/cms-' + conversationId,
+    changed_paths_json: '["src/pages/example.astro"]',
+    clarification: null,
+    conversation_id: conversationId,
+    created_at: new Date(Date.now() - 1000).toISOString(),
+    deployment_url: null,
+    error_message: null,
+    id: previousJobId,
+    instruction: '見出しの余白を少し狭くしてください。',
+    pr_url: 'https://github.com/acecore-systems/homepage-hatt/pull/123',
+    reasoning_effort: 'medium',
+    requested_by: 'editor@example.com',
+    status: 'pr_created',
+    summary: 'Pull Requestを作成しました。',
+    target_url: 'https://hatt.acecore.net/example/',
+    turn_number: 1,
+    updated_at: now,
+  })
+  db.rows.set(jobId, {
+    assistant_message: null,
+    attachment_json: '[]',
+    branch_name: 'ai/cms-' + conversationId,
     changed_paths_json: '[]',
     clarification: null,
+    conversation_id: conversationId,
     created_at: now,
     deployment_url: null,
     error_message: null,
     id: jobId,
-    instruction: 'このページの余白を直してください。',
-    pr_url: null,
+    instruction: 'もう少しだけ狭くしてください。',
+    pr_url: 'https://github.com/acecore-systems/homepage-hatt/pull/123',
     reasoning_effort: 'high',
     requested_by: 'editor@example.com',
     status: 'queued',
     summary: null,
     target_url: 'https://hatt.acecore.net/example/',
+    turn_number: 2,
     updated_at: now,
   })
 
@@ -329,6 +506,18 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
   assert.equal(modelRequests[0].model, '@cf/zai-org/glm-5.3')
   assert.equal(modelRequests[0].input.reasoning_effort, 'high')
   assert.equal(modelRequests[0].input.response_format.type, 'json_schema')
+  assert.deepEqual(
+    modelRequests[0].input.messages.slice(1, 4).map((message) => message.role),
+    ['user', 'assistant', 'user'],
+  )
+  assert.match(
+    modelRequests[0].input.messages[1].content,
+    /見出しの余白を少し狭く/,
+  )
+  assert.match(
+    modelRequests[0].input.messages[2].content,
+    /見出しの余白を少し狭くしました/,
+  )
 
   const rejected = await handleRunner({
     request: new Request('http://localhost/api/cms-ai/runner/inference', {
@@ -355,6 +544,48 @@ test('GitHub Actions OIDCのrunnerだけがモデルへ変更案を依頼でき�
   })
 
   assert.equal(rejected.status, 403)
+})
+
+test('管理画面のCMS AIは会話履歴と追加入力UIを提供する', async () => {
+  const source = await readFile(
+    new URL('../public/admin/ai-panel.js', import.meta.url),
+    'utf8',
+  )
+
+  assert.match(source, /AIと相談/)
+  assert.match(source, /会話履歴/)
+  assert.match(source, /\/messages/)
+  assert.match(source, /hatt-cms-ai-conversation-id/)
+  assert.match(
+    source,
+    /if \(isPending\(payload\.conversation\.status\)\) \{\s*if \(options\.schedulePolling !== false\)/,
+  )
+  assert.doesNotMatch(source, /hatt-cms-ai-job-id/)
+})
+
+test('CMS AI workflowは会話単位で直列化し既存branchとPull Requestを更新する', async () => {
+  const [workflow, runner] = await Promise.all([
+    readFile(
+      new URL('../.github/workflows/cms-ai.yml', import.meta.url),
+      'utf8',
+    ),
+    readFile(new URL('../scripts/cms-ai-runner.mjs', import.meta.url), 'utf8'),
+  ])
+
+  assert.match(workflow, /client_payload\.conversation_id/)
+  assert.match(
+    workflow,
+    /CMS_AI_JOB_ID: \$\{\{ github\.event\.client_payload\.job_id \}\}/,
+  )
+  assert.match(workflow, /node scripts\/cms-ai-runner\.mjs "\$CMS_AI_JOB_ID"/)
+  assert.doesNotMatch(
+    workflow,
+    /node scripts\/cms-ai-runner\.mjs "\$\{\{ github\.event\.client_payload\.job_id \}\}"/,
+  )
+  assert.match(runner, /refs\/remotes\/origin\//)
+  assert.match(runner, /origin\/main\.\.\.HEAD/)
+  assert.match(runner, /'pr',\s*\n\s*'edit'/)
+  assert.match(runner, /findAnyPullRequest/)
 })
 
 function createEnv({ ai, db } = {}) {
@@ -399,10 +630,43 @@ function createDatabase() {
 
           return { ...row }
         },
+        async all() {
+          let result = Array.from(rows.values())
+
+          if (query.includes('WHERE conversation_id = ?')) {
+            const conversationId = values[0]
+            const requestedBy = query.includes('requested_by = ?')
+              ? values[1]
+              : null
+            result = result
+              .filter(
+                (row) =>
+                  (row.conversation_id || row.id) === conversationId &&
+                  (!requestedBy || row.requested_by === requestedBy),
+              )
+              .sort(
+                (left, right) =>
+                  Number(left.turn_number || 1) -
+                    Number(right.turn_number || 1) ||
+                  left.created_at.localeCompare(right.created_at),
+              )
+          } else if (query.includes('WHERE requested_by = ?')) {
+            result = result
+              .filter((row) => row.requested_by === values[0])
+              .sort((left, right) =>
+                right.created_at.localeCompare(left.created_at),
+              )
+              .slice(0, 200)
+          }
+
+          return { results: result.map((row) => ({ ...row })) }
+        },
         async run() {
           if (query.startsWith('INSERT INTO cms_ai_jobs')) {
             const [
               id,
+              conversationId,
+              turnNumber,
               requestedBy,
               targetUrl,
               instruction,
@@ -410,26 +674,35 @@ function createDatabase() {
               attachmentJson,
               status,
               branchName,
+              assistantMessage,
+              summary,
+              clarification,
+              prUrl,
+              deploymentUrl,
               changedPathsJson,
+              errorMessage,
               createdAt,
               updatedAt,
             ] = values
             rows.set(id, {
+              assistant_message: assistantMessage,
               attachment_json: attachmentJson,
               branch_name: branchName,
               changed_paths_json: changedPathsJson,
-              clarification: null,
+              clarification,
+              conversation_id: conversationId,
               created_at: createdAt,
-              deployment_url: null,
-              error_message: null,
+              deployment_url: deploymentUrl,
+              error_message: errorMessage,
               id,
               instruction,
-              pr_url: null,
+              pr_url: prUrl,
               reasoning_effort: reasoningEffort,
               requested_by: requestedBy,
               status,
-              summary: null,
+              summary,
               target_url: targetUrl,
+              turn_number: turnNumber,
               updated_at: updatedAt,
             })
             return { meta: { changes: 1 } }
@@ -438,6 +711,7 @@ function createDatabase() {
           if (query.startsWith('UPDATE cms_ai_jobs')) {
             const [
               status,
+              assistantMessage,
               summary,
               clarification,
               prUrl,
@@ -452,6 +726,7 @@ function createDatabase() {
             if (row) {
               rows.set(id, {
                 ...row,
+                assistant_message: assistantMessage,
                 changed_paths_json: changedPathsJson,
                 clarification,
                 deployment_url: deploymentUrl,

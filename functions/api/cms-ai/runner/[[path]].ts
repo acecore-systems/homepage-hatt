@@ -1,6 +1,7 @@
 import { getGitHubActionsIdentity } from '../../../admin/api/ai/_github-actions-auth.ts'
 import {
   CmsAiError,
+  getCmsAiConversation,
   getCmsAiJob,
   isAutoMergeEnabled,
   isCmsAiJobStatus,
@@ -54,11 +55,14 @@ async function getJob(env: CmsAiEnv, jobId: string) {
       attachmentCount: job.attachments.length,
       autoMergeEnabled: isAutoMergeEnabled(env),
       branchName: job.branchName,
+      conversationId: job.conversationId,
       id: job.id,
       instruction: job.instruction,
+      prUrl: job.prUrl,
       reasoningEffort: job.reasoningEffort,
       status: job.status,
       targetUrl: job.targetUrl,
+      turnNumber: job.turnNumber,
     },
   })
 }
@@ -82,6 +86,11 @@ async function runInference(request: Request, env: CmsAiEnv) {
 
   const validationFeedback = optionalText(body.validationFeedback, 12_000)
   const sourceFiles = validateSourceFiles(body.files)
+  const conversationJobs = await getCmsAiConversation(
+    env,
+    job.conversationId,
+    job.requestedBy,
+  )
   await updateCmsAiJob(env, job.id, {
     errorMessage: null,
     status: 'running',
@@ -92,10 +101,16 @@ async function runInference(request: Request, env: CmsAiEnv) {
     job,
     sourceFiles,
     validationFeedback || undefined,
+    conversationJobs,
   )
 
   if (result.changes.length === 0) {
+    const assistantMessage =
+      result.clarification ||
+      result.summary ||
+      '変更を確定するために、依頼内容をもう少し具体的にしてください。'
     const waiting = await updateCmsAiJob(env, job.id, {
+      assistantMessage,
       clarification:
         result.clarification ||
         '変更を確定するために、依頼内容をもう少し具体的にしてください。',
@@ -105,6 +120,10 @@ async function runInference(request: Request, env: CmsAiEnv) {
 
     return json({ result, status: waiting.status })
   }
+
+  await updateCmsAiJob(env, job.id, {
+    assistantMessage: result.summary,
+  })
 
   return json({ result, status: 'running' })
 }
