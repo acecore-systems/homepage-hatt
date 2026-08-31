@@ -2,7 +2,6 @@ import { createRemoteJWKSet, jwtVerify } from 'jose'
 
 export type CmsAccessEnv = Pick<
   Cloudflare.Env,
-  | 'CMS_ACCESS_ALLOWED_EMAILS'
   | 'CMS_GITHUB_APP_CLIENT_ID'
   | 'CMS_GITHUB_APP_INSTALLATION_ID'
   | 'CMS_GITHUB_APP_PRIVATE_KEY'
@@ -28,6 +27,9 @@ const DEFAULT_ACCESS_HOSTNAMES = [
 const DEFAULT_ACCESS_TEAM_DOMAIN = 'https://acecore.cloudflareaccess.com'
 const DEFAULT_ACCESS_AUD =
   '044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4'
+export const ACECORE_ENTITLEMENTS_CLAIM =
+  'https://acecore.net/claims/entitlements'
+export const HATT_CMS_EDITOR_ENTITLEMENT = 'hatt-cms-editor'
 
 const jwksByIssuer = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
@@ -70,6 +72,7 @@ export async function getAccessIdentity(
   }
 
   let email = ''
+  let hasCmsEditorEntitlement = false
 
   try {
     const { payload } = await jwtVerify(token, getRemoteJwkSet(issuer), {
@@ -80,6 +83,7 @@ export async function getAccessIdentity(
     })
 
     email = typeof payload.email === 'string' ? payload.email.toLowerCase() : ''
+    hasCmsEditorEntitlement = includesCmsEditorEntitlement(payload.custom)
   } catch {
     return {
       ok: false,
@@ -96,11 +100,11 @@ export async function getAccessIdentity(
     }
   }
 
-  if (!isAllowedAccessEmail(email, env)) {
+  if (!hasCmsEditorEntitlement) {
     return {
       ok: false,
       status: 403,
-      message: 'CMS編集が許可されていないCloudflare Accessユーザーです。',
+      message: 'AcecoreIDでCMS編集が許可されていないユーザーです。',
     }
   }
 
@@ -148,11 +152,15 @@ function isAllowedAccessHostname(hostname: string, env: CmsAccessEnv) {
     .some((pattern) => hostnameMatches(pattern, hostname))
 }
 
-function isAllowedAccessEmail(email: string, env: CmsAccessEnv) {
-  const allowed = parseCsv(env.CMS_ACCESS_ALLOWED_EMAILS)
-  const normalizedEmail = email.toLowerCase()
+function includesCmsEditorEntitlement(custom: unknown) {
+  if (typeof custom !== 'object' || custom === null || Array.isArray(custom)) {
+    return false
+  }
 
-  return allowed.includes(normalizedEmail)
+  const claim = (custom as Record<string, unknown>)[ACECORE_ENTITLEMENTS_CLAIM]
+  const values = Array.isArray(claim) ? claim : [claim]
+
+  return values.some((value) => value === HATT_CMS_EDITOR_ENTITLEMENT)
 }
 
 function parseCsv(value: string | undefined) {

@@ -45,8 +45,8 @@ npm run typecheck:functions
 - GitHub proxy: `functions/admin/api/github/[[path]].ts`
 - GraphQL proxy: `functions/admin/api/graphql.ts`
 - Access session: `functions/admin/api/session.ts`
-- 認証方式: Cherry 型。編集者は Cloudflare Access で `/admin/` に入り、保存は専用 GitHub App の短期 installation token を使う proxy が行います。
-- Access application の Allow policy はサイト専用の `hatt-cms-editors` group だけを参照します。共有管理者 group やメールドメイン一括許可は使いません。
+- 認証方式: Cherry 型。編集者は AcecoreID だけで Cloudflare Access 経由の `/admin/` に入り、保存は専用 GitHub App の短期 installation token を使う proxy が行います。
+- ログインできるユーザーはAcecoreIDの永続entitlement `hatt-cms-editor`で指定します。Access applicationとPages Functionsは`https://acecore.net/claims/entitlements` OIDC claimの同じ値を検証し、別のメールallowlistは持ちません。
 - ブログ、タグ、著者、モデリング項目、商品、商品ZIP、キャンペーン通知、サイト基本設定を編集できます。商品ZIPはCMS内から非公開R2へ保存します。
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
@@ -61,10 +61,9 @@ Access検証設定は必要なproduction / preview環境に設定できます。
 
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
-- Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS=editor@example.com`
 - Variable: `CMS_ACCESS_HOSTNAMES=hatt.acecore.net,www.hatt.acecore.net,homepage-hatt.pages.dev`
 
-`CMS_ACCESS_ALLOWED_EMAILS` は `hatt-cms-editors` と同じ完全一致メールだけを production / preview の両方へ設定します。他サイト編集者、共有管理者、メールドメイン一括許可は追加しません。
+`CMS_ACCESS_ALLOWED_EMAILS`は使用しません。CMS権限の正本はAcecoreIDだけに置き、Access group、完全一致メール、メールドメインを二重の権限元にしません。
 
 `CMS_ACCESS_TEAM_DOMAIN` と `CMS_ACCESS_AUD` は上記の値を既定値として持ちます。Access application を作り直した場合だけ、新しい値で上書きしてください。
 
@@ -169,7 +168,7 @@ Cloudflare Pages の Secret や binding を更新した後は、GitHub連携の 
 
 デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
 
-注文管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、Pages Functions でも Access JWT の署名・発行元・audience を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。商品ZIPの一覧・アップロード・ダウンロードはCMS内から `/admin/api/product-files` を利用し、CMSのAccess audienceと編集者allowlistで保護します。
+注文管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、Pages Functions でも Access JWT の署名・発行元・audience を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。商品ZIPの一覧・アップロード・ダウンロードはCMS内から `/admin/api/product-files` を利用し、CMSのAccess audienceとAcecoreIDの`hatt-cms-editor` entitlementで保護します。
 
 ## ブログコメント
 

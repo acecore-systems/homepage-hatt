@@ -20,6 +20,10 @@ import { getGitHubToken } from '../functions/admin/api/_github-api.ts'
 import { onRequestPost as handleGraphql } from '../functions/admin/api/graphql.ts'
 import { onRequest as handleGithubRest } from '../functions/admin/api/github/[[path]].ts'
 import { onRequestGet as handleSession } from '../functions/admin/api/session.ts'
+import {
+  ACECORE_ENTITLEMENTS_CLAIM,
+  HATT_CMS_EDITOR_ENTITLEMENT,
+} from '../functions/admin/api/_access-auth.ts'
 
 const originalFetch = globalThis.fetch
 const mainSha = 'a'.repeat(40)
@@ -49,7 +53,6 @@ Object.assign(accessJwk, { alg: 'RS256', kid: accessKeyId, use: 'sig' })
 const validAccessJwt = await signAccessJwt()
 const allowedEnv = {
   CMS_ACCESS_AUD: accessAudience,
-  CMS_ACCESS_ALLOWED_EMAILS: 'editor@example.com',
   CMS_ACCESS_TEAM_DOMAIN: accessIssuer,
   CMS_GITHUB_APP_CLIENT_ID: routeGithubAppClientId,
   CMS_GITHUB_APP_INSTALLATION_ID: routeGithubAppInstallationId,
@@ -920,7 +923,7 @@ test('未署名のAccess JWTを拒否する', async () => {
 test('環境変数がなくても既定のAccess検証を無効化しない', async () => {
   const response = await handleSession({
     request: sessionRequest('e30.e30.invalid'),
-    env: { CMS_ACCESS_ALLOWED_EMAILS: 'editor@example.com' },
+    env: {},
   })
 
   assert.equal(response.status, 401)
@@ -941,15 +944,10 @@ test('別audience向けのAccess JWTを拒否する', async () => {
   assert.equal(response.status, 401)
 })
 
-test('同一ドメインでもメールallowlist未登録ユーザーを拒否する', async () => {
+test('署名済みAccess JWTでもAcecoreIDのCMS entitlementがなければ拒否する', async () => {
   const response = await handleSession({
-    request: sessionRequest(
-      await signAccessJwt({ email: 'other@example.com' }),
-    ),
-    env: {
-      ...allowedEnv,
-      CMS_ACCESS_ALLOWED_DOMAINS: 'example.com',
-    },
+    request: sessionRequest(await signAccessJwt({ entitlements: [] })),
+    env: allowedEnv,
   })
 
   assert.equal(response.status, 403)
@@ -1099,8 +1097,12 @@ function mockFetch(handler) {
 function signAccessJwt({
   audience = accessAudience,
   email = 'editor@example.com',
+  entitlements = [HATT_CMS_EDITOR_ENTITLEMENT],
 } = {}) {
-  return new SignJWT({ email })
+  return new SignJWT({
+    custom: { [ACECORE_ENTITLEMENTS_CLAIM]: entitlements },
+    email,
+  })
     .setProtectedHeader({ alg: 'RS256', kid: accessKeyId })
     .setIssuer(accessIssuer)
     .setAudience(audience)

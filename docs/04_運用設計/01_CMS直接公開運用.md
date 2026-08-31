@@ -1,6 +1,6 @@
 # CMS直接公開運用
 
-最終更新日: 2026-07-29
+最終更新日: 2026-08-31
 
 ## 現在の方針
 
@@ -8,7 +8,7 @@
 - GitHub default branch: `main`
 - CMS backend: `public/admin/config.yml` の `backend.name: github`
 - CMS auth mode: Cherry 型（Cloudflare Access + Pages Functions GitHub proxy）
-- CMS Access group: `hatt-cms-editors`（このサイトの編集者だけ）
+- CMS editor entitlement: `hatt-cms-editor`（AcecoreIDが正本）
 - CMS publication branch: `main`
 - CMS save mode: `expectedHeadOid` 付きの `main` 直接commit
 
@@ -18,15 +18,16 @@
 
 ## 現行フロー
 
-1. 編集者が Cloudflare Access 経由で `/admin/` にログインする。
-2. Sveltia CMS が `/admin/api/session` で Access 認証済みメールを確認する。
-3. Sveltia CMS が `/admin/api/github/*` と `/admin/api/graphql` を GitHub backend として使う。
-4. Pages Functions proxy が専用 GitHub App の短期 installation token で GitHub API を呼び出す。
-5. Sveltia CMS が画像とコンテンツをまとめた `createCommitOnBranch` mutation を送る。
-6. proxy がrepository、branch、変更path、件数、合計サイズ、共有content schema、Markdown、raster media、現在の `main` HEADを同期検証し、許可済みpathだけでmutationを組み立て直す。保存直前に照合した正確な `main` commit SHAからCMS対象treeとtext blobを取得し、同じ保存の追加・削除を反映したprojected stateで全CMS contentを再検証する。記事のauthor・tagと `/uploads/hatt/` の画像参照は、同じ保存で追加される対象を含めて存在を確認する。author id、tag slug、記事の実効slugは共有形式制約を使い、tagと記事はprojected全体での一意性を確認する。PNGは全chunkのCRC、IHDR、連結IDATのzlib展開、scanline長とfilterを確認する。JPEG / GIF / WebP / AVIFはcontainer、marker、宣言length、終端の構造を確認し、ブラウザ相当の完全decodeまでは保証しない。各形式のblock数には上限を設け、極端な小block列を拒否する。
-7. `expectedHeadOid` が現在のHEADと一致する場合だけ、画像とコンテンツを `main` の同じcommitへ原子的に保存する。
-8. GitHub応答が失われた場合は固有operation marker、親SHA、変更path、blob SHA、削除後treeを照合し、成功済み保存の重複や誤った失敗扱いを避ける。
-9. Cloudflare Pages がGitHub `main` pushを受けてproduction deployする。
+1. `hatt-cms-editor` entitlementを持つ編集者がAcecoreIDでCloudflare Access経由の`/admin/`へログインする。
+2. Access application policyがAcecoreIDの`https://acecore.net/claims/entitlements` OIDC claimを検証する。
+3. Sveltia CMS が `/admin/api/session` で署名済みAccess JWTの同じclaimと認証済みメールを確認する。
+4. Sveltia CMS が `/admin/api/github/*` と `/admin/api/graphql` を GitHub backend として使う。
+5. Pages Functions proxy が専用 GitHub App の短期 installation token で GitHub API を呼び出す。
+6. Sveltia CMS が画像とコンテンツをまとめた `createCommitOnBranch` mutation を送る。
+7. proxy がrepository、branch、変更path、件数、合計サイズ、共有content schema、Markdown、raster media、現在の `main` HEADを同期検証し、許可済みpathだけでmutationを組み立て直す。保存直前に照合した正確な `main` commit SHAからCMS対象treeとtext blobを取得し、同じ保存の追加・削除を反映したprojected stateで全CMS contentを再検証する。記事のauthor・tagと `/uploads/hatt/` の画像参照は、同じ保存で追加される対象を含めて存在を確認する。author id、tag slug、記事の実効slugは共有形式制約を使い、tagと記事はprojected全体での一意性を確認する。PNGは全chunkのCRC、IHDR、連結IDATのzlib展開、scanline長とfilterを確認する。JPEG / GIF / WebP / AVIFはcontainer、marker、宣言length、終端の構造を確認し、ブラウザ相当の完全decodeまでは保証しない。各形式のblock数には上限を設け、極端な小block列を拒否する。
+8. `expectedHeadOid` が現在のHEADと一致する場合だけ、画像とコンテンツを `main` の同じcommitへ原子的に保存する。
+9. GitHub応答が失われた場合は固有operation marker、親SHA、変更path、blob SHA、削除後treeを照合し、成功済み保存の重複や誤った失敗扱いを避ける。
+10. Cloudflare Pages がGitHub `main` pushを受けてproduction deployする。
 
 ## Cloudflare Pages 設定
 
@@ -40,12 +41,11 @@ Cloudflare Pages のproductionだけに以下のGitHub App設定を置きます�
 
 - Optional Variable: `CMS_ACCESS_TEAM_DOMAIN=https://acecore.cloudflareaccess.com`
 - Optional Variable: `CMS_ACCESS_AUD=044fc6624d4c84e5bcf78bc8a0ac1b505c9d2227cb6b1dba4dd6c4e10d4579d4`
-- Secret または Variable: `CMS_ACCESS_ALLOWED_EMAILS`（`hatt-cms-editors` と同じ完全一致メール）
 - Variable: `CMS_ACCESS_HOSTNAMES`
 
-proxy は `Cf-Access-Jwt-Assertion` の署名、issuer、有効期限、audience を検証します。team domain と AUD tag は上記の値を既定値として持つため、Access application を作り直した場合だけ新しい値を環境変数へ設定してください。
+proxy は `Cf-Access-Jwt-Assertion` の署名、issuer、有効期限、audienceに加え、`custom["https://acecore.net/claims/entitlements"]`に`hatt-cms-editor`があることを検証します。team domain と AUD tag は上記の値を既定値として持つため、Access application を作り直した場合だけ新しい値を環境変数へ設定してください。
 
-`CMS_ACCESS_ALLOWED_EMAILS` は CMS 編集を許可する完全一致メールを指定します。Access application は `hatt-cms-editors` だけを許可し、共有 `default-admin` group、他サイトの編集者、メールドメイン一括許可を使いません。Access group と Pages Functions の allowlist の両方が一致したユーザーだけが CMS API を利用できます。
+CMSへログインできるユーザーはAcecoreID D1の`account_entitlements`で指定します。`hatt-cms-editor`には有効期限を持たせず、明示的に`revoked_at`を設定するまで有効です。Access group、完全一致メール、メールドメイン、`CMS_ACCESS_ALLOWED_EMAILS`はCMS権限の正本として使いません。
 
 `CMS_ACCESS_HOSTNAMES` は必要に応じて preview hostname を追加するためのカンマ区切り allowlist です。既定で以下は許可されます。
 
