@@ -401,7 +401,6 @@
   }
 
   .shop-contact-fields,
-  .shop-admin-upload-form,
   .shop-admin-order-form {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -413,7 +412,6 @@
   }
 
   .shop-contact-form label,
-  .shop-admin-upload-form label,
   .shop-admin-order-form label {
     display: grid;
     gap: 7px;
@@ -425,8 +423,6 @@
   .shop-contact-form input,
   .shop-contact-form select,
   .shop-contact-form textarea,
-  .shop-admin-upload-form input,
-  .shop-admin-upload-form select,
   .shop-admin-order-form input,
   .shop-admin-order-form select,
   .shop-admin-order-form textarea {
@@ -455,8 +451,6 @@
   .shop-contact-form input:focus,
   .shop-contact-form select:focus,
   .shop-contact-form textarea:focus,
-  .shop-admin-upload-form input:focus,
-  .shop-admin-upload-form select:focus,
   .shop-admin-order-form input:focus,
   .shop-admin-order-form select:focus,
   .shop-admin-order-form textarea:focus {
@@ -500,86 +494,6 @@
     padding-bottom: 14px;
   }
 
-  .shop-admin-nav {
-    display: flex;
-    gap: 18px;
-    border-bottom: 1px solid rgba(21, 26, 36, 0.12);
-    padding-bottom: 10px;
-  }
-
-  .shop-admin-nav a {
-    color: var(--ink-700);
-    font-weight: 850;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-  }
-
-  .shop-admin-files {
-    border-bottom: 1px solid rgba(21, 26, 36, 0.12);
-    padding: 10px 0 28px;
-  }
-
-  .shop-admin-upload-form {
-    grid-template-columns: minmax(220px, 0.8fr) minmax(260px, 1.2fr) auto;
-    align-items: end;
-  }
-
-  .shop-admin-upload-form button {
-    min-height: 44px;
-  }
-
-  .shop-admin-upload-progress {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .shop-admin-upload-progress[hidden] {
-    display: none;
-  }
-
-  .shop-admin-upload-progress progress {
-    width: 100%;
-    height: 10px;
-    accent-color: var(--ink-900);
-  }
-
-  .shop-admin-upload-progress span,
-  .shop-admin-file-note,
-  .shop-admin-file-row span {
-    color: var(--ink-500);
-    font-size: 0.88rem;
-    font-weight: 650;
-  }
-
-  .shop-admin-file-note {
-    margin: 0;
-  }
-
-  .shop-admin-file-list {
-    display: grid;
-  }
-
-  .shop-admin-file-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    border-top: 1px solid rgba(21, 26, 36, 0.09);
-    padding: 12px 0;
-  }
-
-  .shop-admin-file-row > div {
-    display: grid;
-    min-width: 0;
-    gap: 3px;
-  }
-
-  .shop-admin-file-row strong {
-    overflow-wrap: anywhere;
-  }
-
   .shop-admin-session p {
     display: flex;
     align-items: center;
@@ -609,7 +523,6 @@
     .shop-detail-grid,
     .shop-cart-shell,
     .shop-contact-grid,
-    .shop-admin-upload-form,
     .shop-admin-order-form,
     .shop-product-grid {
       grid-template-columns: 1fr;
@@ -634,7 +547,6 @@
 
     .shop-contact-actions,
     .shop-product-foot,
-    .shop-admin-file-row,
     .shop-admin-order-head,
     .shop-admin-session {
       align-items: flex-start;

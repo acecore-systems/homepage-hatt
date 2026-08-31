@@ -2,12 +2,26 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  getUploadProducts,
   hasZipSignature,
   prepareProductFileUpload,
   PRODUCT_FILE_MAX_SIZE_BYTES,
   PRODUCT_FILE_PART_SIZE_BYTES,
 } from '../functions/api/shop/admin/files.ts'
 import { ShopApiError } from '../functions/api/shop/_shared.ts'
+
+test('CMS用の商品ZIP一覧には物理発送商品を含めない', () => {
+  const uploadProducts = getUploadProducts()
+
+  assert.ok(uploadProducts.length > 0)
+  assert.ok(
+    uploadProducts.every(
+      (product) =>
+        product.slug && product.title && product.fulfillmentType !== 'physical',
+    ),
+  )
+  assert.ok(uploadProducts.some((product) => product.slug === 'eringi-sensei'))
+})
 
 test('手動納品商品にZIPを非公開R2キーで紐付ける', () => {
   const upload = prepareProductFileUpload({

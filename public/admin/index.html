@@ -30,14 +30,100 @@
       defer
     ></script>
     <script src="/admin/init.js" defer></script>
+    <script type="module" src="/admin/product-files.js"></script>
   </head>
   <body>
-    <a class="cms-shop-files-link" href="/shop/admin/#product-files">
+    <button
+      class="cms-product-files-open"
+      type="button"
+      data-cms-product-files-open
+      aria-haspopup="dialog"
+    >
       <span class="material-symbols-outlined" aria-hidden="true"
-        >upload_file</span
+        >folder_zip</span
       >
-      商品ZIP管理
-    </a>
+      商品ZIP
+    </button>
+    <dialog
+      class="cms-product-files-dialog"
+      data-cms-product-files-dialog
+      aria-labelledby="cms-product-files-title"
+    >
+      <section class="cms-product-files-panel">
+        <header class="cms-product-files-header">
+          <h2 id="cms-product-files-title">商品ZIP</h2>
+          <button
+            class="cms-icon-button"
+            type="button"
+            data-cms-product-files-close
+            aria-label="商品ZIP管理を閉じる"
+            title="閉じる"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >close</span
+            >
+          </button>
+        </header>
+
+        <form class="cms-product-files-form" data-cms-product-file-upload>
+          <label>
+            商品
+            <select name="productSlug" data-cms-product-file-product required>
+              <option value="">商品を選択</option>
+            </select>
+          </label>
+          <label>
+            ZIPファイル
+            <input
+              type="file"
+              name="file"
+              accept=".zip,application/zip,application/x-zip-compressed"
+              data-cms-product-file-input
+              required
+            />
+          </label>
+          <button class="cms-primary-button" type="submit">
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >upload</span
+            >
+            アップロード
+          </button>
+        </form>
+
+        <div
+          class="cms-product-files-progress"
+          data-cms-product-file-progress
+          hidden
+        >
+          <progress max="100" value="0"></progress>
+          <span>0%</span>
+        </div>
+
+        <p
+          class="cms-product-files-status"
+          data-cms-product-files-status
+          aria-live="polite"
+        ></p>
+
+        <div class="cms-product-files-list-heading">
+          <h3>登録済みZIP</h3>
+          <button
+            class="cms-icon-button"
+            type="button"
+            data-cms-product-files-refresh
+            aria-label="登録済みZIPを再読み込み"
+            title="再読み込み"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >refresh</span
+            >
+          </button>
+        </div>
+        <div class="cms-product-files-list" data-cms-product-files-list>
+          <p>商品を選択してください。</p>
+        </div>
+      </section>
+    </dialog>
     <main id="nc-root"></main>
   </body>
 </html>
