@@ -38,8 +38,11 @@ export function getEntryValue(entry, fieldName) {
 }
 
 export function getProductFileContext(entry, hash) {
-  const slug = String(getEntryValue(entry, 'slug') || '').trim()
   const persistedSlug = getProductEditorSlug(hash)
+  const hasEntryData = typeof entry?.getIn === 'function'
+  const slug = hasEntryData
+    ? String(getEntryValue(entry, 'slug') || '').trim()
+    : persistedSlug
   const fulfillmentType = String(
     getEntryValue(entry, 'fulfillmentType') || '',
   ).trim()
@@ -64,7 +67,7 @@ export function getProductFileContext(entry, hash) {
     }
   }
 
-  if (!slug || slug !== persistedSlug) {
+  if (hasEntryData && (!slug || slug !== persistedSlug)) {
     return {
       fulfillmentType,
       message: 'URLスラッグを保存してからZIPを設定してください。',

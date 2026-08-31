@@ -101,6 +101,13 @@ test('商品ZIPフィールドは保存済み商品だけを編集対象にす�
     getProductFileContext(entry, '#/collections/products/new').ready,
     false,
   )
+  assert.equal(
+    getProductFileContext(
+      undefined,
+      '#/collections/products/entries/eringi-sensei',
+    ).ready,
+    true,
+  )
   assert.match(
     getProductFileContext(
       createEntry({ fulfillmentType: 'manual', slug: 'changed-slug' }),
