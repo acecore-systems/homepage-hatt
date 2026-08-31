@@ -403,7 +403,7 @@ collections:
   - name: products
     label: 商品
     label_singular: 商品
-    description: ショップの商品情報を編集します。手動納品用ZIPは画面左下の「商品ZIP管理」から登録します。
+    description: ショップの商品情報を編集します。手動納品用ZIPは画面左下の「商品ZIP」から登録します。
     icon: shopping_bag
     folder: src/content/products
     format: json

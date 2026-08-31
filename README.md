@@ -47,7 +47,7 @@ npm run typecheck:functions
 - Access session: `functions/admin/api/session.ts`
 - 認証方式: Cherry 型。編集者は Cloudflare Access で `/admin/` に入り、保存は専用 GitHub App の短期 installation token を使う proxy が行います。
 - Access application の Allow policy はサイト専用の `hatt-cms-editors` group だけを参照します。共有管理者 group やメールドメイン一括許可は使いません。
-- ブログ、タグ、著者、モデリング項目、キャンペーン通知、サイト基本設定を編集できます。
+- ブログ、タグ、著者、モデリング項目、商品、商品ZIP、キャンペーン通知、サイト基本設定を編集できます。商品ZIPはCMS内から非公開R2へ保存します。
 - ブログ記事の `公開日` は日本時間の `YYYY-MM-DDTHH:mm` として扱います。
 - 未来日時の記事カードと記事本文は HTML に残しつつ、訪問者のブラウザ時刻で表示を切り替えます。デプロイ後も時刻到達時に表示されます。
 
@@ -169,7 +169,7 @@ Cloudflare Pages の Secret や binding を更新した後は、GitHub連携の 
 
 デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
 
-管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、Pages Functions でも Access JWT の署名・発行元・audience を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。
+注文管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、Pages Functions でも Access JWT の署名・発行元・audience を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。商品ZIPの一覧・アップロード・ダウンロードはCMS内から `/admin/api/product-files` を利用し、CMSのAccess audienceと編集者allowlistで保護します。
 
 ## ブログコメント
 
