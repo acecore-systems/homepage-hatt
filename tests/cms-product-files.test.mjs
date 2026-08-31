@@ -7,12 +7,18 @@ import { onRequestGet as handleCmsProductFiles } from '../functions/admin/api/pr
 import {
   buildFilesUrl,
   formatBytes,
-  getCurrentProductSlug,
+  getProductEditorSlug,
+  getProductFileContext,
   isZipFilename,
+  registerProductFileFieldType,
 } from '../public/admin/product-files.js'
 
 const cmsHtml = await readFile(
   new URL('../public/admin/index.html', import.meta.url),
+  'utf8',
+)
+const cmsConfig = await readFile(
+  new URL('../public/admin/config.yml', import.meta.url),
   'utf8',
 )
 
@@ -40,10 +46,15 @@ const shopAdmin = await readFile(
   'utf8',
 )
 
-test('商品ZIP管理をCMS内のダイアログとして提供する', () => {
-  assert.match(cmsHtml, /data-cms-product-files-open/)
-  assert.match(cmsHtml, /data-cms-product-files-dialog/)
-  assert.match(cmsHtml, /type="module" src="\/admin\/product-files\.js"/)
+test('商品ZIPを商品編集画面の専用フィールドとして提供する', () => {
+  assert.match(cmsHtml, /type="module" src="\/admin\/init\.js"/)
+  assert.doesNotMatch(cmsHtml, /data-cms-product-files-open/)
+  assert.doesNotMatch(cmsHtml, /data-cms-product-files-dialog/)
+  assert.doesNotMatch(cmsHtml, /src="\/admin\/product-files\.js"/)
+  assert.match(
+    cmsConfig,
+    /- name: r2ObjectKey\s+label: 商品ZIP\s+hint: .+\s+widget: shop_product_file/,
+  )
   assert.doesNotMatch(cmsHtml, /href="\/shop\/admin\/#product-files"/)
 })
 
@@ -53,17 +64,86 @@ test('ショップ管理画面は注文管理だけを扱う', () => {
   assert.doesNotMatch(shopAdmin, /id="product-files"/)
 })
 
-test('CMSの商品編集URLからZIP対象商品を特定する', () => {
-  const products = ['eringi-sensei', 'paper-cut-kamakiri']
-
+test('CMSの商品編集URLから保存済み商品を特定する', () => {
   assert.equal(
-    getCurrentProductSlug(
-      '#/collections/products/entries/eringi-sensei',
-      products,
-    ),
+    getProductEditorSlug('#/collections/products/entries/eringi-sensei'),
     'eringi-sensei',
   )
-  assert.equal(getCurrentProductSlug('#/collections/blog', products), '')
+  assert.equal(getProductEditorSlug('#/collections/blog'), '')
+  assert.equal(
+    getProductEditorSlug(
+      '#/collections/products/entries/%E7%B4%99%E5%88%87%E3%82%8A',
+    ),
+    '紙切り',
+  )
+})
+
+test('商品ZIPフィールドは保存済み商品だけを編集対象にする', () => {
+  const entry = createEntry({
+    fulfillmentType: 'manual',
+    slug: 'eringi-sensei',
+  })
+
+  assert.deepEqual(
+    getProductFileContext(
+      entry,
+      '#/collections/products/entries/eringi-sensei',
+    ),
+    {
+      fulfillmentType: 'manual',
+      message: '',
+      persistedSlug: 'eringi-sensei',
+      ready: true,
+      slug: 'eringi-sensei',
+    },
+  )
+  assert.equal(
+    getProductFileContext(entry, '#/collections/products/new').ready,
+    false,
+  )
+  assert.match(
+    getProductFileContext(
+      createEntry({ fulfillmentType: 'manual', slug: 'changed-slug' }),
+      '#/collections/products/entries/eringi-sensei',
+    ).message,
+    /URLスラッグを保存/,
+  )
+  assert.match(
+    getProductFileContext(
+      createEntry({ fulfillmentType: 'physical', slug: 'physical-product' }),
+      '#/collections/products/entries/physical-product',
+    ).message,
+    /物理発送商品/,
+  )
+})
+
+test('Sveltiaへ商品ZIPカスタムフィールドを一度だけ登録する', () => {
+  const registrations = []
+  const cms = {
+    registerFieldType(name, control) {
+      registrations.push({ control, name })
+    },
+  }
+  const globals = {
+    AbortController,
+    createClass(definition) {
+      return definition
+    },
+    fetch() {},
+    h() {},
+    location: {
+      hash: '#/collections/products/entries/eringi-sensei',
+      origin: 'https://cms.example.com',
+    },
+  }
+
+  registerProductFileFieldType(cms, globals)
+  registerProductFileFieldType(cms, globals)
+
+  assert.equal(registrations.length, 1)
+  assert.equal(registrations[0].name, 'shop_product_file')
+  assert.equal(typeof registrations[0].control.render, 'function')
+  assert.equal(typeof registrations[0].control.handleUpload, 'function')
 })
 
 test('商品ZIP APIのURLとファイル表示値を組み立てる', () => {
@@ -123,4 +203,12 @@ async function signAccessJwt() {
     .setIssuedAt(now)
     .setExpirationTime(now + 300)
     .sign(privateKey)
+}
+
+function createEntry(data) {
+  return {
+    getIn(path) {
+      return data[path[1]]
+    },
+  }
 }
