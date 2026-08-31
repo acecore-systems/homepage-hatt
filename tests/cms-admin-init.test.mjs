@@ -1,12 +1,7 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
-import { runInNewContext } from 'node:vm'
 import { test } from 'node:test'
 
-const initSource = await readFile(
-  new URL('../public/admin/init.js', import.meta.url),
-  'utf8',
-)
+import { initCms } from '../public/admin/init.js'
 
 function createElement(tagName) {
   return {
@@ -40,9 +35,10 @@ async function runAdminInit(hash = '') {
   const body = createElement('body')
   const requests = []
   const replacedUrls = []
+  const registeredFieldTypes = []
   let cmsInitCount = 0
 
-  const document = {
+  const documentRef = {
     body,
     createElement,
     getElementById(id) {
@@ -53,6 +49,7 @@ async function runAdminInit(hash = '') {
   }
   const location = {
     hash,
+    origin: 'https://cms.example.com',
     pathname: '/admin/',
     search: '?from=access',
   }
@@ -62,20 +59,33 @@ async function runAdminInit(hash = '') {
       location.hash = url.slice(url.indexOf('#'))
     },
   }
-  const window = {
-    CMS: {
-      async init() {
-        cmsInitCount += 1
-      },
+  const cms = {
+    async init() {
+      cmsInitCount += 1
     },
+    registerFieldType(name) {
+      registeredFieldTypes.push(name)
+    },
+  }
+  const windowRef = {
+    AbortController,
+    CMS: cms,
+    addEventListener() {},
     btoa,
+    createClass(definition) {
+      return definition
+    },
+    fetch() {},
+    h() {},
     history,
     location,
+    removeEventListener() {},
   }
 
-  runInNewContext(initSource, {
-    document,
-    fetch: async (url) => {
+  await initCms({
+    cms,
+    documentRef,
+    fetchImpl: async (url) => {
       requests.push(url)
 
       return {
@@ -85,15 +95,14 @@ async function runAdminInit(hash = '') {
         },
       }
     },
-    window,
+    windowRef,
   })
-
-  await new Promise(setImmediate)
 
   return {
     body,
     cmsInitCount,
     location,
+    registeredFieldTypes,
     replacedUrls,
     requests,
   }
@@ -113,6 +122,7 @@ test('Cloudflare Access認証をSveltiaのsignin payloadへ渡して自動ログ
     '/admin/api/github/user',
   ])
   assert.equal(result.cmsInitCount, 1)
+  assert.deepEqual(result.registeredFieldTypes, ['shop_product_file'])
   assert.deepEqual(result.replacedUrls, [
     `/admin/?from=access#/signin/${payload}`,
   ])

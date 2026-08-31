@@ -1,14 +1,21 @@
-const root = document.getElementById('nc-root') || document.body
+import { registerProductFileFieldType } from './product-files.js'
 
-showStatus('Sveltia CMSを読み込んでいます。')
+export async function initCms({
+  cms = globalThis.window?.CMS,
+  documentRef = globalThis.document,
+  fetchImpl = globalThis.fetch,
+  windowRef = globalThis.window,
+} = {}) {
+  const root = documentRef.getElementById('nc-root') || documentRef.body
 
-async function initCms() {
   try {
-    if (!window.CMS?.init) {
+    if (!cms?.init) {
       throw new Error('Sveltia CMSの読み込みに失敗しました。')
     }
 
-    const session = await fetch('/admin/api/session', {
+    registerProductFileFieldType(cms, windowRef)
+
+    const session = await fetchImpl('/admin/api/session', {
       credentials: 'include',
     })
 
@@ -19,7 +26,7 @@ async function initCms() {
       )
     }
 
-    const user = await fetch('/admin/api/github/user', {
+    const user = await fetchImpl('/admin/api/github/user', {
       credentials: 'include',
     })
 
@@ -32,37 +39,41 @@ async function initCms() {
     }
 
     if (
-      !window.location.hash ||
-      window.location.hash === '#' ||
-      window.location.hash === '#/'
+      !windowRef.location.hash ||
+      windowRef.location.hash === '#' ||
+      windowRef.location.hash === '#/'
     ) {
-      const payload = window.btoa(
+      const payload = windowRef.btoa(
         JSON.stringify({
           token: 'cloudflare-access',
           prefs: { language: 'ja' },
         }),
       )
-      window.history.replaceState(
+      windowRef.history.replaceState(
         null,
         '',
-        `${window.location.pathname}${window.location.search}#/signin/${payload}`,
+        `${windowRef.location.pathname}${windowRef.location.search}#/signin/${payload}`,
       )
     }
 
-    await window.CMS.init()
-    showPublishNotice()
+    await cms.init()
+    showPublishNotice(documentRef)
   } catch (error) {
-    showStatus(error instanceof Error ? error.message : String(error), true)
+    showStatus(
+      root,
+      error instanceof Error ? error.message : String(error),
+      true,
+    )
   }
 }
 
-function showPublishNotice() {
-  if (document.getElementById('cms-publish-notice')) return
+function showPublishNotice(documentRef) {
+  if (documentRef.getElementById('cms-publish-notice')) return
 
-  const notice = document.createElement('aside')
-  const title = document.createElement('strong')
-  const body = document.createElement('span')
-  const close = document.createElement('button')
+  const notice = documentRef.createElement('aside')
+  const title = documentRef.createElement('strong')
+  const body = documentRef.createElement('span')
+  const close = documentRef.createElement('button')
 
   notice.id = 'cms-publish-notice'
   notice.className = 'cms-publish-notice'
@@ -75,7 +86,7 @@ function showPublishNotice() {
   close.textContent = '×'
   close.addEventListener('click', () => notice.remove())
   notice.append(title, body, close)
-  document.body.append(notice)
+  documentRef.body.append(notice)
 }
 
 function getErrorMessage(data) {
@@ -86,7 +97,7 @@ function getErrorMessage(data) {
   return ''
 }
 
-function showStatus(message, isError = false) {
+function showStatus(root, message, isError = false) {
   root.innerHTML = `
     <section class="cms-status${isError ? ' cms-status--error' : ''}">
       <p>${escapeHtml(message)}</p>
@@ -106,4 +117,8 @@ function escapeHtml(value) {
   })
 }
 
-initCms()
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  const root = document.getElementById('nc-root') || document.body
+  showStatus(root, 'Sveltia CMSを読み込んでいます。')
+  void initCms()
+}
