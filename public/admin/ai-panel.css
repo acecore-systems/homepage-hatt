@@ -116,7 +116,6 @@
 }
 
 .cms-ai-conversation-select,
-.cms-ai-form input,
 .cms-ai-form select,
 .cms-ai-form textarea {
   box-sizing: border-box;
@@ -249,15 +248,6 @@
   padding: 0.875rem 1rem 1rem;
 }
 
-.cms-ai-conversation-setup {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.cms-ai-conversation-setup[hidden] {
-  display: none;
-}
-
 .cms-ai-form label {
   display: grid;
   gap: 0.3rem;
@@ -273,7 +263,6 @@
 }
 
 .cms-ai-conversation-select:focus,
-.cms-ai-form input:focus,
 .cms-ai-form select:focus,
 .cms-ai-form textarea:focus,
 .cms-ai-new-conversation:focus-visible,

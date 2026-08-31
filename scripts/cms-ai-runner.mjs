@@ -57,7 +57,7 @@ async function main() {
 
   await updateStatus({
     status: 'running',
-    summary: 'AIが対象ページと関連ソースを確認しています。',
+    summary: 'AIが会話と関連ソースを確認しています。',
   })
   const existingBranch = await prepareConversationBranch(job)
 
@@ -427,9 +427,9 @@ async function createPullRequest(job, result, existingBranch) {
     '- Conversation: `' + job.conversationId + '`',
     '- Turn: ' + String(job.turnNumber),
     '',
-    '## 対象',
+    '## 最新のメッセージ',
     '',
-    '- ' + job.targetUrl,
+    ...quoteMarkdown(job.instruction),
     '',
     '## 変更ファイル',
     '',
@@ -823,6 +823,12 @@ function trimOutput(value, maxLength) {
 
 function trimOneLine(value, maxLength) {
   return String(value).replace(/\s+/g, ' ').trim().slice(0, maxLength)
+}
+
+function quoteMarkdown(value) {
+  return String(value)
+    .split(/\r?\n/)
+    .map((line) => '> ' + line)
 }
 
 function delay(milliseconds) {

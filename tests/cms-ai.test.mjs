@@ -99,6 +99,20 @@ test('AIの変更はサイト表示・コンテンツ範囲だけを許可する
   )
 })
 
+test('質問はファイル変更なしの会話応答として受け付ける', () => {
+  const result = parseInferenceResponse({
+    response: {
+      changes: [],
+      clarification:
+        'プロフィールページには自己紹介と活動内容が掲載されています。',
+      summary: 'プロフィールページの現在の内容を説明しました。',
+    },
+  })
+
+  assert.deepEqual(result.changes, [])
+  assert.match(result.clarification, /プロフィールページ/)
+})
+
 test('JSON schema形式を使えない推論は同じモデルのJSON応答へ安全に再試行する', async () => {
   let calls = 0
   const job = {
@@ -161,7 +175,7 @@ test('JSON schema形式を使えない推論は同じモデルのJSON応答へ�
   assert.equal(result.changes[0].path, 'src/pages/example.astro')
 })
 
-test('Access認証済みのCMS依頼はeffortとともにD1へ保存してGitHub Actionsを起動する', async () => {
+test('Access認証済みのメッセージはURL入力なしでD1へ保存してGitHub Actionsを起動する', async () => {
   const db = createDatabase()
   const dispatched = []
   const env = createEnv({ db })
@@ -185,7 +199,6 @@ test('Access認証済みのCMS依頼はeffortとともにD1へ保存してGitHub
   })
 
   const form = new FormData()
-  form.set('targetUrl', 'https://hatt.acecore.net/about/')
   form.set('instruction', '見出しの余白を少し狭くしてください。')
   form.set('reasoningEffort', 'high')
   const response = await handleJobs({
@@ -208,6 +221,7 @@ test('Access認証済みのCMS依頼はeffortとともにD1へ保存してGitHub
   assert.equal(payload.job.conversationId, payload.job.id)
   assert.equal(payload.job.turnNumber, 1)
   assert.equal(payload.job.reasoningEffort, 'high')
+  assert.equal(payload.job.targetUrl, 'https://hatt.acecore.net/')
   assert.equal(dispatched.length, 1)
   assert.deepEqual(dispatched[0], {
     client_payload: {
@@ -232,7 +246,6 @@ test('Access認証済みのCMS依頼はeffortとともにD1へ保存してGitHub
   assert.equal(otherResponse.status, 404)
 
   const imageForm = new FormData()
-  imageForm.set('targetUrl', 'https://hatt.acecore.net/about/')
   imageForm.set('instruction', 'この参考画像に合わせてください。')
   imageForm.set('reasoningEffort', 'medium')
   imageForm.set(
@@ -279,7 +292,6 @@ test('CMS AIの追加入力は同じ会話・branch・Pull Requestへ新しい�
   })
 
   const initialForm = new FormData()
-  initialForm.set('targetUrl', 'https://hatt.acecore.net/about/')
   initialForm.set('instruction', '見出しの余白を少し狭くしてください。')
   initialForm.set('reasoningEffort', 'medium')
   const initialResponse = await handleJobs({
@@ -556,6 +568,7 @@ test('管理画面のCMS AIは会話履歴と追加入力UIを提供する', asy
   assert.match(source, /会話履歴/)
   assert.match(source, /\/messages/)
   assert.match(source, /hatt-cms-ai-conversation-id/)
+  assert.doesNotMatch(source, /targetUrl|対象URL|cms-ai-conversation-setup/)
   assert.match(
     source,
     /if \(isPending\(payload\.conversation\.status\)\) \{\s*if \(options\.schedulePolling !== false\)/,
@@ -586,6 +599,7 @@ test('CMS AI workflowは会話単位で直列化し既存branchとPull Request�
   assert.match(runner, /origin\/main\.\.\.HEAD/)
   assert.match(runner, /'pr',\s*\n\s*'edit'/)
   assert.match(runner, /findAnyPullRequest/)
+  assert.match(runner, /## 最新のメッセージ/)
 })
 
 function createEnv({ ai, db } = {}) {
