@@ -5,6 +5,10 @@ import { exportJWK, generateKeyPair, SignJWT } from 'jose'
 
 import { onRequestGet as handleCmsProductFiles } from '../functions/admin/api/product-files.ts'
 import {
+  ACECORE_ENTITLEMENTS_CLAIM,
+  HATT_CMS_EDITOR_ENTITLEMENT,
+} from '../functions/admin/api/_access-auth.ts'
+import {
   buildFilesUrl,
   formatBytes,
   getProductEditorSlug,
@@ -33,7 +37,6 @@ Object.assign(accessJwk, { alg: 'RS256', kid: accessKeyId, use: 'sig' })
 
 const allowedEnv = {
   CMS_ACCESS_AUD: accessAudience,
-  CMS_ACCESS_ALLOWED_EMAILS: 'hatt@example.com',
   CMS_ACCESS_HOSTNAMES: 'cms.example.com',
   CMS_ACCESS_TEAM_DOMAIN: accessIssuer,
 }
@@ -203,7 +206,12 @@ test('CMS Access JWTがないZIP管理APIリクエストを拒否する', async 
 
 async function signAccessJwt() {
   const now = Math.floor(Date.now() / 1000)
-  return new SignJWT({ email: 'hatt@example.com' })
+  return new SignJWT({
+    custom: {
+      [ACECORE_ENTITLEMENTS_CLAIM]: [HATT_CMS_EDITOR_ENTITLEMENT],
+    },
+    email: 'hatt@example.com',
+  })
     .setProtectedHeader({ alg: 'RS256', kid: accessKeyId })
     .setIssuer(accessIssuer)
     .setAudience(accessAudience)

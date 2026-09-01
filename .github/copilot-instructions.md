@@ -7,7 +7,7 @@
 - 差分は目的に必要な範囲に絞り、既存の Astro、TypeScript、UnoCSS、Sveltia CMS 構成を尊重する。
 - CMS content の shape は `src/content.config.ts` を正とし、横断制約は `npm run validate:content` で確認する。
 - CMS 認証は Cherry 型とし、Cloudflare Access をログイン入口、Pages Functions の GitHub proxy を保存経路として扱う。
-- Access は `hatt-cms-editors` 専用 group と完全一致メール allowlist に限定し、共有管理者 group やメールドメイン一括許可を CMS に流用しない。
+- CMS 編集権限は AcecoreID の永続 entitlement `hatt-cms-editor` を唯一の権限元とし、Cloudflare Access policy と Pages Functions の両方で同じ OIDC claim を検証する。Access group・メール・ドメイン・`CMS_ACCESS_ALLOWED_EMAILS` を権限元にしない。
 - CMS proxy は `createCommitOnBranch` の画像とコンテンツを、`expectedHeadOid` が一致するときだけ `main` の同じcommitへ直接保存し、Sveltia CMS が必要とするGitHub APIだけを許可する。
 - CMS contentは各collection直下のファイルだけを許可し、下位directoryはwrite・delete・reference state・readの全経路で拒否する。`public/uploads/hatt/**` の下位directoryだけは維持する。
 - CMS保存前は照合済みの正確な `main` commit SHAへ参照stateを束縛し、同じmutationを適用したprojected stateで全content、author・tag、local media参照を再検証する。
