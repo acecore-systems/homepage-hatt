@@ -3,7 +3,11 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
+import { runInNewContext } from 'node:vm'
+import * as yaml from 'js-yaml'
 import {
+  fetchText,
+  syncExternalFeeds,
   parseBoothCollectionPage,
   parseBoothProductPage,
   parseNarouPayload,
@@ -13,6 +17,212 @@ import {
 } from '../scripts/sync-external-feeds.mjs'
 
 const fixtureNow = () => '2026-08-17T00:00:00.000Z'
+
+test('同期workflowは対象を選び、部分成功の公開後も取得失敗を報告する', async () => {
+  const workflow = yaml.load(
+    await fs.readFile(
+      new URL(
+        '../.github/workflows/sync-external-content.yml',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  )
+  const steps = workflow.jobs.sync.steps
+  const external = steps.find((step) => step.id === 'external')
+  const booth = steps.find((step) => step.id === 'booth')
+  const report = steps.find((step) => step.name === 'Report feed failures')
+  const evaluate = (expression, context) =>
+    runInNewContext(expression.replace(/^\$\{\{\s*|\s*\}\}$/g, ''), context, {
+      timeout: 1000,
+    })
+  for (const [eventName, schedule, expected] of [
+    ['schedule', '23 */6 * * *', [true, false]],
+    ['schedule', '47 3 * * *', [false, true]],
+    ['workflow_dispatch', undefined, [true, true]],
+  ]) {
+    const context = { github: { event_name: eventName, event: { schedule } } }
+    assert.deepEqual(
+      [evaluate(external.if, context), evaluate(booth.if, context)],
+      expected,
+    )
+  }
+  assert.equal(external['continue-on-error'], true)
+  assert.equal(booth['continue-on-error'], true)
+  assert.ok(
+    steps.indexOf(report) >
+      steps.findIndex((step) => step.name === 'Merge the verified snapshot'),
+  )
+  for (const [externalOutcome, boothOutcome, expected] of [
+    ['failure', 'skipped', true],
+    ['success', 'failure', true],
+    ['failure', 'success', true],
+    ['failure', 'failure', true],
+    ['success', 'skipped', false],
+    ['skipped', 'success', false],
+  ]) {
+    assert.equal(
+      evaluate(report.if, {
+        cancelled: () => false,
+        steps: {
+          external: { outcome: externalOutcome },
+          booth: { outcome: boothOutcome },
+        },
+      }),
+      expected,
+    )
+  }
+  assert.match(report.run, /exit 1/)
+})
+
+test('YouTubeの404・500・429から再試行で回復する', async () => {
+  const statuses = [404, 500, 429, 200]
+  const delays = []
+  const result = await fetchText('https://example.test/feed', {
+    retry404: true,
+    fetchImpl: async () => new Response('feed', { status: statuses.shift() }),
+    wait: async (delay) => delays.push(delay),
+  })
+  assert.equal(result, 'feed')
+  assert.deepEqual(delays, [2000, 4000, 8000])
+  assert.equal(statuses.length, 0)
+})
+
+test('恒久的なHTTPエラーは即時失敗し、継続する404も4回で打ち切る', async () => {
+  for (const [status, retry404, expectedCalls] of [
+    [403, true, 1],
+    [404, false, 1],
+    [404, true, 4],
+  ]) {
+    let calls = 0
+    await assert.rejects(
+      fetchText('https://example.test/feed', {
+        retry404,
+        fetchImpl: async () => {
+          calls += 1
+          return new Response('error', { status })
+        },
+        wait: async () => {},
+      }),
+      new RegExp(`Fetch failed: ${status}`),
+    )
+    assert.equal(calls, expectedCalls)
+  }
+})
+
+test('ネットワーク切断と本文の中断も再試行する', async () => {
+  let calls = 0
+  const result = await fetchText('https://example.test/feed', {
+    fetchImpl: async () => {
+      calls += 1
+      if (calls === 1) throw new TypeError('fetch failed')
+      if (calls === 2)
+        return {
+          ok: true,
+          status: 200,
+          text: async () => {
+            throw new TypeError('terminated')
+          },
+        }
+      return new Response('recovered')
+    },
+    wait: async () => {},
+  })
+  assert.equal(result, 'recovered')
+  assert.equal(calls, 3)
+})
+
+test('本文が応答しない場合もタイムアウトし、次の試行は新しいsignalを使う', async () => {
+  const signals = []
+  // AbortSignal.timeout uses an unref timer; keep this simulated request alive.
+  const keepAlive = setInterval(() => {}, 1000)
+  try {
+    assert.equal(
+      await fetchText('https://example.test/feed', {
+        timeoutMs: 10,
+        fetchImpl: async (_url, { signal }) => {
+          signals.push(signal)
+          if (signals.length > 1) return new Response('recovered')
+          return {
+            ok: true,
+            status: 200,
+            text: () =>
+              new Promise((_, reject) => {
+                signal.addEventListener('abort', () => reject(signal.reason), {
+                  once: true,
+                })
+              }),
+          }
+        },
+        wait: async () => {},
+      }),
+      'recovered',
+    )
+    assert.equal(signals[0].aborted, true)
+    assert.notEqual(signals[0], signals[1])
+  } finally {
+    clearInterval(keepAlive)
+  }
+})
+
+test('片方の取得失敗は旧データを維持し、もう片方の更新を保存して失敗を返す', async (t) => {
+  const outputDirectory = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'hatt-partial-sync-'),
+  )
+  t.after(() => fs.rm(outputDirectory, { recursive: true, force: true }))
+  for (const failed of ['novels', 'youtube']) {
+    const previous = '{"previous":true}\n'
+    await fs.writeFile(path.join(outputDirectory, 'novels.json'), previous)
+    await fs.writeFile(
+      path.join(outputDirectory, 'youtube-videos.json'),
+      previous,
+    )
+    const fail = async () => {
+      throw new Error('upstream unavailable')
+    }
+    await assert.rejects(
+      syncExternalFeeds({
+        outputDirectory,
+        getNovels:
+          failed === 'novels'
+            ? fail
+            : async () => ({ works: [{ title: 'new novel' }] }),
+        getYoutube:
+          failed === 'youtube'
+            ? fail
+            : async () => ({ videos: [{ title: 'new video' }] }),
+      }),
+      (error) => error instanceof AggregateError && error.errors.length === 1,
+    )
+    const failedFile =
+      failed === 'novels' ? 'novels.json' : 'youtube-videos.json'
+    const successFile =
+      failed === 'novels' ? 'youtube-videos.json' : 'novels.json'
+    assert.equal(
+      await fs.readFile(path.join(outputDirectory, failedFile), 'utf8'),
+      previous,
+    )
+    assert.match(
+      await fs.readFile(path.join(outputDirectory, successFile), 'utf8'),
+      /new (novel|video)/,
+    )
+  }
+})
+
+test('両方の取得失敗をまとめて報告し、ファイルを作らない', async (t) => {
+  const outputDirectory = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'hatt-failed-sync-'),
+  )
+  t.after(() => fs.rm(outputDirectory, { recursive: true, force: true }))
+  const fail = async () => {
+    throw new Error('upstream unavailable')
+  }
+  await assert.rejects(
+    syncExternalFeeds({ outputDirectory, getNovels: fail, getYoutube: fail }),
+    (error) => error instanceof AggregateError && error.errors.length === 2,
+  )
+  assert.deepEqual(await fs.readdir(outputDirectory), [])
+})
 
 test('小説APIの空・欠落レスポンスでは既存スナップショットを上書きしない', () => {
   assert.throws(
