@@ -19,6 +19,8 @@ test('CMS AIは共通会話UIとService Bindingだけをサイトへ組み込む
   assert.match(client, /\/admin\/api\/ai/)
   assert.match(client, /sessionEndpoint/)
   assert.match(client, /reasoningEffort/)
+  assert.match(client, /cms-ai-image-input/)
+  assert.match(client, /revokeObjectURL/)
   assert.match(client, /\/messages/)
   assert.match(client, /session\?\.role/)
   assert.doesNotMatch(client, /targetUrl|referenceImage/)
