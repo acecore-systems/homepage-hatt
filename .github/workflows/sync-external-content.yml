@@ -39,20 +39,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Fetch external content
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          SCHEDULE: ${{ github.event.schedule }}
-        shell: bash
-        run: |
-          if [[ "$SCHEDULE" == '47 3 * * *' ]]; then
-            npm run sync:booth
-          elif [[ "$EVENT_NAME" == 'workflow_dispatch' ]]; then
-            npm run sync:external
-            npm run sync:booth
-          else
-            npm run sync:external
-          fi
+      - name: Fetch novels and YouTube
+        id: external
+        if: github.event.schedule != '47 3 * * *'
+        continue-on-error: true
+        run: npm run sync:external
+
+      - name: Fetch BOOTH
+        id: booth
+        if: github.event.schedule == '47 3 * * *' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: npm run sync:booth
 
       - name: Detect content changes
         id: diff
@@ -209,3 +206,10 @@ jobs:
             --squash \
             --subject "外部コンテンツを同期" \
             --match-head-commit "$SYNC_SHA"
+
+      # Publish successful feeds first, but never hide an exhausted fetch failure.
+      - name: Report feed failures
+        if: ${{ !cancelled() && (steps.external.outcome == 'failure' || steps.booth.outcome == 'failure') }}
+        run: |
+          echo '::error::一部の外部フィードの同期に失敗しました。取得ログを確認してください。'
+          exit 1
