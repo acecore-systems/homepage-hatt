@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { setTimeout as sleep } from 'node:timers/promises'
 import { XMLParser } from 'fast-xml-parser'
 
 const root = process.cwd()
@@ -48,18 +49,46 @@ function asArray(value) {
   return Array.isArray(value) ? value : [value]
 }
 
-async function fetchText(url) {
-  const response = await fetch(url, {
-    headers: {
-      'user-agent': 'homepage-hatt external feed sync',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`Fetch failed: ${response.status} ${url}`)
+export async function fetchText(
+  url,
+  {
+    fetchImpl = fetch,
+    wait = sleep,
+    timeoutMs = 15_000,
+    retry404 = false,
+  } = {},
+) {
+  const attempts = 4
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    let status
+    try {
+      const response = await fetchImpl(url, {
+        headers: { 'user-agent': 'homepage-hatt external feed sync' },
+        signal: AbortSignal.timeout(timeoutMs),
+      })
+      status = response.status
+      if (!response.ok) {
+        await response.body?.cancel()
+        throw new Error(`Fetch failed: ${status} ${url}`)
+      }
+      // Await the body here so stalled/interrupted downloads are retried too.
+      return await response.text()
+    } catch (error) {
+      const retryable =
+        status === undefined ||
+        status === 200 ||
+        status === 408 ||
+        status === 429 ||
+        status >= 500 ||
+        (retry404 && status === 404)
+      if (!retryable || attempt === attempts) throw error
+      const delay = 2_000 * 2 ** (attempt - 1)
+      console.warn(
+        `Retry ${attempt}/${attempts - 1} in ${delay}ms: ${url}: ${error.message}`,
+      )
+      await wait(delay)
+    }
   }
-
-  return response.text()
 }
 
 function formatNarouDate(value) {
@@ -440,7 +469,8 @@ async function syncNovels() {
 }
 
 async function syncYoutubeVideos() {
-  const raw = await fetchText(youtubeFeedUrl)
+  // This channel intermittently returns 404 even while the feed exists.
+  const raw = await fetchText(youtubeFeedUrl, { retry404: true })
   return parseYoutubeFeed(raw)
 }
 
@@ -545,37 +575,42 @@ export async function writeJsonIfChanged(
   return true
 }
 
-async function syncExternalFeeds() {
-  const syncResults = await Promise.allSettled([
-    syncNovels(),
-    syncYoutubeVideos(),
-  ])
-  const failedSync = syncResults.find((result) => result.status === 'rejected')
-  if (failedSync) throw failedSync.reason
-
-  const [novels, youtubeVideos] = syncResults.map((result) => result.value)
-  const syncedAt = new Date().toISOString()
-  const [novelsChanged, youtubeVideosChanged] = await Promise.all([
-    writeJsonIfChanged('novels.json', novels, { now: () => syncedAt }),
-    writeJsonIfChanged('youtube-videos.json', youtubeVideos, {
-      now: () => syncedAt,
+export async function syncExternalFeeds({
+  getNovels = syncNovels,
+  getYoutube = syncYoutubeVideos,
+  outputDirectory = outDir,
+} = {}) {
+  const feeds = [
+    { name: 'novels', file: 'novels.json', get: getNovels, key: 'works' },
+    {
+      name: 'YouTube',
+      file: 'youtube-videos.json',
+      get: getYoutube,
+      key: 'videos',
+    },
+  ]
+  const results = await Promise.allSettled(
+    feeds.map(async (feed) => {
+      const data = await feed.get()
+      const changed = await writeJsonIfChanged(feed.file, data, {
+        outputDirectory,
+      })
+      console.log(
+        `${feed.name}: ${changed ? 'updated' : 'already current'} (${data[feed.key].length} items).`,
+      )
     }),
-  ])
-  const changedFeeds = [
-    novelsChanged && 'novels',
-    youtubeVideosChanged && 'YouTube videos',
-  ].filter(Boolean)
-
-  if (changedFeeds.length === 0) {
-    console.log(
-      `External content is already current (${novels.works.length} novels and ${youtubeVideos.videos.length} YouTube videos).`,
-    )
-    return
-  }
-
-  console.log(
-    `Updated ${changedFeeds.join(' and ')} (${novels.works.length} novels and ${youtubeVideos.videos.length} YouTube videos).`,
   )
+  const errors = results.flatMap((result, index) => {
+    if (result.status === 'fulfilled') return []
+    const message = `${feeds[index].name} sync failed: ${result.reason.message}`
+    console.error(message)
+    return [new Error(message, { cause: result.reason })]
+  })
+  if (errors.length)
+    throw new AggregateError(
+      errors,
+      'Some external feeds failed; successful feeds were saved.',
+    )
 }
 
 async function syncBoothFeed() {
