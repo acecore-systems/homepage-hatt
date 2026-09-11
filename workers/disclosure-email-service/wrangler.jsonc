@@ -5,6 +5,18 @@
   "compatibility_date": "2026-08-02",
   "workers_dev": false,
   "preview_urls": false,
+  "secrets_store_secrets": [
+    {
+      "binding": "DISCLOSURE_SERVICE_TOKEN_STORE",
+      "store_id": "f59c889c0fcc405794a34401fb09240c",
+      "secret_name": "homepage-hatt-production-disclosure-token",
+    },
+    {
+      "binding": "DISCLOSURE_LEGAL_DETAILS_JSON_STORE",
+      "store_id": "f59c889c0fcc405794a34401fb09240c",
+      "secret_name": "homepage-hatt-production-disclosure-legal-details",
+    },
+  ],
   "send_email": [
     {
       "name": "EMAIL",

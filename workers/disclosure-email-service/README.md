@@ -1,7 +1,7 @@
 # Seller disclosure email service
 
 販売者情報の請求時開示だけを処理する内部Cloudflare Workerです。実住所を
-Cloudflare Pages FunctionやCMSへ渡さず、このWorkerのSecretからメール本文を
+Cloudflare Pages FunctionやCMSへ渡さず、このWorkerがSecrets Storeから取得してメール本文を
 作成します。
 
 `workers.dev` URLは無効で、Pagesの`DISCLOSURE_EMAIL_SERVICE` service binding
@@ -9,8 +9,9 @@ Cloudflare Pages FunctionやCMSへ渡さず、このWorkerのSecretからメー�
 
 ## Required configuration
 
-- Worker Secret: `DISCLOSURE_SERVICE_TOKEN`
-- Worker Secret: `DISCLOSURE_LEGAL_DETAILS_JSON`
+- Store binding: `DISCLOSURE_SERVICE_TOKEN_STORE` -> `homepage-hatt-production-disclosure-token`
+- Store binding: `DISCLOSURE_LEGAL_DETAILS_JSON_STORE` -> `homepage-hatt-production-disclosure-legal-details`
+- 旧Worker Secret: `DISCLOSURE_SERVICE_TOKEN`、`DISCLOSURE_LEGAL_DETAILS_JSON`（rollback用に保持）
 - Worker variable: `DISCLOSURE_FROM_ADDRESS=noreply@hatt.acecore.net`
 - Pages Secret: `SHOP_DISCLOSURE_SERVICE_TOKEN`（Workerと同じ値）
 - Pages service binding: `DISCLOSURE_EMAIL_SERVICE` -> `homepage-hatt-disclosure-email`
@@ -28,6 +29,16 @@ Cloudflare Pages FunctionやCMSへ渡さず、このWorkerのSecretからメー�
   "phone": "公開済みの電話番号"
 }
 ```
+
+2026-09-12の移行では、既存Workerの値を変更せず、同一アカウントの既存Store
+`f59c889c0fcc405794a34401fb09240c`へ暗号化転送でコピーしています。
+Pagesの共有キーは同じ値のまま維持します。Store未設定の開発環境は従来Secretを利用し、
+Storeを設定した環境で取得が失敗した場合は503で拒否します。
+開示情報は認証通過後に必要な経路で取得し、取得値はリクエストをまたいでキャッシュしません。
+
+検証では保護されたremote previewから本番service bindingの`POST /v1/ready`だけを呼び、
+正しい認証とプロファイルで200、未認証・不正キーで401を確認します。
+住所やキーは出力せず、メール送信はローカルのmockで検証します。
 
 デプロイは、mainへ入ったソースと同じcommitから実行します。
 

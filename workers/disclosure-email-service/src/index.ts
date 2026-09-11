@@ -23,6 +23,8 @@ type DisclosureEmailEnv = {
   DISCLOSURE_FROM_ADDRESS?: string
   DISCLOSURE_LEGAL_DETAILS_JSON?: string
   DISCLOSURE_SERVICE_TOKEN?: string
+  DISCLOSURE_SERVICE_TOKEN_STORE?: { get(): Promise<string> }
+  DISCLOSURE_LEGAL_DETAILS_JSON_STORE?: { get(): Promise<string> }
 }
 
 const READY_PATH = '/v1/ready'
@@ -51,7 +53,7 @@ const worker: ExportedHandler<DisclosureEmailEnv> = {
       const body = await readJson(request)
       if (url.pathname === READY_PATH) {
         const profile = parsePublicSellerProfile(body)
-        const details = getPrivateSellerProfile(env)
+        const details = await getPrivateSellerProfile(env)
         const profilesMatch =
           profile !== null &&
           details !== null &&
@@ -72,7 +74,7 @@ const worker: ExportedHandler<DisclosureEmailEnv> = {
 
       if (url.pathname !== DISCLOSURES_PATH) return json({ ok: false }, 404)
       const requestData = parseDisclosureEmailRequest(body)
-      const details = getPrivateSellerProfile(env)
+      const details = await getPrivateSellerProfile(env)
       const from = validEmail(env.DISCLOSURE_FROM_ADDRESS)
       if (
         !requestData ||
@@ -123,7 +125,13 @@ function json(body: unknown, status = 200) {
 }
 
 async function isAuthorized(request: Request, env: DisclosureEmailEnv) {
-  const expected = normalizedText(env.DISCLOSURE_SERVICE_TOKEN, 500)
+  const expected = normalizedText(
+    await readSecret(
+      env.DISCLOSURE_SERVICE_TOKEN_STORE,
+      env.DISCLOSURE_SERVICE_TOKEN,
+    ),
+    500,
+  )
   const supplied = request.headers.get('Authorization') || ''
   if (!expected) return false
 
@@ -219,12 +227,17 @@ function parsePublicSellerProfile(value: unknown): PublicSellerProfile | null {
   return { profileVersion, businessName, sellerName, phone }
 }
 
-function getPrivateSellerProfile(
+async function getPrivateSellerProfile(
   env: DisclosureEmailEnv,
-): PrivateSellerProfile | null {
+): Promise<PrivateSellerProfile | null> {
   try {
     const value = JSON.parse(
-      String(env.DISCLOSURE_LEGAL_DETAILS_JSON || ''),
+      String(
+        (await readSecret(
+          env.DISCLOSURE_LEGAL_DETAILS_JSON_STORE,
+          env.DISCLOSURE_LEGAL_DETAILS_JSON,
+        )) || '',
+      ),
     ) as unknown
     if (!isRecord(value) || value.version !== 1) return null
 
@@ -238,6 +251,21 @@ function getPrivateSellerProfile(
     return profile && address ? { version: 1, ...profile, address } : null
   } catch {
     return null
+  }
+}
+
+async function readSecret(
+  store: { get(): Promise<string> } | undefined,
+  legacy: string | undefined,
+) {
+  if (store === undefined) return legacy
+  try {
+    const value = await store.get()
+    if (typeof value !== 'string' || !value.trim()) throw new Error()
+    return value
+  } catch {
+    // Never propagate a provider error name, message or cause into application logs.
+    throw new Error('secret_store_unavailable')
   }
 }
 
