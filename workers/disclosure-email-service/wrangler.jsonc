@@ -27,7 +27,7 @@
     "DISCLOSURE_FROM_ADDRESS": "noreply@hatt.acecore.net",
   },
   "secrets": {
-    "required": ["DISCLOSURE_SERVICE_TOKEN", "DISCLOSURE_LEGAL_DETAILS_JSON"],
+    "required": [],
   },
   "observability": {
     "enabled": true,

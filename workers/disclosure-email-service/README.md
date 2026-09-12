@@ -11,7 +11,7 @@ Cloudflare Pages FunctionやCMSへ渡さず、このWorkerがSecrets Storeから
 
 - Store binding: `DISCLOSURE_SERVICE_TOKEN_STORE` -> `homepage-hatt-production-disclosure-token`
 - Store binding: `DISCLOSURE_LEGAL_DETAILS_JSON_STORE` -> `homepage-hatt-production-disclosure-legal-details`
-- 旧Worker Secret: `DISCLOSURE_SERVICE_TOKEN`、`DISCLOSURE_LEGAL_DETAILS_JSON`（rollback用に保持）
+- 本番の旧Worker Secret 2項目は不要です。`secrets.required` は空にし、再配信時も旧コピーを投入しません。
 - Worker variable: `DISCLOSURE_FROM_ADDRESS=noreply@hatt.acecore.net`
 - Pages Secret: `SHOP_DISCLOSURE_SERVICE_TOKEN`（Workerと同じ値）
 - Pages service binding: `DISCLOSURE_EMAIL_SERVICE` -> `homepage-hatt-disclosure-email`
@@ -45,3 +45,5 @@ Storeを設定した環境で取得が失敗した場合は503で拒否します
 ```bash
 npx wrangler deploy --config workers/disclosure-email-service/wrangler.jsonc
 ```
+
+旧コピーの削除後は、復旧時にもStore binding対応版を使います。Store未対応の旧版をそのまま再配信する手順は使用しません。Pagesの共有キーとStore本体は保持します。

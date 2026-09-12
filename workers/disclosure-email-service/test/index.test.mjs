@@ -239,3 +239,30 @@ function environment(overrides = {}) {
     ...overrides,
   }
 }
+
+test('ready succeeds with both legacy bindings absent and sends no mail', async () => {
+  const original = environment()
+  let sent = false
+  let profileReads = 0
+  const env = environment({
+    DISCLOSURE_SERVICE_TOKEN_STORE: { get: async () => serviceToken },
+    DISCLOSURE_LEGAL_DETAILS_JSON_STORE: {
+      get: async () => {
+        profileReads++
+        return original.DISCLOSURE_LEGAL_DETAILS_JSON
+      },
+    },
+    EMAIL: {
+      send: async () => {
+        sent = true
+      },
+    },
+  })
+  delete env.DISCLOSURE_SERVICE_TOKEN
+  delete env.DISCLOSURE_LEGAL_DETAILS_JSON
+  const response = await worker.fetch(request('/v1/ready', publicProfile), env)
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), { ok: true })
+  assert.equal(profileReads, 1)
+  assert.equal(sent, false)
+})
