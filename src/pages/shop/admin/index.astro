@@ -28,9 +28,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
           <span class="icon-[lucide--shield-check]" aria-hidden="true"></span>
           <span data-shop-admin-email>認証を確認しています</span>
         </p>
-        <a class="secondary-button" href="/cdn-cgi/access/logout">
-          ログアウト
-        </a>
+        <form action="/api/shop/admin/refresh-session" method="post">
+          <button class="secondary-button" type="submit">
+            AcecoreIDで再ログイン
+          </button>
+        </form>
       </div>
 
       <div class="shop-admin-content" data-shop-admin-content hidden>
