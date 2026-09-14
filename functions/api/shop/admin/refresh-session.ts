@@ -1,21 +1,20 @@
-import {
-  isAllowedShopAccessHostname,
-  type ShopAccessEnv,
-} from '../_access-auth.ts'
-
 type RefreshSessionContext = {
   request: Request
-  env: ShopAccessEnv
 }
 
-export const onRequest = async ({ request, env }: RefreshSessionContext) => {
+const SHOP_ADMIN_ORIGINS = new Set([
+  'https://hatt.acecore.net',
+  'https://www.hatt.acecore.net',
+])
+
+export const onRequest = async ({ request }: RefreshSessionContext) => {
   if (request.method !== 'POST') {
     return new Response(null, { status: 405, headers: { Allow: 'POST' } })
   }
 
   const url = new URL(request.url)
   if (
-    !isAllowedShopAccessHostname(url.hostname.toLowerCase(), env) ||
+    !SHOP_ADMIN_ORIGINS.has(url.origin) ||
     request.headers.get('Origin') !== url.origin ||
     ['cross-site', 'same-site'].includes(
       request.headers.get('Sec-Fetch-Site') || '',

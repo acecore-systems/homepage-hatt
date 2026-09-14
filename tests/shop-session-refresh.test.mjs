@@ -5,25 +5,34 @@ import { test } from 'node:test'
 import { onRequest } from '../functions/api/shop/admin/refresh-session.ts'
 
 const origin = 'https://hatt.acecore.net'
-const allowedEnv = {}
 
-test('Shop再ログインは同一origin POSTでhost-only Cookieだけを破棄する', async () => {
-  const response = await onRequest({
-    request: new Request(`${origin}/api/shop/admin/refresh-session`, {
-      method: 'POST',
-      headers: { Origin: origin, 'Sec-Fetch-Site': 'same-origin' },
-    }),
-    env: allowedEnv,
+for (const productionOrigin of [
+  'https://hatt.acecore.net',
+  'https://www.hatt.acecore.net',
+]) {
+  test(`${productionOrigin}のShop再ログインは同一origin POSTでhost-only Cookieだけを破棄する`, async () => {
+    const response = await onRequest({
+      request: new Request(
+        `${productionOrigin}/api/shop/admin/refresh-session`,
+        {
+          method: 'POST',
+          headers: {
+            Origin: productionOrigin,
+            'Sec-Fetch-Site': 'same-origin',
+          },
+        },
+      ),
+    })
+
+    assert.equal(response.status, 303)
+    assert.equal(response.headers.get('Location'), '/shop/admin/')
+    assert.equal(response.headers.get('Cache-Control'), 'no-store')
+    assert.equal(
+      response.headers.get('Set-Cookie'),
+      'CF_Authorization=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
+    )
   })
-
-  assert.equal(response.status, 303)
-  assert.equal(response.headers.get('Location'), '/shop/admin/')
-  assert.equal(response.headers.get('Cache-Control'), 'no-store')
-  assert.equal(
-    response.headers.get('Set-Cookie'),
-    'CF_Authorization=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
-  )
-})
+}
 
 for (const [method, requestOrigin, site, hostname] of [
   ['GET', origin, 'same-origin', 'hatt.acecore.net'],
@@ -41,10 +50,31 @@ for (const [method, requestOrigin, site, hostname] of [
           headers: { Origin: requestOrigin, 'Sec-Fetch-Site': site },
         },
       ),
-      env: allowedEnv,
     })
 
     assert.ok([403, 405].includes(response.status))
+    assert.equal(response.headers.get('Set-Cookie'), null)
+  })
+}
+
+for (const rejectedOrigin of [
+  'http://hatt.acecore.net',
+  'https://hatt.acecore.net:8443',
+  'https://homepage-hatt.pages.dev',
+  'https://preview.homepage-hatt.pages.dev',
+]) {
+  test(`${rejectedOrigin}ではShop再ログインCookieを破棄しない`, async () => {
+    const response = await onRequest({
+      request: new Request(`${rejectedOrigin}/api/shop/admin/refresh-session`, {
+        method: 'POST',
+        headers: {
+          Origin: rejectedOrigin,
+          'Sec-Fetch-Site': 'same-origin',
+        },
+      }),
+    })
+
+    assert.equal(response.status, 403)
     assert.equal(response.headers.get('Set-Cookie'), null)
   })
 }
