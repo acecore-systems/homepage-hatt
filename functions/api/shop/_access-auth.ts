@@ -65,7 +65,30 @@ export async function getShopAccessIdentity(
       audience,
       clockTolerance: 60,
       issuer,
+      requiredClaims: ['exp', 'iat', 'sub'],
     })
+    const custom = payload.custom
+    const subject =
+      custom && typeof custom === 'object' && !Array.isArray(custom)
+        ? (custom as Record<string, unknown>)[
+            'https://acecore.net/claims/subject'
+          ]
+        : null
+
+    if (
+      payload.type !== 'app' ||
+      typeof subject !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        subject,
+      )
+    ) {
+      return {
+        ok: false,
+        status: 403,
+        message: 'AcecoreIDでログインしてください。',
+      }
+    }
+
     const email =
       typeof payload.email === 'string' ? payload.email.toLowerCase() : ''
 

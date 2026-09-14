@@ -15,7 +15,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         Shop admin
       </p>
       <h1>ショップ管理</h1>
-      <p class="lead">注文、発送、手動納品、返金メモを確認・更新します。</p>
+      <p class="lead">
+        AcecoreIDでログインして、注文、発送、手動納品、返金メモを確認・更新します。
+      </p>
     </div>
   </section>
 
@@ -95,13 +97,12 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         const payload = await readPayload(response)
         if (!response.ok) {
           setStatus(
-            payload.message ||
-              'Cloudflare Accessのセッションを確認できませんでした。',
+            payload.message || 'AcecoreIDのセッションを確認できませんでした。',
           )
           return
         }
 
-        sessionEmail.textContent = payload.email || 'Cloudflare Access'
+        sessionEmail.textContent = payload.email || 'AcecoreID'
         contentShell.hidden = false
         await loadOrders()
       }
@@ -252,7 +253,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         if (!contentType.includes('application/json')) {
           return {
             message:
-              'Cloudflare Accessのセッションが切れています。ページを再読み込みしてください。',
+              'AcecoreIDのセッションが切れています。ページを再読み込みしてください。',
           }
         }
         return response.json()

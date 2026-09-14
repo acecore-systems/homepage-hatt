@@ -23,7 +23,7 @@ afterEach(() => {
   globalThis.fetch = originalFetch
 })
 
-test('正しいAccess JWTでショップ管理者を識別する', async () => {
+test('AcecoreID由来の正しいAccess JWTでショップ管理者を識別する', async () => {
   mockAccessCerts()
   const token = await signAccessJwt()
   const identity = await getShopAccessIdentity(
@@ -44,7 +44,45 @@ test('Access JWTがない管理APIリクエストを拒否する', async () => {
 
 test('異なるaudienceのAccess JWTを拒否する', async () => {
   mockAccessCerts()
-  const token = await signAccessJwt('different-audience')
+  const token = await signAccessJwt({ audience: 'different-audience' })
+  const identity = await getShopAccessIdentity(
+    adminRequest({ 'cf-access-jwt-assertion': token }),
+    allowedEnv,
+  )
+
+  assert.equal(identity.ok, false)
+  assert.equal(identity.status, 401)
+})
+
+test('AcecoreIDのapp種別ではないAccess JWTを拒否する', async () => {
+  mockAccessCerts()
+  const token = await signAccessJwt({ type: 'org' })
+  const identity = await getShopAccessIdentity(
+    adminRequest({ 'cf-access-jwt-assertion': token }),
+    allowedEnv,
+  )
+
+  assert.equal(identity.ok, false)
+  assert.equal(identity.status, 403)
+  assert.match(identity.message, /AcecoreID/)
+})
+
+test('AcecoreID subjectがないAccess JWTを拒否する', async () => {
+  mockAccessCerts()
+  const token = await signAccessJwt({ includeCustomSubject: false })
+  const identity = await getShopAccessIdentity(
+    adminRequest({ 'cf-access-jwt-assertion': token }),
+    allowedEnv,
+  )
+
+  assert.equal(identity.ok, false)
+  assert.equal(identity.status, 403)
+  assert.match(identity.message, /AcecoreID/)
+})
+
+test('subject claimがないAccess JWTを拒否する', async () => {
+  mockAccessCerts()
+  const token = await signAccessJwt({ includeJwtSubject: false })
   const identity = await getShopAccessIdentity(
     adminRequest({ 'cf-access-jwt-assertion': token }),
     allowedEnv,
@@ -73,16 +111,33 @@ function adminRequest(headers = {}) {
   })
 }
 
-async function signAccessJwt(audience = accessAudience) {
+async function signAccessJwt({
+  audience = accessAudience,
+  includeCustomSubject = true,
+  includeJwtSubject = true,
+  subject = '7d436933-3e18-4bbb-9513-e7bbfd80ab0f',
+  jwtSubject = 'shop-admin-account',
+  type = 'app',
+} = {}) {
   const now = Math.floor(Date.now() / 1000)
+  const payload = { email: 'Admin@Example.com', type }
 
-  return new SignJWT({ email: 'Admin@Example.com' })
+  if (includeCustomSubject) {
+    payload.custom = { 'https://acecore.net/claims/subject': subject }
+  }
+
+  const jwt = new SignJWT(payload)
     .setProtectedHeader({ alg: 'RS256', kid: accessKeyId })
     .setIssuer(accessIssuer)
     .setAudience(audience)
     .setIssuedAt(now)
     .setExpirationTime(now + 300)
-    .sign(privateKey)
+
+  if (includeJwtSubject) {
+    jwt.setSubject(jwtSubject)
+  }
+
+  return jwt.sign(privateKey)
 }
 
 function mockAccessCerts() {
