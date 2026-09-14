@@ -15,7 +15,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         Shop admin
       </p>
       <h1>ショップ管理</h1>
-      <p class="lead">注文、発送、手動納品、返金メモを確認・更新します。</p>
+      <p class="lead">
+        AcecoreIDでログインして、注文、発送、手動納品、返金メモを確認・更新します。
+      </p>
     </div>
   </section>
 
@@ -26,9 +28,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
           <span class="icon-[lucide--shield-check]" aria-hidden="true"></span>
           <span data-shop-admin-email>認証を確認しています</span>
         </p>
-        <a class="secondary-button" href="/cdn-cgi/access/logout">
-          ログアウト
-        </a>
+        <form action="/api/shop/admin/refresh-session" method="post">
+          <button class="secondary-button" type="submit">
+            AcecoreIDで再ログイン
+          </button>
+        </form>
       </div>
 
       <div class="shop-admin-content" data-shop-admin-content hidden>
@@ -94,14 +98,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         const response = await fetch('/api/shop/admin/session')
         const payload = await readPayload(response)
         if (!response.ok) {
-          setStatus(
-            payload.message ||
-              'Cloudflare Accessのセッションを確認できませんでした。',
-          )
+          setStatus(payload.message || 'ログイン状態を確認できませんでした。')
           return
         }
 
-        sessionEmail.textContent = payload.email || 'Cloudflare Access'
+        sessionEmail.textContent = payload.email || 'AcecoreID'
         contentShell.hidden = false
         await loadOrders()
       }
@@ -252,7 +253,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         if (!contentType.includes('application/json')) {
           return {
             message:
-              'Cloudflare Accessのセッションが切れています。ページを再読み込みしてください。',
+              'ログイン状態を確認できません。ページを再読み込みしてください。',
           }
         }
         return response.json()

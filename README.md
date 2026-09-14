@@ -168,7 +168,15 @@ Cloudflare Pages の Secret や binding を更新した後は、GitHub連携の 
 
 デジタル商品のファイルは非公開 R2 bucket の `r2ObjectKey` に配置します。購入完了後、`/api/shop/order` が短時間有効な download token を発行し、`/api/shop/download` が R2 object をストリーム返却します。BOOTH から移した有料商品の R2 key は `products/<slug>.zip` です。応援版は通常版と同じ内容物として同じ R2 object を参照します。
 
-注文管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、Pages Functions でも Access JWT の署名・発行元・audience を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。商品ZIPの一覧・アップロード・ダウンロードはCMS内から `/admin/api/product-files` を利用し、CMSのAccess audienceとAcecoreIDの`hatt-cms-editor` entitlementで保護します。
+注文管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、AcecoreIDでログインさせます。Pages Functions は Access JWT の署名・発行元・audience に加え、`exp`・`iat`・`sub`、`type: app`、AcecoreID subject UUID claim を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。商品ZIPの一覧・アップロード・ダウンロードはCMS内から `/admin/api/product-files` を利用し、CMSのAccess audienceとAcecoreIDの`hatt-cms-editor` entitlementで保護します。
+
+### ShopのAcecoreID切替条件
+
+既存Access groupのメール・ドメイン条件を維持します。2026-09-14の承認に基づき、未移行者は次回利用時に本人が対応する検証済みメールのAcecoreIDでログインする運用とし、全員の事前利用確認は切替条件にしません。代理連携・権限追加はしません。ShopにはCMSのentitlementを流用しません。
+
+ShopのAccess appだけをAcecoreIDに限定し、既存のsubject claim mapping、GitHub連携の本番deploy、新規ログイン、session/read API、許可外利用者の拒否を確認してから切替完了とします。旧セッションも再認証が必要です。既存の許可groupやsecretを削除しません。
+
+subjectがAccess JWTにない場合は、署名検証済みtokenから同じAccessユーザー・account・指定OIDC IdPのfull identityだけを参照します。不正な直接claimは補完しません。再ログインボタンは本番同一originのPOSTで当該ホストのAccess cookieだけを失効させます。
 
 ## ブログコメント
 
