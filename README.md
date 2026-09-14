@@ -172,9 +172,11 @@ Cloudflare Pages の Secret や binding を更新した後は、GitHub連携の 
 
 ### ShopのAcecoreID切替条件
 
-この認証チェック追加は移行準備です。既存Access groupのメール・ドメイン条件を維持し、全既存利用者が検証済みAcecoreIDメールで利用できることを確認するまで、本番へマージしません。ShopにはCMSのentitlementを流用しません。
+既存Access groupのメール・ドメイン条件を維持します。2026-09-14の承認に基づき、未移行者は次回利用時に本人が対応する検証済みメールのAcecoreIDでログインする運用とし、全員の事前利用確認は切替条件にしません。代理連携・権限追加はしません。ShopにはCMSのentitlementを流用しません。
 
 ShopのAccess appだけをAcecoreIDに限定し、既存のsubject claim mapping、GitHub連携の本番deploy、新規ログイン、session/read API、許可外利用者の拒否を確認してから切替完了とします。旧セッションも再認証が必要です。既存の許可groupやsecretを削除しません。
+
+subjectがAccess JWTにない場合は、署名検証済みtokenから同じAccessユーザー・account・指定OIDC IdPのfull identityだけを参照します。不正な直接claimは補完しません。再ログインボタンは本番同一originのPOSTで当該ホストのAccess cookieだけを失効させます。
 
 ## ブログコメント
 
