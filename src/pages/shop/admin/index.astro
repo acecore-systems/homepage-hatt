@@ -96,9 +96,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         const response = await fetch('/api/shop/admin/session')
         const payload = await readPayload(response)
         if (!response.ok) {
-          setStatus(
-            payload.message || 'AcecoreIDのセッションを確認できませんでした。',
-          )
+          setStatus(payload.message || 'ログイン状態を確認できませんでした。')
           return
         }
 
@@ -253,7 +251,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         if (!contentType.includes('application/json')) {
           return {
             message:
-              'AcecoreIDのセッションが切れています。ページを再読み込みしてください。',
+              'ログイン状態を確認できません。ページを再読み込みしてください。',
           }
         }
         return response.json()

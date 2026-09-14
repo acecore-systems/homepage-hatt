@@ -80,6 +80,43 @@ test('AcecoreID subjectがないAccess JWTを拒否する', async () => {
   assert.match(identity.message, /AcecoreID/)
 })
 
+for (const subject of ['', 'not-a-uuid', 42]) {
+  test(`不正なAcecoreID subject (${JSON.stringify(subject)})を拒否する`, async () => {
+    mockAccessCerts()
+    const token = await signAccessJwt({ subject })
+    const identity = await getShopAccessIdentity(
+      adminRequest({ 'cf-access-jwt-assertion': token }),
+      allowedEnv,
+    )
+    assert.equal(identity.ok, false)
+    assert.equal(identity.status, 403)
+  })
+}
+
+test('空のAccess subjectを拒否する', async () => {
+  mockAccessCerts()
+  const token = await signAccessJwt({ jwtSubject: '' })
+  const identity = await getShopAccessIdentity(
+    adminRequest({ 'cf-access-jwt-assertion': token }),
+    allowedEnv,
+  )
+  assert.equal(identity.ok, false)
+  assert.equal(identity.status, 403)
+})
+
+for (const missing of ['iat', 'exp']) {
+  test(`${missing}のないAccess JWTを拒否する`, async () => {
+    mockAccessCerts()
+    const token = await signAccessJwt({ missing })
+    const identity = await getShopAccessIdentity(
+      adminRequest({ 'cf-access-jwt-assertion': token }),
+      allowedEnv,
+    )
+    assert.equal(identity.ok, false)
+    assert.equal(identity.status, 401)
+  })
+}
+
 test('subject claimがないAccess JWTを拒否する', async () => {
   mockAccessCerts()
   const token = await signAccessJwt({ includeJwtSubject: false })
@@ -118,6 +155,7 @@ async function signAccessJwt({
   subject = '7d436933-3e18-4bbb-9513-e7bbfd80ab0f',
   jwtSubject = 'shop-admin-account',
   type = 'app',
+  missing,
 } = {}) {
   const now = Math.floor(Date.now() / 1000)
   const payload = { email: 'Admin@Example.com', type }
@@ -130,8 +168,9 @@ async function signAccessJwt({
     .setProtectedHeader({ alg: 'RS256', kid: accessKeyId })
     .setIssuer(accessIssuer)
     .setAudience(audience)
-    .setIssuedAt(now)
-    .setExpirationTime(now + 300)
+
+  if (missing !== 'iat') jwt.setIssuedAt(now)
+  if (missing !== 'exp') jwt.setExpirationTime(now + 300)
 
   if (includeJwtSubject) {
     jwt.setSubject(jwtSubject)

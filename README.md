@@ -170,6 +170,12 @@ Cloudflare Pages の Secret や binding を更新した後は、GitHub連携の 
 
 注文管理画面は `/shop/admin/` です。Cloudflare Access application `Hatt shop admin` が画面と `/api/shop/admin/*` の両方を保護し、AcecoreIDでログインさせます。Pages Functions は Access JWT の署名・発行元・audience に加え、`exp`・`iat`・`sub`、`type: app`、AcecoreID subject UUID claim を再検証します。Allow policy は `default-admin` と `hatt-cms-editors` group を参照します。発送ステータス、追跡番号、手動納品メモ、返金・キャンセルメモを更新でき、更新者の Access メールを監査ログに記録します。商品ZIPの一覧・アップロード・ダウンロードはCMS内から `/admin/api/product-files` を利用し、CMSのAccess audienceとAcecoreIDの`hatt-cms-editor` entitlementで保護します。
 
+### ShopのAcecoreID切替条件
+
+この認証チェック追加は移行準備です。既存Access groupのメール・ドメイン条件を維持し、全既存利用者が検証済みAcecoreIDメールで利用できることを確認するまで、本番へマージしません。ShopにはCMSのentitlementを流用しません。
+
+ShopのAccess appだけをAcecoreIDに限定し、既存のsubject claim mapping、GitHub連携の本番deploy、新規ログイン、session/read API、許可外利用者の拒否を確認してから切替完了とします。旧セッションも再認証が必要です。既存の許可groupやsecretを削除しません。
+
 ## ブログコメント
 
 記事ページのコメントは Cloudflare Pages Function + D1 + Turnstile で動きます。

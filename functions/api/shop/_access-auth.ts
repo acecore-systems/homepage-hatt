@@ -77,6 +77,8 @@ export async function getShopAccessIdentity(
 
     if (
       payload.type !== 'app' ||
+      typeof payload.sub !== 'string' ||
+      !payload.sub.trim() ||
       typeof subject !== 'string' ||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
         subject,
