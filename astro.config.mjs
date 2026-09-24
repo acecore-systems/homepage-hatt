@@ -21,6 +21,7 @@ export default defineConfig({
           /\/blog\/author\//,
           /\/blog\/search\//,
           /\/shop\/admin\//,
+          /\/shop\/cart\//,
           /\/shop\/checkout\//,
           /\/shop\/catalog\.json/,
         ].some((pattern) => pattern.test(page)),
