@@ -27,24 +27,24 @@ const productUrl = new URL(
   `/shop/${product.slug}/`,
   Astro.site ?? Astro.url,
 ).toString()
-const productJsonLd =
-  product.priceJpy > 0
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: product.title,
-        description: product.description || product.summary,
-        image: product.images.map((image) =>
-          new URL(image.src, Astro.site ?? Astro.url).toString(),
-        ),
-        offers: {
-          '@type': 'Offer',
-          url: productUrl,
-          price: product.priceJpy,
-          priceCurrency: settings.currency,
-        },
-      }
-    : undefined
+const productJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.title,
+  description: product.description || product.summary,
+  image: product.images.map((image) =>
+    new URL(image.src, Astro.site ?? Astro.url).toString(),
+  ),
+  offers: {
+    '@type': 'Offer',
+    url:
+      product.priceJpy === 0 && product.externalUrl
+        ? product.externalUrl
+        : productUrl,
+    price: product.priceJpy,
+    priceCurrency: settings.currency,
+  },
+}
 ---
 
 <BaseLayout
