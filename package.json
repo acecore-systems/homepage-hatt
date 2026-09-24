@@ -58,7 +58,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "pagefind": "^1.5.2",
     "prettier": "^3.9.7",
-    "prettier-plugin-astro": "^1.0.1",
+    "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "wrangler": "^4.134.0"
