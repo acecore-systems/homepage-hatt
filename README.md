@@ -93,13 +93,13 @@ GitHub App を新規作成または置換するときは `npm run setup:cms-app`
 
 対象URLの入力欄は設けず、質問・相談・修正対象のページ名やURLをすべてメッセージとして送ります。AIの考える深さは `low` / `medium` / `high` からターンごとに選択でき、既定は `medium` です。会話履歴はCloudflare Accessの編集者ごとにD1へ保存し、管理画面から直近の会話を再開できます。画像の入力・生成機能は含みません。
 
-依頼はCloudflare Accessで認証した編集者とともにD1へ保存します。GitHub Appが repository_dispatch を送ると、CMS AI Automation workflowがGitHub Actions OIDC tokenで、Access配下から分離したOIDC専用の `/api/cms-ai/runner` Pages Functionへ認証します。Workers AIの `@cf/zai-org/glm-5.3` は選択された `reasoning_effort` で変更案だけを返し、workflowが許可範囲のファイルを別branchへ書き込み、ローカル検証・PR作成・CIを行います。
+依頼はCloudflare Accessで認証した編集者とともにD1へ保存します。編集支援の生成は独立した `cms-ai` WorkerがOpenAI `gpt-6-luna`で行い、ジョブで選択した `reasoning_effort` を適用します。GitHub Appが repository_dispatch を送ると、CMS AI Automation workflowがGitHub Actions OIDC tokenで、Access配下から分離したOIDC専用の `/api/cms-ai/runner` Pages Functionへ認証します。workflowが許可範囲のファイルを別branchへ書き込み、ローカル検証・PR作成・CIを行います。
 
 - AIが変更できるのは src/、public/（public/admin/ と public/uploads/ を除く）、docs/ のテキストだけです。
 - 認証、CMS管理API、決済、テスト、依存関係、migration、workflow、Cloudflare設定は自動変更の対象外です。
-- CMS_AI_AUTOMERGE_ENABLED=false が既定です。まず本番相当の1件でWorkers AI・D1 migration・GitHub Actions OIDC・CI・Pages GitHub連携を確認し、問題がなければproductionの同変数を true へ変更すると、CI成功後にsquash mergeまで自動化します。
+- CMS_AI_AUTOMERGE_ENABLED=false が既定です。まず本番相当の1件でCMS AI Worker・D1 migration・GitHub Actions OIDC・CI・Pages GitHub連携を確認し、問題がなければproductionの同変数を true へ変更すると、CI成功後にsquash mergeまで自動化します。
 - CMS_AI_DB は既存の homepage-hatt-comments D1を利用します。`migrations/0002_create_cms_ai_jobs.sql`、`migrations/0003_add_cms_ai_reasoning_effort.sql`、`migrations/0004_add_cms_ai_conversations.sql` を順にD1へ適用してください。
-- Workers AI binding AI をPagesへ追加します。`@cf/zai-org/glm-5.3` の利用にはWorkers Paidまたはprepaid AI Gateway creditsが必要です。
+- OpenAI APIキーは `cms-ai` WorkerのCloudflare Secrets Store bindingで管理します。このPages repositoryに生成用のWorkers AI bindingは不要です。
 
 GitHub Actionsは変更を作る前に、OIDC tokenのissuer・audience・repository・repository_dispatch event・refs/heads/main を検証します。PagesやGitHubの設定を変更しただけでは本番反映済みとは扱わず、GitHub連携のmain deployとカスタムドメインを実機で確認してください。
 
