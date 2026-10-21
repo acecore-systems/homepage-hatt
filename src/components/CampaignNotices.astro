@@ -32,60 +32,58 @@ const toneIcon = {
 }
 ---
 
-{
-  notices.map((notice) => {
-    const isBanner = notice.data.kind === 'banner' || placement === 'global'
-    const href = notice.data.href?.trim()
-    const icon =
-      normalizeIconClass(notice.data.icon) ?? toneIcon[notice.data.tone]
-    const startsAt = notice.data.startsAt?.trim() || undefined
-    const endsAt = notice.data.endsAt?.trim() || undefined
-    const isPublished = isWithinPublicationWindow(startsAt, endsAt)
+{notices.map((notice) => {
+  const isBanner = notice.data.kind === 'banner' || placement === 'global'
+  const href = notice.data.href?.trim()
+  const icon =
+    normalizeIconClass(notice.data.icon) ?? toneIcon[notice.data.tone]
+  const startsAt = notice.data.startsAt?.trim() || undefined
+  const endsAt = notice.data.endsAt?.trim() || undefined
+  const isPublished = isWithinPublicationWindow(startsAt, endsAt)
 
-    return (
-      <section
-        class:list={[
-          isBanner ? 'campaign-banner' : 'campaign-notice',
-          `campaign-tone-${notice.data.tone}`,
-          className,
-        ]}
-        aria-label={notice.data.title}
-        data-campaign-id={notice.data.id}
-        data-publication-window="true"
-        data-publication-starts-at={startsAt}
-        data-publication-ends-at={endsAt}
-        data-pagefind-ignore
-        hidden={!isPublished}
-      >
-        <div class={isBanner ? 'campaign-banner-inner' : 'section-inner'}>
-          <div class="campaign-copy">
-            <span class="campaign-icon" aria-hidden="true">
-              <span class={icon} />
-            </span>
-            <div>
-              <h2>{notice.data.title}</h2>
-              {notice.data.body && <p>{notice.data.body}</p>}
-            </div>
+  return (
+    <section
+      class:list={[
+        isBanner ? 'campaign-banner' : 'campaign-notice',
+        `campaign-tone-${notice.data.tone}`,
+        className,
+      ]}
+      aria-label={notice.data.title}
+      data-campaign-id={notice.data.id}
+      data-publication-window="true"
+      data-publication-starts-at={startsAt}
+      data-publication-ends-at={endsAt}
+      data-pagefind-ignore
+      hidden={!isPublished}
+    >
+      <div class={isBanner ? 'campaign-banner-inner' : 'section-inner'}>
+        <div class="campaign-copy">
+          <span class="campaign-icon" aria-hidden="true">
+            <span class={icon} />
+          </span>
+          <div>
+            <h2>{notice.data.title}</h2>
+            {notice.data.body && <p>{notice.data.body}</p>}
           </div>
-          {href && notice.data.ctaLabel && (
-            <a
-              class="campaign-link"
-              href={href}
-              {...externalAttrs(href)}
-              data-campaign-link={notice.data.id}
-              data-hatt-event="campaign_click"
-              data-hatt-label={notice.data.id}
-              data-hatt-location={placement}
-            >
-              {notice.data.ctaLabel}
-              <span class="icon-[lucide--arrow-right]" aria-hidden="true" />
-            </a>
-          )}
         </div>
-      </section>
-    )
-  })
-}
+        {href && notice.data.ctaLabel && (
+          <a
+            class="campaign-link"
+            href={href}
+            {...externalAttrs(href)}
+            data-campaign-link={notice.data.id}
+            data-hatt-event="campaign_click"
+            data-hatt-label={notice.data.id}
+            data-hatt-location={placement}
+          >
+            {notice.data.ctaLabel}
+            <span class="icon-[lucide--arrow-right]" aria-hidden="true" />
+          </a>
+        )}
+      </div>
+    </section>
+  )
+})}
 <script>
   import { initPublicationWindowRuntime } from '../scripts/publication-window'
 

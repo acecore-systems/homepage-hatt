@@ -68,44 +68,35 @@ const formatDate = (value: string) =>
         <p>最終更新順で並べています。</p>
       </div>
       <div class="external-grid">
-        {
-          works.map((work) => (
-            <article class="external-card">
-              <div class="external-card-meta">
-                <span>{work.type === 'short' ? '短編' : '連載'}</span>
-                {work.isCompleted && <span>完結</span>}
-                {work.isStopped && <span>停止中</span>}
+        {works.map((work) => (
+          <article class="external-card">
+            <div class="external-card-meta">
+              <span>{work.type === 'short' ? '短編' : '連載'}</span>
+              {work.isCompleted && <span>完結</span>}
+              {work.isStopped && <span>停止中</span>}
+            </div>
+            <h3>{work.title}</h3>
+            <p>{work.story}</p>
+            <dl class="external-card-stats">
+              <div>
+                <dt>文字数</dt>
+                <dd>{work.length.toLocaleString('ja-JP')}</dd>
               </div>
-              <h3>{work.title}</h3>
-              <p>{work.story}</p>
-              <dl class="external-card-stats">
-                <div>
-                  <dt>文字数</dt>
-                  <dd>{work.length.toLocaleString('ja-JP')}</dd>
-                </div>
-                <div>
-                  <dt>話数</dt>
-                  <dd>{work.totalParts}</dd>
-                </div>
-                <div>
-                  <dt>更新</dt>
-                  <dd>{formatDate(work.lastUpdatedAt)}</dd>
-                </div>
-              </dl>
-              <a
-                class="text-arrow"
-                href={work.url}
-                {...externalAttrs(work.url)}
-              >
-                読みに行く
-                <span
-                  class="icon-[lucide--arrow-up-right]"
-                  aria-hidden="true"
-                />
-              </a>
-            </article>
-          ))
-        }
+              <div>
+                <dt>話数</dt>
+                <dd>{work.totalParts}</dd>
+              </div>
+              <div>
+                <dt>更新</dt>
+                <dd>{formatDate(work.lastUpdatedAt)}</dd>
+              </div>
+            </dl>
+            <a class="text-arrow" href={work.url} {...externalAttrs(work.url)}>
+              読みに行く
+              <span class="icon-[lucide--arrow-up-right]" aria-hidden="true" />
+            </a>
+          </article>
+        ))}
       </div>
     </div>
   </section>

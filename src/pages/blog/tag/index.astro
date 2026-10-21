@@ -24,7 +24,9 @@ const authors = await getAuthors()
           <h1>タグ一覧</h1>
           <p class="lead">絵、小説、モデリングの記事分類です。</p>
         </div>
-        <a class="chip-link" href="/blog/">ブログ一覧へ</a>
+        <a class="chip-link" href="/blog/">
+          ブログ一覧へ
+        </a>
       </div>
       <div aria-hidden="true"></div>
     </div>
@@ -32,15 +34,13 @@ const authors = await getAuthors()
 
   <div class="blog-shell">
     <div class="index-link-grid">
-      {
-        tags.map((tag) => (
-          <a href={`/blog/tag/${tag.slug}/`} class="index-link-card">
-            <span>{tag.name}</span>
-            <strong>{tag.count}件</strong>
-            {tag.description && <p>{tag.description}</p>}
-          </a>
-        ))
-      }
+      {tags.map((tag) => (
+        <a href={`/blog/tag/${tag.slug}/`} class="index-link-card">
+          <span>{tag.name}</span>
+          <strong>{tag.count}件</strong>
+          {tag.description && <p>{tag.description}</p>}
+        </a>
+      ))}
     </div>
     <BlogSidebar tags={tags} archives={archives} authors={authors} />
   </div>

@@ -24,7 +24,9 @@ const authors = await getAuthors()
           <h1>アーカイブ</h1>
           <p class="lead">公開月ごとの記事一覧です。</p>
         </div>
-        <a class="chip-link" href="/blog/">ブログ一覧へ</a>
+        <a class="chip-link" href="/blog/">
+          ブログ一覧へ
+        </a>
       </div>
       <div aria-hidden="true"></div>
     </div>
@@ -32,14 +34,12 @@ const authors = await getAuthors()
 
   <div class="blog-shell">
     <div class="index-link-grid">
-      {
-        archives.map((archive) => (
-          <a href={`/blog/archive/${archive.month}/`} class="index-link-card">
-            <span>{archive.label}</span>
-            <strong>{archive.count}件</strong>
-          </a>
-        ))
-      }
+      {archives.map((archive) => (
+        <a href={`/blog/archive/${archive.month}/`} class="index-link-card">
+          <span>{archive.label}</span>
+          <strong>{archive.count}件</strong>
+        </a>
+      ))}
     </div>
     <BlogSidebar tags={tags} archives={archives} authors={authors} />
   </div>

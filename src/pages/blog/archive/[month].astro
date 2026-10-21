@@ -46,7 +46,9 @@ const archiveLabel = archive?.label ?? month
           <h1>{archiveLabel}の記事</h1>
           <p class="lead">{filteredPosts.length}件の記事があります。</p>
         </div>
-        <a class="chip-link" href="/blog/archive/">アーカイブ一覧へ</a>
+        <a class="chip-link" href="/blog/archive/">
+          アーカイブ一覧へ
+        </a>
       </div>
       <div aria-hidden="true"></div>
     </div>
@@ -54,7 +56,9 @@ const archiveLabel = archive?.label ?? month
 
   <div class="blog-shell">
     <div class="blog-list">
-      {filteredPosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
+      {filteredPosts.map((post) => (
+        <ArticleCard post={post} tagMap={tagMap} />
+      ))}
     </div>
     <BlogSidebar tags={tagStats} archives={archives} authors={authors} />
   </div>

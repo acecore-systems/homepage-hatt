@@ -5,26 +5,24 @@ const { title, images = [] } = Astro.props as {
 }
 ---
 
-{
-  images.length > 0 && (
-    <section class="rich-block rich-gallery">
-      {title && <h2>{title}</h2>}
-      <div>
-        {images.map((image, index) => (
-          <figure>
-            <img
-              src={image.src}
-              alt={
-                image.alt?.trim() ||
-                image.caption?.trim() ||
-                `${title ?? '記事内ギャラリー'}の画像${index + 1}`
-              }
-              loading="lazy"
-            />
-            {image.caption && <figcaption>{image.caption}</figcaption>}
-          </figure>
-        ))}
-      </div>
-    </section>
-  )
-}
+{images.length > 0 && (
+  <section class="rich-block rich-gallery">
+    {title && <h2>{title}</h2>}
+    <div>
+      {images.map((image, index) => (
+        <figure>
+          <img
+            src={image.src}
+            alt={
+              image.alt?.trim() ||
+              image.caption?.trim() ||
+              `${title ?? '記事内ギャラリー'}の画像${index + 1}`
+            }
+            loading="lazy"
+          />
+          {image.caption && <figcaption>{image.caption}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  </section>
+)}

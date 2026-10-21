@@ -27,20 +27,20 @@ const requiresSellerDisclosure =
           商品、数量、受け渡し方法を確認してからStripe Checkoutへ進みます。
         </p>
       </div>
-      <a class="secondary-button" href="/shop/">商品を追加する</a>
+      <a class="secondary-button" href="/shop/">
+        商品を追加する
+      </a>
     </div>
   </section>
 
   <section class="section-band">
     <div class="section-inner shop-cart-shell" data-shop-cart-page>
-      {
-        !checkoutReady && (
-          <p class="shop-alert">
-            決済は準備中です。商品情報は確認できますが、販売者情報・規約・Stripe
-            Connect設定が揃うまで購入手続きは利用できません。
-          </p>
-        )
-      }
+      {!checkoutReady && (
+        <p class="shop-alert">
+          決済は準備中です。商品情報は確認できますが、販売者情報・規約・Stripe
+          Connect設定が揃うまで購入手続きは利用できません。
+        </p>
+      )}
       <p class="shop-alert" data-shop-runtime-disclosure-alert hidden>
         所在地の開示窓口を確認できないため、購入手続きを停止しています。
       </p>
@@ -61,9 +61,9 @@ const requiresSellerDisclosure =
         </dl>
         <p>価格、在庫、送料、税額は決済直前にサーバー側で再確認されます。</p>
         <p class="shop-cart-policy">
-          決済前に<a href="/shop/legal/#returns-policy">返品・キャンセル</a>、<a
-            href="/shop/legal/#privacy-policy">プライバシーポリシー</a
-          >、<a href="/shop/legal/#terms">利用条件</a>をご確認ください。
+          決済前に<a href="/shop/legal/#returns-policy">返品・キャンセル</a>、
+          <a href="/shop/legal/#privacy-policy">プライバシーポリシー</a>、
+          <a href="/shop/legal/#terms">利用条件</a>をご確認ください。
         </p>
         <button
           class="primary-button"
@@ -71,9 +71,9 @@ const requiresSellerDisclosure =
           data-shop-checkout
           disabled={!checkoutReady || requiresSellerDisclosure}
           data-shop-checkout-configured={checkoutReady ? 'true' : 'false'}
-          data-shop-disclosure-required={requiresSellerDisclosure
-            ? 'true'
-            : undefined}
+          data-shop-disclosure-required={
+            requiresSellerDisclosure ? 'true' : undefined
+          }
           data-hatt-event="shop_checkout_start"
           data-hatt-label="cart"
           data-hatt-location="shop_cart"

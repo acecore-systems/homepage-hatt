@@ -97,7 +97,9 @@ const modelingLinks = [
               data-hatt-location="home_hero"
             >
               絵を見る
-              <span class="icon-[lucide--arrow-right]" aria-hidden="true"
+              <span
+                class="icon-[lucide--arrow-right]"
+                aria-hidden="true"
               ></span>
             </a>
           </div>
@@ -112,121 +114,116 @@ const modelingLinks = [
       </div>
 
       <div class="home-pillar-board" aria-label="制作しているもの">
-        {
-          featuredPillars.map((pillar) => (
-            <article class={`home-pillar home-pillar--${pillar.id}`}>
-              <div class="home-pillar-image">
-                <img src={pillar.image} alt={pillar.imageAlt} />
-              </div>
-              <div class="home-pillar-body">
-                <div class="home-pillar-head">
-                  <span class="home-pillar-icon" aria-hidden="true">
-                    <span
-                      class={
-                        pillar.id === 'picture'
-                          ? 'icon-[lucide--pencil]'
-                          : pillar.id === 'novel'
-                            ? 'icon-[lucide--book-open]'
-                            : 'icon-[lucide--box]'
-                      }
-                    />
-                  </span>
-                  <div>
-                    <h2>{pillar.label}</h2>
-                    <p>{pillar.eyebrow}</p>
-                  </div>
+        {featuredPillars.map((pillar) => (
+          <article class={`home-pillar home-pillar--${pillar.id}`}>
+            <div class="home-pillar-image">
+              <img src={pillar.image} alt={pillar.imageAlt} />
+            </div>
+            <div class="home-pillar-body">
+              <div class="home-pillar-head">
+                <span class="home-pillar-icon" aria-hidden="true">
+                  <span
+                    class={
+                      pillar.id === 'picture'
+                        ? 'icon-[lucide--pencil]'
+                        : pillar.id === 'novel'
+                          ? 'icon-[lucide--book-open]'
+                          : 'icon-[lucide--box]'
+                    }
+                  />
+                </span>
+                <div>
+                  <h2>{pillar.label}</h2>
+                  <p>{pillar.eyebrow}</p>
                 </div>
-                <h3>{pillar.title}</h3>
-                <p>{pillar.description}</p>
-                {pillar.id === 'novel' ? (
-                  <>
-                    <div class="home-pillar-actions">
-                      {novelLinks.map((link) => (
-                        <a
-                          href={link.href}
-                          {...externalAttrs(link.href)}
-                          data-hatt-event="novel_link_click"
-                          data-hatt-label={link.label}
-                          data-hatt-location="home_pillar_novel"
-                        >
-                          <span class={link.icon} aria-hidden="true" />
-                          {link.label}
-                        </a>
-                      ))}
-                    </div>
-                    <div class="home-pillar-stats" aria-label="小説作品の概要">
-                      <div>
-                        <span>公開作品</span>
-                        <strong>{novelStats.total}作</strong>
-                      </div>
-                      <div>
-                        <span>連載</span>
-                        <strong>{novelStats.serial}作</strong>
-                      </div>
-                      <div>
-                        <span>短編</span>
-                        <strong>{novelStats.short}作</strong>
-                      </div>
-                    </div>
-                  </>
-                ) : pillar.id === 'modeling' ? (
-                  <>
-                    <div class="home-pillar-actions">
-                      {modelingLinks.map((link) => (
-                        <a
-                          href={link.href}
-                          {...externalAttrs(link.href)}
-                          data-hatt-event="modeling_link_click"
-                          data-hatt-label={link.label}
-                          data-hatt-location="home_pillar_modeling"
-                        >
-                          <span class={link.icon} aria-hidden="true" />
-                          {link.label}
-                        </a>
-                      ))}
-                    </div>
-                    <div
-                      class="home-pillar-stats"
-                      aria-label="モデリング活動の概要"
-                    >
-                      <div>
-                        <span>アバター</span>
-                        <strong>9種</strong>
-                      </div>
-                      <div>
-                        <span>ギミック</span>
-                        <strong>5種</strong>
-                      </div>
-                      <div>
-                        <span>公開作品</span>
-                        <strong>14点</strong>
-                      </div>
-                      <div>
-                        <span>動画</span>
-                        <strong>全公開</strong>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <a
-                    class="home-pillar-button"
-                    href={pillar.href}
-                    {...externalAttrs(pillar.href)}
-                    data-hatt-event="pillar_click"
-                    data-hatt-label={pillar.id}
-                    data-hatt-location="home_pillars"
-                  >
-                    {pillar.cta}
-                    <span
-                      class="icon-[lucide--arrow-right]"
-                      aria-hidden="true"
-                    />
-                  </a>
-                )}
               </div>
-            </article>
-          ))
-        }
+              <h3>{pillar.title}</h3>
+              <p>{pillar.description}</p>
+              {pillar.id === 'novel' ? (
+                <>
+                  <div class="home-pillar-actions">
+                    {novelLinks.map((link) => (
+                      <a
+                        href={link.href}
+                        {...externalAttrs(link.href)}
+                        data-hatt-event="novel_link_click"
+                        data-hatt-label={link.label}
+                        data-hatt-location="home_pillar_novel"
+                      >
+                        <span class={link.icon} aria-hidden="true" />
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                  <div class="home-pillar-stats" aria-label="小説作品の概要">
+                    <div>
+                      <span>公開作品</span>
+                      <strong>{novelStats.total}作</strong>
+                    </div>
+                    <div>
+                      <span>連載</span>
+                      <strong>{novelStats.serial}作</strong>
+                    </div>
+                    <div>
+                      <span>短編</span>
+                      <strong>{novelStats.short}作</strong>
+                    </div>
+                  </div>
+                </>
+              ) : pillar.id === 'modeling' ? (
+                <>
+                  <div class="home-pillar-actions">
+                    {modelingLinks.map((link) => (
+                      <a
+                        href={link.href}
+                        {...externalAttrs(link.href)}
+                        data-hatt-event="modeling_link_click"
+                        data-hatt-label={link.label}
+                        data-hatt-location="home_pillar_modeling"
+                      >
+                        <span class={link.icon} aria-hidden="true" />
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                  <div
+                    class="home-pillar-stats"
+                    aria-label="モデリング活動の概要"
+                  >
+                    <div>
+                      <span>アバター</span>
+                      <strong>9種</strong>
+                    </div>
+                    <div>
+                      <span>ギミック</span>
+                      <strong>5種</strong>
+                    </div>
+                    <div>
+                      <span>公開作品</span>
+                      <strong>14点</strong>
+                    </div>
+                    <div>
+                      <span>動画</span>
+                      <strong>全公開</strong>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <a
+                  class="home-pillar-button"
+                  href={pillar.href}
+                  {...externalAttrs(pillar.href)}
+                  data-hatt-event="pillar_click"
+                  data-hatt-label={pillar.id}
+                  data-hatt-location="home_pillars"
+                >
+                  {pillar.cta}
+                  <span class="icon-[lucide--arrow-right]" aria-hidden="true" />
+                </a>
+              )}
+            </div>
+          </article>
+        ))}
       </div>
     </div>
   </section>
@@ -272,13 +269,11 @@ const modelingLinks = [
           作品紹介だけでなく、制作ログ、朗読、ライブ配信アーカイブ、ショートまで、Hattのチャンネル全体をホームページ上で再生できます。
         </p>
         <div class="social-row">
-          {
-            youtubeHomeLinks.map((link) => (
-              <a href={link.href} {...externalAttrs(link.href)}>
-                {link.label}
-              </a>
-            ))
-          }
+          {youtubeHomeLinks.map((link) => (
+            <a href={link.href} {...externalAttrs(link.href)}>
+              {link.label}
+            </a>
+          ))}
         </div>
       </div>
       <figure class="video-player-card home-video-player">
@@ -288,7 +283,8 @@ const modelingLinks = [
             title="HattのYouTube全公開動画プレイリスト"
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen></iframe>
+            allowfullscreen
+          ></iframe>
         </div>
         <figcaption>
           全公開動画プレイリストです。YouTube側に新しい公開動画が追加されると、この枠から再生できます。
@@ -303,18 +299,16 @@ const modelingLinks = [
         <div>
           <h2 id="latest-title">最新の記事</h2>
         </div>
-        <a class="chip-link" href="/blog/"
-          >すべての記事を見る
-          <span class="icon-[lucide--arrow-right]" aria-hidden="true"></span></a
-        >
+        <a class="chip-link" href="/blog/">
+          すべての記事を見る
+          <span class="icon-[lucide--arrow-right]" aria-hidden="true"></span>
+        </a>
       </div>
       <div class="home-latest-layout">
         <div class="article-grid">
-          {
-            latestPosts.map((post) => (
-              <ArticleCard post={post} tagMap={tagMap} compact />
-            ))
-          }
+          {latestPosts.map((post) => (
+            <ArticleCard post={post} tagMap={tagMap} compact />
+          ))}
         </div>
         <aside class="home-latest-side" aria-label="ブログナビゲーション">
           <section>
@@ -322,38 +316,36 @@ const modelingLinks = [
               <h3>タグから探す</h3>
             </div>
             <div class="home-tag-cloud">
-              {
-                homeTagStats.map((tag) => (
-                  <a
-                    href={`/blog/tag/${tag.slug}/`}
-                    data-hatt-event="tag_click"
-                    data-hatt-label={tag.slug}
-                    data-hatt-location="home_sidebar"
-                  >
-                    {tag.name}
-                  </a>
-                ))
-              }
+              {homeTagStats.map((tag) => (
+                <a
+                  href={`/blog/tag/${tag.slug}/`}
+                  data-hatt-event="tag_click"
+                  data-hatt-label={tag.slug}
+                  data-hatt-location="home_sidebar"
+                >
+                  {tag.name}
+                </a>
+              ))}
             </div>
           </section>
           <section>
             <div class="home-side-heading">
               <h3>アーカイブ</h3>
             </div>
-            <label class="sr-only" for="home-archive-select">月を選択</label>
+            <label class="sr-only" for="home-archive-select">
+              月を選択
+            </label>
             <select
               id="home-archive-select"
               class="home-archive-select"
               data-home-archive-select
             >
               <option value="">月を選択</option>
-              {
-                archiveStats.map((archive) => (
-                  <option value={`/blog/archive/${archive.month}/`}>
-                    {archive.label}
-                  </option>
-                ))
-              }
+              {archiveStats.map((archive) => (
+                <option value={`/blog/archive/${archive.month}/`}>
+                  {archive.label}
+                </option>
+              ))}
             </select>
           </section>
         </aside>

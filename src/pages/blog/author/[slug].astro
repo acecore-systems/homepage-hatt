@@ -46,26 +46,22 @@ const authors = await getAuthors()
           <h1>{author.data.name}の記事</h1>
           <p class="lead">{author.data.bio}</p>
           <div class="social-row" style="margin-top: 18px;">
-            {
-              author.data.links.map((link) => (
-                <a href={link.href} {...externalAttrs(link.href)}>
-                  {link.label}
-                </a>
-              ))
-            }
+            {author.data.links.map((link) => (
+              <a href={link.href} {...externalAttrs(link.href)}>
+                {link.label}
+              </a>
+            ))}
           </div>
         </div>
-        {
-          author.data.avatar && (
-            <img
-              src={author.data.avatar}
-              alt={`${author.data.name}のプロフィール画像`}
-              width="84"
-              height="84"
-              style="border-radius: 16px;"
-            />
-          )
-        }
+        {author.data.avatar && (
+          <img
+            src={author.data.avatar}
+            alt={`${author.data.name}のプロフィール画像`}
+            width="84"
+            height="84"
+            style="border-radius: 16px;"
+          />
+        )}
       </div>
       <div aria-hidden="true"></div>
     </div>
@@ -73,7 +69,9 @@ const authors = await getAuthors()
 
   <div class="blog-shell">
     <div class="blog-list">
-      {filteredPosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
+      {filteredPosts.map((post) => (
+        <ArticleCard post={post} tagMap={tagMap} />
+      ))}
     </div>
     <BlogSidebar tags={tagStats} archives={archives} authors={authors} />
   </div>

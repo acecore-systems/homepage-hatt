@@ -55,7 +55,8 @@ const sitekey = site.turnstileSiteKey?.trim() ?? ''
           rows="4"
           maxlength="600"
           placeholder="リンクなしで短い感想を書けます。"
-          required></textarea>
+          required
+        ></textarea>
       </div>
     </div>
 
@@ -69,8 +70,11 @@ const sitekey = site.turnstileSiteKey?.trim() ?? ''
       hidden
     />
 
-    <div class="comments-turnstile" data-comments-turnstile data-theme="light">
-    </div>
+    <div
+      class="comments-turnstile"
+      data-comments-turnstile
+      data-theme="light"
+    ></div>
 
     <div class="comments-actions">
       <button type="submit" class="primary-button" data-comments-submit>

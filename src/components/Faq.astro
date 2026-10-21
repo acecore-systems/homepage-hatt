@@ -5,24 +5,22 @@ const { title = 'よくある質問', items = [] } = Astro.props as {
 }
 ---
 
-{
-  items.length > 0 && (
-    <section class="rich-block rich-faq">
-      <h2>{title}</h2>
-      <div>
-        {items.map((item) => (
-          <details>
-            <summary>
-              <span>{item.question}</span>
-              <span
-                class="faq-chevron icon-[lucide--chevron-down]"
-                aria-hidden="true"
-              />
-            </summary>
-            <p>{item.answer}</p>
-          </details>
-        ))}
-      </div>
-    </section>
-  )
-}
+{items.length > 0 && (
+  <section class="rich-block rich-faq">
+    <h2>{title}</h2>
+    <div>
+      {items.map((item) => (
+        <details>
+          <summary>
+            <span>{item.question}</span>
+            <span
+              class="faq-chevron icon-[lucide--chevron-down]"
+              aria-hidden="true"
+            />
+          </summary>
+          <p>{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+)}

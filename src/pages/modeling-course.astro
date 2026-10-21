@@ -195,7 +195,8 @@ const courseJsonLd = {
               minlength="10"
               maxlength="800"
               placeholder="例: VRChat用の小物をBlenderで作りたい、Unity導入で詰まっている"
-              required></textarea>
+              required
+            ></textarea>
           </div>
           <div class="course-form-wide">
             <label for="course-preferred-time">希望日時</label>
@@ -205,14 +206,16 @@ const courseJsonLd = {
               rows="3"
               maxlength="160"
               placeholder="例: 平日夜、土日午後、具体的な候補日など"
-              required></textarea>
+              required
+            ></textarea>
           </div>
         </div>
 
         <label class="course-consent">
           <input name="consent" type="checkbox" value="yes" required />
-          <span>入力内容を無料体験の日程調整と連絡に使うことに同意します。</span
-          >
+          <span>
+            入力内容を無料体験の日程調整と連絡に使うことに同意します。
+          </span>
         </label>
 
         <input
@@ -229,8 +232,7 @@ const courseJsonLd = {
           class="comments-turnstile"
           data-course-turnstile
           data-theme="light"
-        >
-        </div>
+        ></div>
 
         <div class="comments-actions">
           <button type="submit" class="primary-button" data-course-submit>

@@ -10,14 +10,12 @@ const {
 }
 ---
 
-{
-  text && (
-    <aside class:list={['rich-callout', `rich-tone-${tone}`]}>
-      <span class="icon-[lucide--info]" aria-hidden="true" />
-      <div>
-        {title && <strong>{title}</strong>}
-        <p>{text}</p>
-      </div>
-    </aside>
-  )
-}
+{text && (
+  <aside class:list={['rich-callout', `rich-tone-${tone}`]}>
+    <span class="icon-[lucide--info]" aria-hidden="true" />
+    <div>
+      {title && <strong>{title}</strong>}
+      <p>{text}</p>
+    </div>
+  </aside>
+)}
