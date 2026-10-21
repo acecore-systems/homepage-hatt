@@ -50,14 +50,14 @@ const authors = await getAuthors()
   <div class="blog-shell">
     <div>
       <div class="tag-list" style="margin-bottom: 18px;">
-        {
-          tagStats.map((tag) => (
-            <a href={`/blog/tag/${tag.slug}/`}>#{tag.name}</a>
-          ))
-        }
+        {tagStats.map((tag) => (
+          <a href={`/blog/tag/${tag.slug}/`}>#{tag.name}</a>
+        ))}
       </div>
       <div class="blog-list">
-        {pagePosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
+        {pagePosts.map((post) => (
+          <ArticleCard post={post} tagMap={tagMap} />
+        ))}
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPages} />
       <AdUnit placement="list" />

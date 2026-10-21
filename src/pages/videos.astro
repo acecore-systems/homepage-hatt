@@ -104,23 +104,24 @@ const videoLinks = [
           <iframe
             data-video-player
             src={selectedVideo?.embedUrl ?? uploadsEmbedUrl}
-            title={selectedVideo
-              ? `${selectedVideo.title}を再生`
-              : 'HattのYouTube全公開動画プレイリスト'}
+            title={
+              selectedVideo
+                ? `${selectedVideo.title}を再生`
+                : 'HattのYouTube全公開動画プレイリスト'
+            }
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen></iframe>
+            allowfullscreen
+          ></iframe>
         </div>
         <figcaption>
           <strong data-video-player-title>
             {selectedVideo?.title ?? '全公開動画プレイリスト'}
           </strong>
           <span data-video-player-meta>
-            {
-              selectedVideo
-                ? getVideoMeta(selectedVideo)
-                : '通常動画、ライブ配信アーカイブ、ショートを含む全公開動画です。'
-            }
+            {selectedVideo
+              ? getVideoMeta(selectedVideo)
+              : '通常動画、ライブ配信アーカイブ、ショートを含む全公開動画です。'}
           </span>
           <a
             data-video-player-link
@@ -145,7 +146,9 @@ const videoLinks = [
           <h2 id="video-browser-title">全動画を検索</h2>
         </div>
         <form class="video-search-form" data-video-search-form>
-          <label class="sr-only" for="video-search-input">動画を検索</label>
+          <label class="sr-only" for="video-search-input">
+            動画を検索
+          </label>
           <span class="icon-[lucide--search]" aria-hidden="true"></span>
           <input
             id="video-search-input"
@@ -169,57 +172,55 @@ const videoLinks = [
         {videos.length}本
       </p>
       <div class="video-results-grid" data-video-results>
-        {
-          videos.map((video) => {
-            const meta = getVideoMeta(video)
-            const summary = summarize(video.description)
-            const searchableDescription = getSearchableDescription(
-              video.description,
-            )
-            const searchText = normalizeSearchText(
-              [
-                video.title,
-                searchableDescription,
-                formatDate(video.publishedAt),
-                video.publishedAt,
-                video.videoId,
-                video.url,
-              ].join(' '),
-            )
+        {videos.map((video) => {
+          const meta = getVideoMeta(video)
+          const summary = summarize(video.description)
+          const searchableDescription = getSearchableDescription(
+            video.description,
+          )
+          const searchText = normalizeSearchText(
+            [
+              video.title,
+              searchableDescription,
+              formatDate(video.publishedAt),
+              video.publishedAt,
+              video.videoId,
+              video.url,
+            ].join(' '),
+          )
 
-            return (
-              <a
-                class="video-result-card"
-                href={video.url}
-                {...externalAttrs(video.url)}
-                data-video-card
-                data-url={video.url}
-                data-search={searchText}
-              >
-                <span class="video-result-thumbnail">
-                  <img
-                    src={video.thumbnailUrl}
-                    alt={`${video.title}のサムネイル画像`}
-                    loading="lazy"
-                  />
-                  <span class="icon-[lucide--play]" aria-hidden="true" />
-                </span>
-                <span class="video-result-body">
-                  <strong>{video.title}</strong>
-                  {meta && <small>{meta}</small>}
-                  {summary && <span>{summary}</span>}
-                </span>
-                <span class="video-result-action">
-                  YouTubeで開く
-                  <span
-                    class="icon-[lucide--arrow-up-right]"
-                    aria-hidden="true"
-                  />
-                </span>
-              </a>
-            )
-          })
-        }
+          return (
+            <a
+              class="video-result-card"
+              href={video.url}
+              {...externalAttrs(video.url)}
+              data-video-card
+              data-url={video.url}
+              data-search={searchText}
+            >
+              <span class="video-result-thumbnail">
+                <img
+                  src={video.thumbnailUrl}
+                  alt={`${video.title}のサムネイル画像`}
+                  loading="lazy"
+                />
+                <span class="icon-[lucide--play]" aria-hidden="true" />
+              </span>
+              <span class="video-result-body">
+                <strong>{video.title}</strong>
+                {meta && <small>{meta}</small>}
+                {summary && <span>{summary}</span>}
+              </span>
+              <span class="video-result-action">
+                YouTubeで開く
+                <span
+                  class="icon-[lucide--arrow-up-right]"
+                  aria-hidden="true"
+                />
+              </span>
+            </a>
+          )
+        })}
       </div>
       <p class="video-search-empty" data-video-search-empty hidden>
         一致する動画はありません。
@@ -236,19 +237,17 @@ const videoLinks = [
         <p>ライブ配信やショートもYouTube側の各タブから確認できます。</p>
       </div>
       <div class="video-link-grid">
-        {
-          videoLinks.map((link) => (
-            <a
-              class="video-link-card"
-              href={link.href}
-              {...externalAttrs(link.href)}
-            >
-              <span class={link.icon} aria-hidden="true" />
-              <strong>{link.label}</strong>
-              <small>{link.text}</small>
-            </a>
-          ))
-        }
+        {videoLinks.map((link) => (
+          <a
+            class="video-link-card"
+            href={link.href}
+            {...externalAttrs(link.href)}
+          >
+            <span class={link.icon} aria-hidden="true" />
+            <strong>{link.label}</strong>
+            <small>{link.text}</small>
+          </a>
+        ))}
       </div>
     </div>
   </section>

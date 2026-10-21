@@ -15,17 +15,15 @@ const { items } = Astro.props as { items: BreadcrumbItem[] }
         ホーム
       </a>
     </li>
-    {
-      items.map((item, index) => (
-        <li>
-          <span class="icon-[lucide--chevron-right]" aria-hidden="true" />
-          {item.href && index !== items.length - 1 ? (
-            <a href={item.href}>{item.label}</a>
-          ) : (
-            <span aria-current="page">{item.label}</span>
-          )}
-        </li>
-      ))
-    }
+    {items.map((item, index) => (
+      <li>
+        <span class="icon-[lucide--chevron-right]" aria-hidden="true" />
+        {item.href && index !== items.length - 1 ? (
+          <a href={item.href}>{item.label}</a>
+        ) : (
+          <span aria-current="page">{item.label}</span>
+        )}
+      </li>
+    ))}
   </ol>
 </nav>

@@ -26,13 +26,11 @@ const { site } = Astro.props as { site: Site }
       <small>© 2025 Hatt</small>
     </div>
     <div class="footer-links">
-      {
-        site.socialLinks.map((link) => (
-          <a href={link.href} {...externalAttrs(link.href)}>
-            {link.label}
-          </a>
-        ))
-      }
+      {site.socialLinks.map((link) => (
+        <a href={link.href} {...externalAttrs(link.href)}>
+          {link.label}
+        </a>
+      ))}
       <a href="/rss.xml">RSS</a>
     </div>
   </div>

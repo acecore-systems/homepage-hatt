@@ -65,13 +65,11 @@ const [author] = await getAuthors()
       <article class="profile-card">
         <h2>外部リンク</h2>
         <div class="social-row">
-          {
-            author.data.links.map((link) => (
-              <a href={link.href} {...externalAttrs(link.href)}>
-                {link.label}
-              </a>
-            ))
-          }
+          {author.data.links.map((link) => (
+            <a href={link.href} {...externalAttrs(link.href)}>
+              {link.label}
+            </a>
+          ))}
         </div>
       </article>
     </div>

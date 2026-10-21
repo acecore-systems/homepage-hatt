@@ -29,36 +29,32 @@ const { tags, archives, authors } = Astro.props as {
       </a>
     </h2>
     <ul>
-      {
-        tags.map((tag) => (
-          <li>
-            <a href={`/blog/tag/${tag.slug}/`}>
-              {tag.name}
-              <span>{tag.count}</span>
-            </a>
-          </li>
-        ))
-      }
+      {tags.map((tag) => (
+        <li>
+          <a href={`/blog/tag/${tag.slug}/`}>
+            {tag.name}
+            <span>{tag.count}</span>
+          </a>
+        </li>
+      ))}
     </ul>
   </section>
   <section>
     <h2>
       <a href="/blog/archive/">
-        <span class="icon-[lucide--archive]" aria-hidden="true"
-        ></span>アーカイブ
+        <span class="icon-[lucide--archive]" aria-hidden="true"></span>
+        アーカイブ
       </a>
     </h2>
     <ul>
-      {
-        archives.map((archive) => (
-          <li>
-            <a href={`/blog/archive/${archive.month}/`}>
-              {archive.label}
-              <span>{archive.count}</span>
-            </a>
-          </li>
-        ))
-      }
+      {archives.map((archive) => (
+        <li>
+          <a href={`/blog/archive/${archive.month}/`}>
+            {archive.label}
+            <span>{archive.count}</span>
+          </a>
+        </li>
+      ))}
     </ul>
   </section>
   <section>
@@ -66,16 +62,14 @@ const { tags, archives, authors } = Astro.props as {
       <span class="icon-[lucide--user-round]" aria-hidden="true"></span>ライター
     </h2>
     <ul>
-      {
-        authors.map((author) => (
-          <li>
-            <a href={`/blog/author/${author.data.id}/`}>
-              {author.data.name}
-              <span>→</span>
-            </a>
-          </li>
-        ))
-      }
+      {authors.map((author) => (
+        <li>
+          <a href={`/blog/author/${author.data.id}/`}>
+            {author.data.name}
+            <span>→</span>
+          </a>
+        </li>
+      ))}
     </ul>
   </section>
 </aside>

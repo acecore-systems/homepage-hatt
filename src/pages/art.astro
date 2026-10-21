@@ -77,37 +77,37 @@ const getArtTileClass = (index: number): string | undefined => {
 >
   <section class="section-band art-gallery-section" aria-labelledby="art-title">
     <div class="section-inner art-gallery-inner">
-      <h1 id="art-title" class="sr-only">絵</h1>
-      {
-        artItems.length > 0 ? (
-          <div class="art-grid">
-            {artItems.map((item, index) => (
-              <a
-                class:list={['art-tile', getArtTileClass(index)]}
-                href={item.sourceUrl}
-                aria-label={`${item.title}の詳細を見る`}
-                {...externalAttrs(item.sourceUrl)}
-              >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </a>
-            ))}
-          </div>
-        ) : (
-          <div class="art-empty">
-            <span class="icon-[lucide--image-plus]" aria-hidden="true" />
-            <h2>まだ掲載する絵がありません</h2>
-            <p>CMSでURLと画像を追加すると、ここに絵が並びます。</p>
-            <a href={profileUrl} {...externalAttrs(profileUrl)}>
-              Xを見る
+      <h1 id="art-title" class="sr-only">
+        絵
+      </h1>
+      {artItems.length > 0 ? (
+        <div class="art-grid">
+          {artItems.map((item, index) => (
+            <a
+              class:list={['art-tile', getArtTileClass(index)]}
+              href={item.sourceUrl}
+              aria-label={`${item.title}の詳細を見る`}
+              {...externalAttrs(item.sourceUrl)}
+            >
+              <img
+                src={item.image}
+                alt={item.title}
+                loading="lazy"
+                decoding="async"
+              />
             </a>
-          </div>
-        )
-      }
+          ))}
+        </div>
+      ) : (
+        <div class="art-empty">
+          <span class="icon-[lucide--image-plus]" aria-hidden="true" />
+          <h2>まだ掲載する絵がありません</h2>
+          <p>CMSでURLと画像を追加すると、ここに絵が並びます。</p>
+          <a href={profileUrl} {...externalAttrs(profileUrl)}>
+            Xを見る
+          </a>
+        </div>
+      )}
     </div>
   </section>
 </BaseLayout>

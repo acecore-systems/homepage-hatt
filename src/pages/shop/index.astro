@@ -39,27 +39,23 @@ const categories = [...new Set(products.map((product) => product.category))]
         <p class="shop-delivery-note">
           有料商品は、決済完了後にHattが購入時のメールアドレスへ受け渡し方法をご案内します。
         </p>
-        {
-          !checkoutReady && (
-            <p class="shop-alert">
-              決済は準備中です。商品情報は確認できますが、販売者情報・規約・Stripe
-              Connect設定が揃うまで購入手続きは利用できません。
-            </p>
-          )
-        }
+        {!checkoutReady && (
+          <p class="shop-alert">
+            決済は準備中です。商品情報は確認できますが、販売者情報・規約・Stripe
+            Connect設定が揃うまで購入手続きは利用できません。
+          </p>
+        )}
         <p class="shop-alert" data-shop-runtime-disclosure-alert hidden>
           所在地の開示窓口を確認できないため、購入手続きを停止しています。
         </p>
       </div>
       <div class="shop-hero-panel" aria-label="ショップのカテゴリ">
-        {
-          categories.map((category) => (
-            <a href="#shop-products">
-              <span class="icon-[lucide--tag]" aria-hidden="true" />
-              {CATEGORY_LABELS[category]}
-            </a>
-          ))
-        }
+        {categories.map((category) => (
+          <a href="#shop-products">
+            <span class="icon-[lucide--tag]" aria-hidden="true" />
+            {CATEGORY_LABELS[category]}
+          </a>
+        ))}
         <a href="/shop/legal/">
           <span class="icon-[lucide--file-text]" aria-hidden="true"></span>
           表記・ポリシー
@@ -85,78 +81,62 @@ const categories = [...new Set(products.map((product) => product.category))]
       </div>
 
       <div class="shop-product-grid" id="shop-products">
-        {
-          products.map((product) => (
-            <article class="shop-product-card" data-pagefind-ignore>
-              <a class="shop-product-image" href={`/shop/${product.slug}/`}>
-                {product.images[0] ? (
-                  <img
-                    src={product.images[0].src}
-                    alt={product.images[0].alt || `${product.title}の画像`}
-                    loading="eager"
-                  />
-                ) : (
-                  <span class="icon-[lucide--image]" aria-hidden="true" />
-                )}
-              </a>
-              <div class="shop-product-body">
-                <div class="shop-product-meta">
-                  <span>{CATEGORY_LABELS[product.category]}</span>
-                  <span>{FULFILLMENT_LABELS[product.fulfillmentType]}</span>
-                </div>
-                <h3>
-                  <a href={`/shop/${product.slug}/`}>{product.title}</a>
-                </h3>
-                <p>{product.summary}</p>
-                <div class="shop-product-foot">
-                  <strong>{formatJpy(product.priceJpy)}</strong>
-                  {product.priceJpy > 0 ? (
-                    <button
-                      class="primary-button"
-                      type="button"
-                      data-shop-add={product.slug}
-                      disabled={
-                        !checkoutReady ||
-                        requiresSellerDisclosure ||
-                        product.status !== 'published'
-                      }
-                      data-shop-disclosure-required={
-                        requiresSellerDisclosure &&
-                        product.status === 'published'
-                          ? 'true'
-                          : undefined
-                      }
-                      data-shop-disclosure-enable-on-ready
-                      data-hatt-event="shop_add_to_cart"
-                      data-hatt-label={product.slug}
-                      data-hatt-location="shop_index"
-                    >
-                      カートに入れる
-                      <span class="icon-[lucide--plus]" aria-hidden="true" />
-                    </button>
-                  ) : (
-                    <a
-                      class="secondary-button"
-                      href={product.externalUrl || `/shop/${product.slug}/`}
-                      {...(product.externalUrl
-                        ? externalAttrs(product.externalUrl)
-                        : {})}
-                    >
-                      無料配布
-                      <span
-                        class="icon-[lucide--arrow-up-right]"
-                        aria-hidden="true"
-                      />
-                    </a>
-                  )}
-                </div>
-                {product.externalUrl && (
-                  <a
-                    class="shop-external-link"
-                    href={product.externalUrl}
-                    {...externalAttrs(product.externalUrl)}
+        {products.map((product) => (
+          <article class="shop-product-card" data-pagefind-ignore>
+            <a class="shop-product-image" href={`/shop/${product.slug}/`}>
+              {product.images[0] ? (
+                <img
+                  src={product.images[0].src}
+                  alt={product.images[0].alt || `${product.title}の画像`}
+                  loading="eager"
+                />
+              ) : (
+                <span class="icon-[lucide--image]" aria-hidden="true" />
+              )}
+            </a>
+            <div class="shop-product-body">
+              <div class="shop-product-meta">
+                <span>{CATEGORY_LABELS[product.category]}</span>
+                <span>{FULFILLMENT_LABELS[product.fulfillmentType]}</span>
+              </div>
+              <h3>
+                <a href={`/shop/${product.slug}/`}>{product.title}</a>
+              </h3>
+              <p>{product.summary}</p>
+              <div class="shop-product-foot">
+                <strong>{formatJpy(product.priceJpy)}</strong>
+                {product.priceJpy > 0 ? (
+                  <button
+                    class="primary-button"
+                    type="button"
+                    data-shop-add={product.slug}
+                    disabled={
+                      !checkoutReady ||
+                      requiresSellerDisclosure ||
+                      product.status !== 'published'
+                    }
+                    data-shop-disclosure-required={
+                      requiresSellerDisclosure && product.status === 'published'
+                        ? 'true'
+                        : undefined
+                    }
+                    data-shop-disclosure-enable-on-ready
+                    data-hatt-event="shop_add_to_cart"
+                    data-hatt-label={product.slug}
+                    data-hatt-location="shop_index"
                   >
-                    BOOTHでも見る
+                    カートに入れる
+                    <span class="icon-[lucide--plus]" aria-hidden="true" />
+                  </button>
+                ) : (
+                  <a
+                    class="secondary-button"
+                    href={product.externalUrl || `/shop/${product.slug}/`}
+                    {...(product.externalUrl
+                      ? externalAttrs(product.externalUrl)
+                      : {})}
+                  >
+                    無料配布
                     <span
                       class="icon-[lucide--arrow-up-right]"
                       aria-hidden="true"
@@ -164,9 +144,22 @@ const categories = [...new Set(products.map((product) => product.category))]
                   </a>
                 )}
               </div>
-            </article>
-          ))
-        }
+              {product.externalUrl && (
+                <a
+                  class="shop-external-link"
+                  href={product.externalUrl}
+                  {...externalAttrs(product.externalUrl)}
+                >
+                  BOOTHでも見る
+                  <span
+                    class="icon-[lucide--arrow-up-right]"
+                    aria-hidden="true"
+                  />
+                </a>
+              )}
+            </div>
+          </article>
+        ))}
       </div>
     </div>
   </section>

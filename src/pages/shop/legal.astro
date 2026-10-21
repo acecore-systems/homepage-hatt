@@ -53,20 +53,14 @@ const rows = [
       <section>
         <h2>販売者情報</h2>
         <dl>
-          {
-            rows.map(({ label, value, href }) => (
-              <div>
-                <dt>{label}</dt>
-                <dd>
-                  {href && value ? (
-                    <a href={href}>{value}</a>
-                  ) : (
-                    value || '未設定'
-                  )}
-                </dd>
-              </div>
-            ))
-          }
+          {rows.map(({ label, value, href }) => (
+            <div>
+              <dt>{label}</dt>
+              <dd>
+                {href && value ? <a href={href}>{value}</a> : value || '未設定'}
+              </dd>
+            </div>
+          ))}
         </dl>
       </section>
       <section id="returns-policy">

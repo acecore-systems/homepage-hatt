@@ -21,7 +21,9 @@ const { data } = Astro.props as { data: BlogData }
   {data.gallery && <Gallery {...data.gallery} />}
   {data.youtube && <YouTubeEmbed {...data.youtube} />}
   {data.checklist && <Checklist {...data.checklist} />}
-  {data.linkCards.map((link) => <LinkCard {...link} />)}
+  {data.linkCards.map((link) => (
+    <LinkCard {...link} />
+  ))}
   {data.pullQuote && <PullQuote {...data.pullQuote} />}
   {data.faq && <Faq {...data.faq} />}
 </div>

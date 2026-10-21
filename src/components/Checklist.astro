@@ -5,18 +5,16 @@ const { title, items = [] } = Astro.props as {
 }
 ---
 
-{
-  items.length > 0 && (
-    <section class="rich-block rich-checklist">
-      {title && <h2>{title}</h2>}
-      <ul>
-        {items.map((item) => (
-          <li>
-            <span class="icon-[lucide--check]" aria-hidden="true" />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
+{items.length > 0 && (
+  <section class="rich-block rich-checklist">
+    {title && <h2>{title}</h2>}
+    <ul>
+      {items.map((item) => (
+        <li>
+          <span class="icon-[lucide--check]" aria-hidden="true" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

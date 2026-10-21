@@ -53,7 +53,9 @@ const authors = await getAuthors()
             です。
           </p>
         </div>
-        <a class="chip-link" href="/blog/">最新記事へ</a>
+        <a class="chip-link" href="/blog/">
+          最新記事へ
+        </a>
       </div>
       <div aria-hidden="true"></div>
     </div>
@@ -62,7 +64,9 @@ const authors = await getAuthors()
   <div class="blog-shell">
     <div>
       <div class="blog-list">
-        {pagePosts.map((post) => <ArticleCard post={post} tagMap={tagMap} />)}
+        {pagePosts.map((post) => (
+          <ArticleCard post={post} tagMap={tagMap} />
+        ))}
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPages} />
       <AdUnit placement="list" />
