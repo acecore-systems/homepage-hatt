@@ -345,7 +345,7 @@ test('絵のスナップショットは最新の返信ツリーまで含み、�
   )
 })
 
-test('BOOTH公開カタログはアバター10件・ギミック4件を含む', async () => {
+test('BOOTH公開カタログはアバター10件・ギミック5件以上と新作を含む', async () => {
   const catalog = JSON.parse(
     await fs.readFile(
       new URL('../src/data/external/booth-products.json', import.meta.url),
@@ -354,20 +354,19 @@ test('BOOTH公開カタログはアバター10件・ギミック4件を含む', 
   )
   const productIds = catalog.products.map((product) => product.id)
 
-  assert.equal(catalog.products.length, 14)
+  assert.ok(catalog.products.length >= 15)
   assert.equal(new Set(productIds).size, catalog.products.length)
-  assert.equal(
+  assert.ok(
     catalog.products.filter((product) => product.category === 'アバター')
-      .length,
-    10,
+      .length >= 10,
   )
-  assert.equal(
+  assert.ok(
     catalog.products.filter((product) => product.category === 'ギミック')
-      .length,
-    4,
+      .length >= 5,
   )
   assert.ok(productIds.includes('8631449'))
   assert.ok(productIds.includes('6073427'))
+  assert.ok(productIds.includes('8913497'))
   assert.ok(
     catalog.products.every(
       (product) =>
