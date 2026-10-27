@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "userId": "2047731",
   "authorUrl": "https://mypage.syosetu.com/2047731/",
-  "syncedAt": "2026-08-14T08:01:11.866Z",
+  "syncedAt": "2026-10-27T00:09:08.080Z",
   "allcount": 11,
   "works": [
     {
@@ -16,7 +16,7 @@
       "totalParts": 1,
       "length": 2547,
       "readingMinutes": 6,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "short"
     },
@@ -30,7 +30,7 @@
       "totalParts": 1,
       "length": 1682,
       "readingMinutes": 4,
-      "isCompleted": true,
+      "isCompleted": false,
       "isStopped": true,
       "type": "serial"
     },
@@ -44,7 +44,7 @@
       "totalParts": 36,
       "length": 54334,
       "readingMinutes": 109,
-      "isCompleted": true,
+      "isCompleted": false,
       "isStopped": true,
       "type": "serial"
     },
@@ -58,7 +58,7 @@
       "totalParts": 1,
       "length": 1472,
       "readingMinutes": 3,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "short"
     },
@@ -72,7 +72,7 @@
       "totalParts": 1,
       "length": 365,
       "readingMinutes": 1,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "short"
     },
@@ -86,7 +86,7 @@
       "totalParts": 1,
       "length": 242,
       "readingMinutes": 1,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "short"
     },
@@ -100,7 +100,7 @@
       "totalParts": 7,
       "length": 9309,
       "readingMinutes": 19,
-      "isCompleted": true,
+      "isCompleted": false,
       "isStopped": true,
       "type": "serial"
     },
@@ -114,7 +114,7 @@
       "totalParts": 91,
       "length": 105390,
       "readingMinutes": 211,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "serial"
     },
@@ -128,7 +128,7 @@
       "totalParts": 1,
       "length": 341,
       "readingMinutes": 1,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "short"
     },
@@ -142,7 +142,7 @@
       "totalParts": 1,
       "length": 979,
       "readingMinutes": 2,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "short"
     },
@@ -156,7 +156,7 @@
       "totalParts": 1,
       "length": 778,
       "readingMinutes": 2,
-      "isCompleted": false,
+      "isCompleted": true,
       "isStopped": false,
       "type": "short"
     }

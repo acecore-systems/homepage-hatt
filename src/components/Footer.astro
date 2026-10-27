@@ -8,6 +8,7 @@ type Site = {
 }
 
 const { site } = Astro.props as { site: Site }
+const currentYear = new Date().getFullYear()
 ---
 
 <footer class="site-footer">
@@ -23,7 +24,7 @@ const { site } = Astro.props as { site: Site }
     </div>
     <div class="footer-description">
       <p>イラストや小説の制作記録をのんびり更新中。</p>
-      <small>© 2025 Hatt</small>
+      <small>© 2025–{currentYear} Hatt</small>
     </div>
     <div class="footer-links">
       {site.socialLinks.map((link) => (

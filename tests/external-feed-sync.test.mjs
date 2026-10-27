@@ -257,7 +257,7 @@ test('小説APIの完全なレスポンスだけをスナップショット化�
         general_all_no: 1,
         length: 1200,
         time: 3,
-        end: 1,
+        end: 0,
         isstop: 0,
         novel_type: 2,
       },
@@ -268,6 +268,69 @@ test('小説APIの完全なレスポンスだけをスナップショット化�
   assert.equal(result.syncedAt, fixtureNow())
   assert.equal(result.works.length, 1)
   assert.equal(result.works[0].url, 'https://ncode.syosetu.com/n0000aa/')
+})
+
+test('小説APIの完結済・連載中・停止中・短編を正しく区別する', () => {
+  const cases = [
+    {
+      title: '完結済の連載',
+      end: 0,
+      isstop: 0,
+      novel_type: 1,
+      completed: true,
+      stopped: false,
+      type: 'serial',
+    },
+    {
+      title: '連載中',
+      end: 1,
+      isstop: 0,
+      novel_type: 1,
+      completed: false,
+      stopped: false,
+      type: 'serial',
+    },
+    {
+      title: '長期連載停止中',
+      end: 1,
+      isstop: 1,
+      novel_type: 1,
+      completed: false,
+      stopped: true,
+      type: 'serial',
+    },
+    {
+      title: '短編',
+      end: 0,
+      isstop: 0,
+      novel_type: 2,
+      completed: true,
+      stopped: false,
+      type: 'short',
+    },
+  ]
+  const result = parseNarouPayload(
+    JSON.stringify([
+      { allcount: cases.length },
+      ...cases.map((entry, index) => ({ ...entry, ncode: `N000${index}AA` })),
+    ]),
+    { now: fixtureNow },
+  )
+
+  assert.deepEqual(
+    result.works.map(({ title, isCompleted, isStopped, type }) => ({
+      title,
+      isCompleted,
+      isStopped,
+      type,
+    })),
+    cases.map(({ title, completed, stopped, type }) => ({
+      title,
+      isCompleted: completed,
+      isStopped: stopped,
+      type,
+    })),
+  )
 })
 
 test('YouTube RSSの空・不正エントリでは既存スナップショットを上書きしない', () => {

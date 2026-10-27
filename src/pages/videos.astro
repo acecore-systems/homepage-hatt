@@ -62,7 +62,7 @@ const videoLinks = [
 
 <BaseLayout
   title="動画"
-  description="HattのYouTubeチャンネルで公開している動画、ライブ配信アーカイブ、ショートをまとめて検索・再生できるページです。"
+  description="HattのYouTubeチャンネルの最近の公開動画を検索・再生できるページです。掲載していない動画、ライブ配信アーカイブ、ショートはYouTube側の一覧から確認できます。"
   canonicalPath="/videos/"
 >
   <section class="page-hero">
@@ -74,15 +74,16 @@ const videoLinks = [
         </p>
         <h1>動画</h1>
         <p class="lead">
-          HattのYouTubeチャンネルで公開している動画をまとめて見られるページです。
-          通常動画、ライブ配信アーカイブ、ショートまで、チャンネル全体をホームページ上で検索・再生できます。
+          HattのYouTubeチャンネルの最近の公開動画をまとめて見られるページです。
+          このページでは最新{videos.length}
+          本を検索できます。掲載していない動画はYouTube側の一覧から確認できます。
         </p>
         <div
           class="modeling-stats external-stats video-stats"
           aria-label="動画一覧"
         >
           <div>
-            <span>全公開動画</span>
+            <span>掲載動画</span>
             <strong>{videos.length}本</strong>
           </div>
           <div>
@@ -143,7 +144,7 @@ const videoLinks = [
     <div class="section-inner">
       <div class="section-heading video-browser-heading">
         <div>
-          <h2 id="video-browser-title">全動画を検索</h2>
+          <h2 id="video-browser-title">掲載動画を検索</h2>
         </div>
         <form class="video-search-form" data-video-search-form>
           <label class="sr-only" for="video-search-input">

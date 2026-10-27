@@ -2,6 +2,7 @@
 import ArticleCard from '@/components/ArticleCard.astro'
 import CampaignNotices from '@/components/CampaignNotices.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import boothCatalog from '@/data/external/booth-products.json'
 import novelsFeed from '@/data/external/novels.json'
 import youtubeFeed from '@/data/external/youtube-videos.json'
 import {
@@ -28,10 +29,18 @@ const novelStats = {
   serial: novelWorks.filter((work) => work.type === 'serial').length,
   short: novelWorks.filter((work) => work.type === 'short').length,
 }
+const boothProducts = boothCatalog.products
+const modelingStats = {
+  total: boothProducts.length,
+  avatars: boothProducts.filter((product) => product.category === 'アバター')
+    .length,
+  gimmicks: boothProducts.filter((product) => product.category === 'ギミック')
+    .length,
+}
 const uploadsPlaylistUrl = youtubeFeed.uploadsPlaylistUrl
 const uploadsEmbedUrl = youtubeFeed.uploadsEmbedUrl
 const youtubeHomeLinks = [
-  { label: '全動画を見る', href: '/videos/' },
+  { label: '掲載動画を見る', href: '/videos/' },
   { label: 'YouTubeで開く', href: uploadsPlaylistUrl },
   { label: 'ライブ', href: `${youtubeFeed.channelUrl}/streams` },
   { label: 'ショート', href: `${youtubeFeed.channelUrl}/shorts` },
@@ -192,19 +201,19 @@ const modelingLinks = [
                   >
                     <div>
                       <span>アバター</span>
-                      <strong>9種</strong>
+                      <strong>{modelingStats.avatars}種</strong>
                     </div>
                     <div>
                       <span>ギミック</span>
-                      <strong>5種</strong>
+                      <strong>{modelingStats.gimmicks}種</strong>
                     </div>
                     <div>
-                      <span>公開作品</span>
-                      <strong>14点</strong>
+                      <span>3D作品</span>
+                      <strong>{modelingStats.total}点</strong>
                     </div>
                     <div>
-                      <span>動画</span>
-                      <strong>全公開</strong>
+                      <span>掲載動画</span>
+                      <strong>{youtubeFeed.videos.length}本</strong>
                     </div>
                   </div>
                 </>

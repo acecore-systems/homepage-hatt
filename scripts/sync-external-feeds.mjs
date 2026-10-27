@@ -368,7 +368,7 @@ export function parseNarouPayload(
       totalParts: item.general_all_no,
       length: item.length,
       readingMinutes: item.time,
-      isCompleted: item.end === 1,
+      isCompleted: item.end === 0,
       isStopped: item.isstop === 1,
       type: item.novel_type === 2 ? 'short' : 'serial',
     }
