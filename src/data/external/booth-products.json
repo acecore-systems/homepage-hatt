@@ -6,7 +6,7 @@
     "アバター": "https://vetumheberehama.booth.pm/item_lists/r1LT6q2w",
     "ギミック": "https://vetumheberehama.booth.pm/item_lists/nZ6TXKVK"
   },
-  "syncedAt": "2026-08-17T03:02:22.226Z",
+  "syncedAt": "2026-10-26T23:56:26.153Z",
   "products": [
     {
       "id": "8087659",
@@ -246,6 +246,21 @@
         "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/550aade6-1fe1-4c9d-833a-072d91c4f645_base_resized.jpg",
         "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/2cd1a6c1-83fd-4284-96e5-6e16d784403a_base_resized.jpg",
         "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/5e48f575-2247-4c70-b29e-aa1a663dfc10_base_resized.jpg"
+      ],
+      "availability": "in_stock"
+    },
+    {
+      "id": "8913497",
+      "title": "中華テーブルヘイロー【まめふれ対応】【それ以外もまぁ対応】",
+      "category": "ギミック",
+      "price": 400,
+      "priceLabel": "¥400〜",
+      "url": "https://vetumheberehama.booth.pm/items/8913497",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8913497/21f93b67-e687-4421-b516-2cac55a3671c_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8913497/21f93b67-e687-4421-b516-2cac55a3671c_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8913497/fa6e3f0c-db16-4d2f-8898-dc3ae9ffe121_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8913497/5f68183c-f775-4536-a2ba-7ba335ca4a50_base_resized.jpg"
       ],
       "availability": "in_stock"
     }
