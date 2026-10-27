@@ -1,0 +1,28 @@
+{
+  "slug": "chinese-table-halo",
+  "title": "中華テーブルヘイロー",
+  "category": "modeling",
+  "summary": "回転する中華テーブルと料理をあしらった、VRChat向けヘイローです。",
+  "description": "回転速度や大きさを調整でき、頭または胸に追従する設定済みプレハブを利用できます。まめふれ対応で、それ以外のアバターでは位置調整が必要です。アバター本体は付属しません。",
+  "images": [
+    {
+      "src": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8913497/21f93b67-e687-4421-b516-2cac55a3671c_base_resized.jpg",
+      "alt": "中華テーブルヘイローの紹介画像"
+    }
+  ],
+  "priceJpy": 400,
+  "status": "published",
+  "fulfillmentType": "manual",
+  "stock": 999,
+  "maxQuantity": 1,
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/8913497",
+  "features": [
+    "動作確認環境: Unity 2022.3.22f1 / lilToon 2.3.4 / Modular Avatar 1.17.1。",
+    "利用規約、fbx・png・unitypackageを含むZIPをお渡しします。",
+    "通常版です。BOOTHの支援版と内容物は同じです。",
+    "購入後、購入時のメールアドレスへHattが受け渡し方法をご案内します。"
+  ],
+  "order": 160,
+  "featured": true
+}
