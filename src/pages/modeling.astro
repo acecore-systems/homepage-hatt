@@ -66,8 +66,8 @@ function getYouTubeVideoId(value?: string) {
             <strong>{boothGimmickCount}種</strong>
           </div>
           <div>
-            <span>BOOTH</span>
-            <strong>全{boothProducts.length}商品</strong>
+            <span>BOOTHの3D作品</span>
+            <strong>{boothProducts.length}商品</strong>
           </div>
         </div>
         <div class="social-row" style="margin-top: 24px;">
@@ -136,10 +136,11 @@ function getYouTubeVideoId(value?: string) {
     <div class="section-inner">
       <div class="section-heading">
         <div>
-          <h2 id="booth-catalog-title">BOOTH掲載商品</h2>
+          <h2 id="booth-catalog-title">BOOTH掲載の3D作品</h2>
         </div>
         <p>
-          BOOTHで現在公開中の全{boothProducts.length}商品です。
+          BOOTHの「アバター」「ギミック」コレクションに掲載中の
+          {boothProducts.length}商品です。
           <a
             href={boothCatalog.shopUrl}
             {...externalAttrs(boothCatalog.shopUrl)}
