@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import boothCatalog from '@/data/external/booth-products.json'
 import {
   CATEGORY_LABELS,
   FULFILLMENT_LABELS,
@@ -17,6 +18,12 @@ const checkoutReady = canCheckout(settings)
 const requiresSellerDisclosure =
   checkoutReady && settings.sellerAddressDisclosureMode === 'on_request'
 const categories = [...new Set(products.map((product) => product.category))]
+const shopBoothIds = new Set(
+  products.map((product) => product.externalUrl?.match(/\/items\/(\d+)/)?.[1]),
+)
+const boothOnlyProducts = boothCatalog.products.filter(
+  (product) => !shopBoothIds.has(product.id),
+)
 ---
 
 <BaseLayout
@@ -34,7 +41,8 @@ const categories = [...new Set(products.map((product) => product.category))]
         <h1>ショップ</h1>
         <p class="lead">
           絵、小説、VRChat向け3D作品、グッズをまとめて見られるショップです。
-          カートに入れたあと、Stripe Checkoutで決済します。
+          サイト内の商品はカートに入れたあと、Stripe Checkoutで決済します。
+          BOOTH掲載商品はリンク先で購入できます。
         </p>
         <p class="shop-delivery-note">
           有料商品は、決済完了後にHattが購入時のメールアドレスへ受け渡し方法をご案内します。
@@ -163,4 +171,54 @@ const categories = [...new Set(products.map((product) => product.category))]
       </div>
     </div>
   </section>
+  {boothOnlyProducts.length > 0 && (
+    <section class="section-band" aria-labelledby="booth-products-title">
+      <div class="section-inner">
+        <div class="section-heading">
+          <div>
+            <h2 id="booth-products-title">BOOTHで購入できる作品</h2>
+          </div>
+          <p>価格・内容・受け取り方法はBOOTHの商品ページでご確認ください。</p>
+        </div>
+        <div class="shop-product-grid">
+          {boothOnlyProducts.map((product) => (
+            <article class="shop-product-card">
+              <a
+                class="shop-product-image"
+                href={product.url}
+                {...externalAttrs(product.url)}
+              >
+                <img
+                  src={product.image}
+                  alt={`${product.title}の紹介画像`}
+                  loading="lazy"
+                />
+              </a>
+              <div class="shop-product-body">
+                <div class="shop-product-meta">
+                  <span>{product.category}</span>
+                  <span>BOOTH販売</span>
+                </div>
+                <h3>
+                  <a href={product.url} {...externalAttrs(product.url)}>
+                    {product.title}
+                  </a>
+                </h3>
+                <div class="shop-product-foot">
+                  <strong>{product.priceLabel}</strong>
+                  <a
+                    class="secondary-button"
+                    href={product.url}
+                    {...externalAttrs(product.url)}
+                  >
+                    BOOTHで見る
+                  </a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
 </BaseLayout>
