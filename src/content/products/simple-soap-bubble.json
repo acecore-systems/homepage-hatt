@@ -1,0 +1,27 @@
+{
+  "slug": "simple-soap-bubble",
+  "title": "シンプルシャボン玉ギミック（MA対応）",
+  "category": "modeling",
+  "summary": "VRChatでシャボン玉を吹ける、Modular Avatar対応のギミックです。",
+  "description": "メニューで有効にし、吹き具を口元に近づけるとシャボン玉が出ます。対応外のアバターでも、手元と口元の位置を調整して利用できます。アバター本体は付属しません。",
+  "images": [
+    {
+      "src": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/8631449/550aade6-1fe1-4c9d-833a-072d91c4f645_base_resized.jpg",
+      "alt": "シンプルシャボン玉ギミック（MA対応）の紹介画像"
+    }
+  ],
+  "priceJpy": 400,
+  "status": "published",
+  "fulfillmentType": "manual",
+  "stock": 999,
+  "maxQuantity": 1,
+  "taxCode": "txcd_10000000",
+  "externalUrl": "https://vetumheberehama.booth.pm/items/8631449",
+  "features": [
+    "動作確認環境: Unity 2022.3.22f1 / lilToon 2.3.4 / Modular Avatar 1.17.1。",
+    "利用規約、UI画像、blend・fbx・png・unitypackageを含むZIPをお渡しします。",
+    "購入後、購入時のメールアドレスへHattが受け渡し方法をご案内します。"
+  ],
+  "order": 150,
+  "featured": true
+}
