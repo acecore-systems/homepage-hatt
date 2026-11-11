@@ -19,6 +19,13 @@ test('CMS AIは共通会話UIとService Bindingだけをサイトへ組み込む
   assert.match(client, /\/admin\/api\/ai/)
   assert.match(client, /sessionEndpoint/)
   assert.match(client, /reasoningEffort/)
+  for (const effort of ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'])
+    assert.ok(client.includes(`<option value="${effort}"`))
+  assert.match(
+    client,
+    /if \(conversation\?\.id !== next\.id\)\s+effort\.value = next\.reasoningEffort/,
+  )
+  assert.match(client, /session\?\.capabilities\?\.edit \? 'medium' : 'low'/)
   assert.match(client, /cms-ai-image-input/)
   assert.match(client, /revokeObjectURL/)
   assert.match(client, /\/messages/)
