@@ -64,7 +64,10 @@
     "wrangler": "^4.161.0"
   },
   "overrides": {
-    "sharp": "$sharp"
+    "sharp": "$sharp",
+    "satori": {
+      "fflate": "0.7.5"
+    }
   },
   "engines": {
     "node": ">=24.22.1"
