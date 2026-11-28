@@ -6,7 +6,7 @@
     "アバター": "https://vetumheberehama.booth.pm/item_lists/r1LT6q2w",
     "ギミック": "https://vetumheberehama.booth.pm/item_lists/nZ6TXKVK"
   },
-  "syncedAt": "2026-10-26T23:56:26.153Z",
+  "syncedAt": "2026-11-28T03:51:25.034Z",
   "products": [
     {
       "id": "8087659",
@@ -32,7 +32,7 @@
     },
     {
       "id": "7759821",
-      "title": "母の概念のオリジナル3Dモデル【オロロウルス】",
+      "title": "母の概念のオリジナル3Dモデル【オロロウルス】ver2",
       "category": "アバター",
       "price": 1000,
       "priceLabel": "¥1,000",
@@ -41,7 +41,10 @@
       "images": [
         "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/ad8d53c6-2ef2-450b-9e2e-bb3c4f6c4c87_base_resized.jpg",
         "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/b27349a4-3a5e-4934-9604-8bd65546bbf8_base_resized.jpg",
-        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/3c56fd2d-fc50-418c-b333-a309da0e29b0_base_resized.jpg"
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/3c56fd2d-fc50-418c-b333-a309da0e29b0_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/9bc1a779-ee30-4cd4-bc1c-1f6e92469cc0_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/bb30fd1f-4019-4b84-9a86-29698566b045_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7759821/b3d43a79-93f0-4706-b5bc-245baf83452f_base_resized.jpg"
       ],
       "availability": "in_stock"
     },
@@ -184,6 +187,22 @@
         "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/0c69cf1c-071a-407a-b94b-320e3c73968c_base_resized.jpg",
         "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/1a0da332-1bb3-4d6e-808f-028ec9ef9144_base_resized.jpg",
         "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/7084066/b5007fb6-f6f3-4f7f-a76c-451f61aee881_base_resized.jpg"
+      ],
+      "availability": "in_stock"
+    },
+    {
+      "id": "9073055",
+      "title": "マミーオリジナル3Dモデル",
+      "category": "アバター",
+      "price": 1000,
+      "priceLabel": "¥1,000",
+      "url": "https://vetumheberehama.booth.pm/items/9073055",
+      "image": "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/9073055/9d16ce00-cd0e-4c78-b112-d3556692a639_base_resized.jpg",
+      "images": [
+        "https://booth.pximg.net/c/620x620/b431f483-d8d1-462e-907c-f5f6a0085b12/i/9073055/9d16ce00-cd0e-4c78-b112-d3556692a639_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/9073055/6021ee61-5bd4-4916-91d2-7edd27c27e89_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/9073055/7baddc90-26f1-4c3d-97d2-fb0cc13fd3c6_base_resized.jpg",
+        "https://booth.pximg.net/b431f483-d8d1-462e-907c-f5f6a0085b12/i/9073055/b173e99a-27c2-46ee-b593-c8e14c4a55de_base_resized.jpg"
       ],
       "availability": "in_stock"
     },
